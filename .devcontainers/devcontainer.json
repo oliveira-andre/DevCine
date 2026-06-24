@@ -1,0 +1,13 @@
+{                                                                                                                                                                                                                                              
+  "name": "devcine",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "web",                                                                                                                                                                                                                            
+  "workspaceFolder": "/rails",
+  "forwardPorts": [3000],                                                                                                                                                                                                                      
+  "customizations": {
+    "vscode": {
+      "extensions": ["redhat.vscode-yaml", "Shopify.ruby-lsp"]                                                                                                                                                                                 
+    }                                                                                                                                                                                                                                          
+  },                                                                                                                                                                                                                                           
+  "postCreateCommand": "bundle install"                                                                                                                                                                                                        
+}        
