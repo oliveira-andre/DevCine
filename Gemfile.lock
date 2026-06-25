@@ -72,6 +72,9 @@ GEM
       securerandom (>= 0.3)
       tzinfo (~> 2.0, >= 2.0.5)
       uri (>= 0.13.1)
+    acts_as_list (1.2.6)
+      activerecord (>= 6.1)
+      activesupport (>= 6.1)
     addressable (2.9.0)
       public_suffix (>= 2.0.2, < 8.0)
     ast (2.4.3)
@@ -123,6 +126,8 @@ GEM
       factory_bot (~> 6.5)
       railties (>= 6.1.0)
     ffaker (2.25.0)
+    friendly_id (5.7.0)
+      activerecord (>= 4.0.0)
     fugit (1.12.2)
       et-orbi (~> 1.4)
       raabro (~> 1.4)
@@ -402,6 +407,7 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
+  acts_as_list
   bcrypt (~> 3.1.7)
   bootsnap
   brakeman
@@ -411,6 +417,7 @@ DEPENDENCIES
   dotenv-rails
   factory_bot_rails
   ffaker
+  friendly_id
   importmap-rails
   jbuilder
   kamal
