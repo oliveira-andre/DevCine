@@ -4,7 +4,7 @@ class CreateVideoRenditions < ActiveRecord::Migration[8.0]
       t.references :video, null: false, foreign_key: true, type: :uuid
       t.string :resolution, null: false
       t.integer :bitrate
-      t.integer :format
+      t.integer :format, default: 0
 
       t.timestamps
     end

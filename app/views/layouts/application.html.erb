@@ -17,12 +17,19 @@
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
 
-    <%# Includes all stylesheet files in app/assets/stylesheets %>
-    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%# Shared design-token layer (order matters: tokens first). %>
+    <%= stylesheet_link_tag "shared/variables", "shared/typography", "shared/reset",
+                            "shared/layout", "shared/buttons", "shared/forms", "shared/header",
+                            "data-turbo-track": "reload" %>
+    <%# Page-scoped stylesheet(s), provided per view via content_for(:page_styles). %>
+    <%= yield :page_styles %>
     <%= javascript_importmap_tags %>
   </head>
 
-  <body>
+  <body class="<%= content_for(:body_class) %>">
+    <% if authenticated? %>
+      <%= render "shared/header" %>
+    <% end %>
     <%= yield %>
   </body>
 </html>

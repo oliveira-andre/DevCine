@@ -8,6 +8,7 @@ class CreateUsers < ActiveRecord::Migration[8.0]
       t.string :pin_digest
       t.date :birthdate
       t.datetime :email_confirmed_at
+      t.integer :role, default: 0
 
       t.timestamps
     end

@@ -1,0 +1,15 @@
+<% content_for :title, "DevCine" %>
+<% content_for :page_styles do %>
+  <%= stylesheet_link_tag "home", "data-turbo-track": "reload" %>
+<% end %>
+
+<main class="home">
+  <%= render "home/hero", movies: @hero_movies %>
+
+  <div class="home__rails page">
+    <%= render "home/rail", title: "Last watched", items: @last_watched %>
+    <%= render "home/rail", title: "Recently added videos", items: @recent_videos %>
+    <%= render "home/rail", title: "Recently added movies", items: @recent_movies %>
+    <%= render "home/rail", title: "Recently added series", items: @recent_series %>
+  </div>
+</main>

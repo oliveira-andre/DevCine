@@ -1,0 +1,48 @@
+/* Page-scoped styles for the sign-in / sign-up screens.
+   Centered card on the dark canvas (DESIGN §2, §5.8). */
+
+.auth {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-5);
+  background: var(--home-gradient);
+}
+
+.auth__card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--surface-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  padding: var(--space-8) var(--space-6);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+}
+
+.auth__logo {
+  display: block;
+  height: 40px;
+  width: auto;
+  margin: 0 auto var(--space-6);
+}
+
+.auth__form .field:last-of-type { margin-bottom: var(--space-5); }
+
+.auth__submit { width: 100%; margin-top: var(--space-2); }
+
+.auth__alt {
+  margin-top: var(--space-5);
+  text-align: center;
+  font-size: var(--text-meta);
+  color: var(--text-secondary);
+}
+
+/* No text decoration on the Sign Up / Sign In links (per requirements). */
+.auth__link {
+  color: var(--accent-blue-hov);
+  text-decoration: none;
+  font-weight: 600;
+}
+.auth__link:hover { color: var(--text-primary); }

@@ -1,0 +1,37 @@
+/* Shared layout primitives — source of truth: DESIGN.md §4. Scope: global.
+   Mobile-first: base = mobile, min-width queries enhance upward. */
+
+.page {
+  min-height: 100vh;
+  padding-left: var(--space-4);
+  padding-right: var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .page {
+    padding-left: var(--space-8);
+    padding-right: var(--space-8);
+  }
+}
+
+/* Full-bleed helper: escape page padding for hero/edge-to-edge sections. */
+.bleed {
+  margin-left: calc(-1 * var(--space-4));
+  margin-right: calc(-1 * var(--space-4));
+}
+@media (min-width: 768px) {
+  .bleed {
+    margin-left: calc(-1 * var(--space-8));
+    margin-right: calc(-1 * var(--space-8));
+  }
+}
+
+.stack > * + * { margin-top: var(--space-8); }
+
+.center-viewport {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-5);
+}

@@ -1,11 +1,35 @@
-<%= tag.div(flash[:alert], style: "color:red") if flash[:alert] %>
-<%= tag.div(flash[:notice], style: "color:green") if flash[:notice] %>
-
-<%= form_with url: session_path do |form| %>
-  <%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username", placeholder: "Enter your email address", value: params[:email_address] %><br>
-  <%= form.password_field :password, required: true, autocomplete: "current-password", placeholder: "Enter your password", maxlength: 72 %><br>
-  <%= form.submit "Sign in" %>
+<% content_for :page_styles do %>
+  <%= stylesheet_link_tag "auth", "data-turbo-track": "reload" %>
 <% end %>
-<br>
 
-<%= link_to "Forgot password?", new_password_path %>
+<main class="auth">
+  <div class="auth__card">
+    <%= image_tag "/logo_with_word.png", alt: "DevCine", class: "auth__logo" %>
+
+    <% if flash[:alert] %>
+      <div class="form-flash form-flash-alert"><%= flash[:alert] %></div>
+    <% end %>
+
+    <%= form_with url: session_path, class: "auth__form" do |form| %>
+      <div class="field">
+        <%= form.label :email_address, "Login", class: "field-label" %>
+        <%= form.email_field :email_address, required: true, autofocus: true,
+              autocomplete: "username", class: "field-input",
+              value: params[:email_address] %>
+      </div>
+
+      <div class="field">
+        <%= form.label :password, "Senha", class: "field-label" %>
+        <%= form.password_field :password, required: true,
+              autocomplete: "current-password", maxlength: 72, class: "field-input" %>
+      </div>
+
+      <%= form.submit "Login", class: "btn btn-primary auth__submit" %>
+    <% end %>
+
+    <p class="auth__alt">
+      You don't have an account yet?
+      <%= link_to "Sign Up", new_registration_path, class: "auth__link" %>
+    </p>
+  </div>
+</main>

@@ -1,0 +1,45 @@
+/* Shared typography — source of truth: DESIGN.md §3. Scope: global. */
+
+:root {
+  --font-display: "Inspire", "Avenir Next", "Sofia Pro", "Inter", sans-serif;
+  --font-body: "Inspire", "Avenir Next", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* Type scale: size / line-height / weight */
+  --text-hero: 72px;
+  --text-display: 48px;
+  --text-h1: 32px;
+  --text-h2: 24px;
+  --text-h3: 20px;
+  --text-body: 16px;
+  --text-meta: 14px;
+  --text-caption: 12px;
+  --text-micro: 11px;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  line-height: 1.5;
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
+  margin: 0;
+}
+
+h1 { font-size: var(--text-h1); line-height: 1.2; font-weight: 700; }
+h2 { font-size: var(--text-h2); line-height: 1.25; font-weight: 600; }
+h3 { font-size: var(--text-h3); line-height: 1.3; font-weight: 600; }
+
+.u-meta { font-size: var(--text-meta); font-weight: 500; color: var(--text-secondary); }
+.u-caption { font-size: var(--text-caption); font-weight: 500; color: var(--text-tertiary); }
+.u-micro {
+  font-size: var(--text-micro);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}

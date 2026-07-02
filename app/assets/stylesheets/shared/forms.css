@@ -1,0 +1,49 @@
+/* Shared form inputs — source of truth: DESIGN.md §5.8. Scope: global. */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.field-label {
+  font-size: var(--text-meta);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+}
+
+.field-input {
+  height: 48px;
+  padding: 0 var(--space-4);
+  background: var(--surface-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-tile);
+  color: var(--text-primary);
+  transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
+}
+.field-input::placeholder { color: var(--text-tertiary); }
+.field-input:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 4px var(--accent-blue-glow);
+}
+
+.field-error {
+  min-height: 1em;
+  font-size: var(--text-caption);
+  color: var(--danger);
+}
+
+.field-input[aria-invalid="true"] { border-color: var(--danger); }
+
+.form-flash {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-tile);
+  font-size: var(--text-meta);
+  margin-bottom: var(--space-4);
+}
+.form-flash-alert { background: rgba(227, 52, 47, 0.15); color: #ff9c98; }
+.form-flash-notice { background: rgba(31, 157, 85, 0.15); color: #7fe0aa; }

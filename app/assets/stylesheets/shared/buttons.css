@@ -1,0 +1,41 @@
+/* Shared buttons — source of truth: DESIGN.md §5.7. Scope: global. */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: 0;
+  cursor: pointer;
+  font: 600 var(--text-body) / 1 var(--font-display);
+  letter-spacing: 0.02em;
+  transition: background var(--dur-fast) ease, transform var(--dur-fast) ease, opacity var(--dur-fast) ease;
+}
+
+.btn-primary {
+  background: var(--accent-blue);
+  color: var(--text-primary);
+  padding: 14px 32px;
+  border-radius: var(--radius-tile);
+}
+.btn-primary:hover { background: var(--accent-blue-hov); transform: scale(1.02); }
+
+.btn-block { width: 100%; }
+
+.btn:disabled,
+.btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-pill { border-radius: var(--radius-pill); padding: 14px 32px; }
+
+.btn-outline {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-strong);
+  padding: 13px 31px;
+  border-radius: var(--radius-tile);
+}
+.btn-outline:hover { border-color: var(--text-primary); }

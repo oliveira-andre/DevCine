@@ -1,0 +1,129 @@
+/* Page-scoped styles for the authenticated home screen.
+   Mobile-first; signature black↔blue gradient canvas (DESIGN §2). */
+
+.home {
+  min-height: 100vh;
+  background: var(--home-gradient);
+  padding-bottom: var(--space-10);
+}
+
+/* ---------------- Hero (DESIGN §5.2) ---------------- */
+.hero {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 5;              /* taller crop on mobile */
+  overflow: hidden;
+}
+@media (min-width: 768px) {
+  .hero { aspect-ratio: 16 / 9; }
+}
+
+.hero__slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 600ms var(--ease-standard);
+}
+.hero__slide.is-active { opacity: 1; }
+
+.hero__img { width: 100%; height: 100%; object-fit: cover; }
+
+.hero__overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  padding: var(--space-5);
+  background: linear-gradient(to top, var(--surface-0) 0%, transparent 60%);
+}
+.hero__title { font-size: var(--text-display); font-weight: 700; }
+@media (max-width: 767px) { .hero__title { font-size: var(--text-h1); } }
+
+/* ---------------- Rails (DESIGN §5.4) ---------------- */
+.home__rails {
+  margin-top: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.rail__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+.rail__title { font-size: var(--text-h2); }
+
+.rail__arrows { display: none; gap: var(--space-2); }
+@media (min-width: 1024px) { .rail__arrows { display: flex; } }
+.rail__arrow {
+  width: 36px; height: 36px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-2);
+  color: var(--text-primary);
+  font-size: var(--text-h3);
+  cursor: pointer;
+}
+.rail__arrow:hover { border-color: var(--text-primary); }
+
+.rail__track {
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  padding-bottom: var(--space-2);
+}
+.rail__track::-webkit-scrollbar { display: none; }
+
+/* ---------------- Poster card (DESIGN §5.5) ---------------- */
+.poster-card {
+  flex: 0 0 auto;
+  width: 60vw;
+  max-width: 320px;
+  scroll-snap-align: start;
+  cursor: pointer;
+  transition: transform var(--dur-med) var(--ease-standard);
+}
+@media (min-width: 768px) { .poster-card { width: 30vw; } }
+@media (min-width: 1024px) { .poster-card { width: 18vw; } }
+.poster-card:hover { transform: scale(1.05); }
+
+.poster-card__media {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-tile);
+  overflow: hidden;
+  background: var(--surface-2);
+  border: 2px solid transparent;
+}
+.poster-card:hover .poster-card__media { border-color: var(--text-primary); }
+
+.poster-card__img,
+.poster-card__preview {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.poster-card__preview { opacity: 0; transition: opacity var(--dur-med) ease; }
+.poster-card.is-previewing .poster-card__preview { opacity: 1; }
+
+.poster-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--surface-2), var(--surface-3));
+}
+
+.poster-card__title {
+  margin-top: var(--space-2);
+  font-size: var(--text-meta);
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

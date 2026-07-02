@@ -1,0 +1,31 @@
+<header class="site-header" data-controller="mobile-search">
+  <%= link_to root_path, class: "site-header__brand", "aria-label": "DevCine home" do %>
+    <%= image_tag "/logo_with_word.png", alt: "DevCine", class: "site-header__logo" %>
+  <% end %>
+
+  <div class="site-header__actions">
+    <div class="search">
+      <form class="search__inline" role="search" action="#">
+        <input type="search" class="search__field" placeholder="Search" aria-label="Search">
+      </form>
+      <button type="button" class="search__trigger" aria-label="Open search"
+              data-action="mobile-search#open">
+        <span aria-hidden="true">🔍</span>
+      </button>
+    </div>
+
+    <%= link_to root_path, class: "avatar", title: Current.user&.display_label,
+          "aria-label": "Account" do %>
+      <%= Current.user&.initials %>
+    <% end %>
+  </div>
+
+  <div class="search__overlay" data-mobile-search-target="overlay">
+    <button type="button" class="search__overlay-close" aria-label="Close search"
+            data-action="mobile-search#close">✕</button>
+    <form role="search" action="#">
+      <input type="search" class="search__field" placeholder="Search DevCine"
+             aria-label="Search" data-mobile-search-target="field">
+    </form>
+  </div>
+</header>

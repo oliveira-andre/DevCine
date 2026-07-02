@@ -1,0 +1,107 @@
+/* Shared header / top navigation — source of truth: DESIGN.md §5.1.
+   Scope: global (rendered on authenticated screens). Mobile-first. */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 0 var(--space-4);
+  background: transparent;
+  backdrop-filter: blur(12px);
+}
+@media (min-width: 768px) {
+  .site-header { height: 70px; padding: 0 var(--space-8); }
+}
+
+.site-header__brand { display: inline-flex; align-items: center; }
+.site-header__logo { height: 28px; width: auto; }
+@media (min-width: 768px) { .site-header__logo { height: 34px; } }
+
+.site-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* Search — compact on desktop, trigger + full-screen overlay on mobile. */
+.search {
+  display: flex;
+  align-items: center;
+}
+.search__field {
+  height: 40px;
+  width: 220px;
+  padding: 0 var(--space-4);
+  background: var(--surface-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  color: var(--text-primary);
+}
+.search__field:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 4px var(--accent-blue-glow);
+}
+.search__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  width: 40px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  color: var(--text-primary);
+}
+
+/* Mobile: hide the inline field, show the trigger. */
+.search__inline { display: none; }
+.search__trigger { display: inline-flex; }
+@media (min-width: 768px) {
+  .search__inline { display: flex; }
+  .search__trigger { display: none; }
+}
+
+/* Full-screen mobile search overlay (toggled by mobile_search_controller). */
+.search__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: none;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  background: var(--surface-0);
+}
+.search__overlay[data-open="true"] { display: flex; }
+.search__overlay .search__field { width: 100%; height: 52px; font-size: var(--text-h3); }
+.search__overlay-close {
+  align-self: flex-end;
+  background: transparent;
+  border: 0;
+  color: var(--text-secondary);
+  font-size: var(--text-h3);
+  cursor: pointer;
+}
+
+/* Rounded, clickable avatar (DESIGN §5.1). */
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  width: 36px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-blue);
+  color: var(--text-primary);
+  font: 600 var(--text-meta) / 1 var(--font-display);
+  text-transform: uppercase;
+  border: 2px solid transparent;
+  cursor: pointer;
+}
+.avatar:hover, .avatar:focus-visible { border-color: var(--text-primary); }

@@ -1,0 +1,67 @@
+/* Shared design tokens — source of truth: DESIGN.md §2 Color, §4 Spacing/Layout.
+   Scope: global. Do not hard-code these values elsewhere; reference the vars. */
+
+:root {
+  /* Surface */
+  --surface-0: #06080c;   /* page background, top of gradient */
+  --surface-1: #0c111c;   /* card background, content area */
+  --surface-2: #141a26;   /* elevated card, modal */
+  --surface-3: #1f2733;   /* hover surface, input background */
+
+  /* Text */
+  --text-primary: #f9f9f9;
+  --text-secondary: #c5cad3;
+  --text-tertiary: #8a8f98;
+  --text-disabled: #555a64;
+
+  /* Brand / Accent */
+  --accent-blue: #0063e5;
+  --accent-blue-hov: #0483ee;
+  --accent-blue-glow: rgba(0, 99, 229, 0.45);
+
+  /* Semantic */
+  --success: #1f9d55;
+  --warning: #f5a623;
+  --danger: #e3342f;
+
+  /* Borders & Dividers */
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --border-focus: #f9f9f9;
+
+  /* Spacing scale (8px base grid) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-8: 48px;
+  --space-10: 64px;
+  --space-12: 80px;
+  --space-16: 128px;
+
+  /* Breakpoints (for reference in media queries) */
+  --bp-mobile: 480px;
+  --bp-tablet: 768px;
+  --bp-laptop: 1024px;
+  --bp-desktop: 1440px;
+  --bp-tv: 1920px;
+
+  /* Radii */
+  --radius-tile: 4px;
+  --radius-card: 12px;
+  --radius-pill: 999px;
+
+  /* Motion (DESIGN §7) */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast: 200ms;
+  --dur-med: 300ms;
+
+  /* Signature radial gradient (DESIGN §2) — black canvas with blue glow from top. */
+  --home-gradient:
+    radial-gradient(ellipse 80% 60% at 50% 0%,
+      rgba(0, 99, 229, 0.35) 0%,
+      rgba(0, 99, 229, 0.10) 40%,
+      var(--surface-0) 75%);
+}

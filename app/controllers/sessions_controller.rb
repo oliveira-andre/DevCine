@@ -6,7 +6,11 @@ class SessionsController < ApplicationController
   end
 
   def create
-    if user = User.authenticate_by(params.permit(:email_address, :password))
+    user = User.authenticate_by(params.permit(:email_address, :password))
+
+    # Blocked accounts are rejected at sign-in with a generic error and no
+    # session, so blocked status is never disclosed (FR-022).
+    if user && !user.blocked?
       start_new_session_for user
       redirect_to after_authentication_url
     else

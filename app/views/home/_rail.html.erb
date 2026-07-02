@@ -1,0 +1,16 @@
+<%# A horizontally-scrolled shelf of poster cards (FR-006/FR-007).
+    Hidden entirely when empty (FR-019). %>
+<% if items.any? %>
+  <section class="rail" data-controller="rail">
+    <div class="rail__head">
+      <h2 class="rail__title"><%= title %></h2>
+      <div class="rail__arrows">
+        <button type="button" class="rail__arrow" data-action="rail#prev" aria-label="Scroll left">‹</button>
+        <button type="button" class="rail__arrow" data-action="rail#next" aria-label="Scroll right">›</button>
+      </div>
+    </div>
+    <div class="rail__track" data-rail-target="viewport">
+      <%= render partial: "home/poster_card", collection: items, as: :item %>
+    </div>
+  </section>
+<% end %>
