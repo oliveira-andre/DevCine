@@ -77,6 +77,12 @@
   padding-bottom: var(--space-2);
 }
 .rail__track::-webkit-scrollbar { display: none; }
+/* Loaded frames are layout-transparent so lazily-appended pages flow into the
+   same horizontal flex row; the still-loading lazy frame keeps a box so Turbo
+   can observe it and auto-load the next page on scroll. */
+.rail__track turbo-frame { display: contents; }
+.rail__track turbo-frame[src]:not([complete]) { display: block; flex: 0 0 auto; align-self: center; }
+.rail__track .pagination-loader { flex: 0 0 auto; align-self: center; padding: 0 var(--space-4); }
 
 /* ---------------- Poster card (DESIGN §5.5) ---------------- */
 .poster-card {

@@ -1,0 +1,79 @@
+/* Left navigation drawer (US2). Slides from the left with a dimmed backdrop. */
+
+.drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  visibility: hidden;
+}
+.drawer.is-open { visibility: visible; }
+
+.drawer__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  transition: opacity var(--dur-med) ease;
+}
+.drawer.is-open .drawer__backdrop { opacity: 1; }
+
+.drawer__panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 288px;
+  max-width: 82vw;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-4);
+  background: var(--surface-1);
+  border-right: 1px solid var(--border-subtle);
+  transform: translateX(-100%);
+  transition: transform var(--dur-med) var(--ease-standard);
+}
+.drawer.is-open .drawer__panel { transform: translateX(0); }
+
+.drawer__close {
+  align-self: flex-end;
+  background: none;
+  border: 0;
+  color: var(--text-secondary);
+  font-size: var(--text-h2);
+  cursor: pointer;
+}
+
+.drawer__nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-top: var(--space-5);
+  flex: 1;
+}
+
+.drawer__link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-3);
+  border-radius: var(--radius-tile);
+  color: var(--text-secondary);
+  font: 600 var(--text-h3) / 1 var(--font-display);
+  background: none;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+}
+.drawer__link .icon { font-size: 22px; }
+.drawer__link:hover,
+.drawer__link:focus-visible { background: var(--surface-3); color: var(--text-primary); }
+
+.drawer__footer {
+  border-top: 1px solid var(--border-subtle);
+  padding-top: var(--space-3);
+  margin-top: var(--space-3);
+}
+.drawer__signout .icon { color: var(--danger); }
+
+body.drawer-open { overflow: hidden; }

@@ -1,0 +1,46 @@
+/* Page-scoped styles for section listing pages (vertical paginated grids). */
+
+.listing {
+  min-height: 100vh;
+  background: var(--home-gradient);
+  padding-top: var(--space-6);
+  padding-bottom: var(--space-10);
+}
+
+.listing__title {
+  font-size: var(--text-h1);
+  margin-bottom: var(--space-5);
+}
+
+/* The grid lays cards out responsively; Turbo frames are layout-transparent so
+   appended pages flow into the same grid. */
+.listing__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-4);
+}
+@media (min-width: 768px) { .listing__grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1024px) { .listing__grid { grid-template-columns: repeat(5, 1fr); } }
+
+/* Loaded frames are layout-transparent so cards flow into the grid. The still-
+   loading lazy frame keeps a real box so Turbo's IntersectionObserver can see
+   it and auto-load the next page on scroll. */
+.listing__grid turbo-frame { display: contents; }
+.listing__grid turbo-frame[src]:not([complete]) { display: block; grid-column: 1 / -1; }
+
+/* On listing grids the cards are full-width of their grid cell. */
+.listing__grid .poster-card { width: 100%; max-width: none; }
+
+/* The loader spans the full grid width. */
+.listing__grid .pagination-loader { grid-column: 1 / -1; }
+
+.listing__empty { color: var(--text-tertiary); font-size: var(--text-h3); margin-top: var(--space-6); }
+
+.pagination-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+  font-size: var(--text-h2);
+  color: var(--text-tertiary);
+}

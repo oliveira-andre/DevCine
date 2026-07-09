@@ -1,0 +1,23 @@
+<div class="drawer" data-drawer-target="root" data-action="keydown@window->drawer#keydown">
+  <div class="drawer__backdrop" data-drawer-target="backdrop" data-action="click->drawer#close"></div>
+
+  <nav class="drawer__panel" data-drawer-target="panel" role="dialog" aria-modal="true"
+       aria-label="Main navigation">
+    <button type="button" class="drawer__close" data-action="drawer#close" aria-label="Close menu">✕</button>
+
+    <ul class="drawer__nav">
+      <li><%= link_to root_path, class: "drawer__link" do %><%= icon(:home) %><span>Home</span><% end %></li>
+      <li><%= link_to lives_path, class: "drawer__link" do %><%= icon(:live) %><span>Lives</span><% end %></li>
+      <li><%= link_to videos_path, class: "drawer__link" do %><%= icon(:videos) %><span>Videos</span><% end %></li>
+      <li><%= link_to movies_path, class: "drawer__link" do %><%= icon(:movie) %><span>Movies</span><% end %></li>
+      <li><%= link_to series_path, class: "drawer__link" do %><%= icon(:serie) %><span>Series</span><% end %></li>
+      <li><%= link_to account_path, class: "drawer__link" do %><%= icon(:account) %><span>Account</span><% end %></li>
+    </ul>
+
+    <div class="drawer__footer">
+      <%= button_to session_path, method: :delete, class: "drawer__link drawer__signout" do %>
+        <%= icon(:sign_out) %><span>Sign out</span>
+      <% end %>
+    </div>
+  </nav>
+</div>

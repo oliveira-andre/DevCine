@@ -1,0 +1,9 @@
+<% content_for :title, "Videos" %>
+<% content_for :page_styles do %>
+  <%= stylesheet_link_tag "home", "listing", "data-turbo-track": "reload" %>
+<% end %>
+
+<main class="page listing">
+  <h1 class="listing__title">Videos</h1>
+  <div class="listing__grid"><%= render "videos/page" %></div>
+</main>

@@ -1,0 +1,13 @@
+<% content_for :title, @title %>
+<% content_for :page_styles do %>
+  <%= stylesheet_link_tag "home", "listing", "data-turbo-track": "reload" %>
+<% end %>
+
+<main class="page listing">
+  <h1 class="listing__title"><%= @title %></h1>
+  <% if @items.any? %>
+    <div class="listing__grid"><%= render "catalog/browse/page" %></div>
+  <% else %>
+    <p class="listing__empty">Nothing here yet.</p>
+  <% end %>
+</main>

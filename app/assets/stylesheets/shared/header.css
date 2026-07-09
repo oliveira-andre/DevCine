@@ -22,71 +22,46 @@
 .site-header__logo { height: 28px; width: auto; }
 @media (min-width: 768px) { .site-header__logo { height: 34px; } }
 
+/* Responsive logo: mark-only on mobile, wordmark on desktop (US6). */
+.site-header__logo--desktop { display: none; }
+.site-header__logo--mobile { display: block; height: 32px; }
+@media (min-width: 768px) {
+  .site-header__logo--desktop { display: block; }
+  .site-header__logo--mobile { display: none; }
+}
+
 .site-header__actions {
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  flex: 1;
+  justify-content: flex-end;
 }
 
-/* Search — compact on desktop, trigger + full-screen overlay on mobile. */
-.search {
+/* Search control — a link styled as an input that routes to /search.
+   Mobile: centered and flexible. Desktop: compact, right-aligned. */
+.search-box {
   display: flex;
   align-items: center;
-}
-.search__field {
   height: 40px;
-  width: 220px;
+  flex: 1;
+  max-width: 100%;
+  margin: 0 var(--space-3);
   padding: 0 var(--space-4);
   background: var(--surface-3);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-pill);
-  color: var(--text-primary);
+  color: var(--text-tertiary);
+  cursor: text;
 }
-.search__field:focus {
-  outline: none;
+.search-box:hover,
+.search-box:focus-visible {
   border-color: var(--accent-blue);
-  box-shadow: 0 0 0 4px var(--accent-blue-glow);
+  outline: none;
 }
-.search__trigger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 40px;
-  width: 40px;
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-  color: var(--text-primary);
-}
-
-/* Mobile: hide the inline field, show the trigger. */
-.search__inline { display: none; }
-.search__trigger { display: inline-flex; }
+.search-box__placeholder { font-size: var(--text-meta); }
 @media (min-width: 768px) {
-  .search__inline { display: flex; }
-  .search__trigger { display: none; }
-}
-
-/* Full-screen mobile search overlay (toggled by mobile_search_controller). */
-.search__overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 200;
-  display: none;
-  flex-direction: column;
-  gap: var(--space-4);
-  padding: var(--space-5);
-  background: var(--surface-0);
-}
-.search__overlay[data-open="true"] { display: flex; }
-.search__overlay .search__field { width: 100%; height: 52px; font-size: var(--text-h3); }
-.search__overlay-close {
-  align-self: flex-end;
-  background: transparent;
-  border: 0;
-  color: var(--text-secondary);
-  font-size: var(--text-h3);
-  cursor: pointer;
+  .search-box { flex: none; width: 240px; margin: 0; }
 }
 
 /* Rounded, clickable avatar (DESIGN §5.1). */

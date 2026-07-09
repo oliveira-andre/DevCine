@@ -1,0 +1,6 @@
+<%= render "shared/paginated_frame",
+      key: "movies",
+      pagy: @pagy,
+      items: @movies,
+      card: "home/poster_card",
+      next_url: next_page_url(@pagy) %>

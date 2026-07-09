@@ -1,0 +1,29 @@
+<% content_for :title, "Search" %>
+<% content_for :page_styles do %>
+  <%= stylesheet_link_tag "search", "data-turbo-track": "reload" %>
+<% end %>
+
+<main class="search-page">
+  <%= form_with url: search_path, method: :get, class: "search-page__form",
+        data: { controller: "autofocus" } do |form| %>
+    <%= form.search_field :q, value: @query, placeholder: "Search DevCine",
+          class: "search-page__input", "aria-label": "Search",
+          data: { "autofocus-target": "input" } %>
+  <% end %>
+
+  <section class="search-page__categories">
+    <h2 class="search-page__heading">Genres</h2>
+    <div class="chips">
+      <% @genres.each do |genre| %>
+        <%= link_to genre.name, genre_browse_path(slug: genre.slug), class: "chip" %>
+      <% end %>
+    </div>
+
+    <h2 class="search-page__heading">Categories</h2>
+    <div class="chips">
+      <% @kinds.each do |kind| %>
+        <%= link_to kind.titleize, kind_browse_path(kind: kind), class: "chip" %>
+      <% end %>
+    </div>
+  </section>
+</main>

@@ -1,0 +1,28 @@
+<%#
+  Reusable smart-pagination frame (pagy 43.6 + Turbo lazy append).
+
+  Renders the current page's cards inside a Turbo Frame `"<key>_page_<n>"`,
+  and — when a next page exists — a nested lazy frame (`"<key>_page_<n+1>"`,
+  `loading: :lazy`) whose `src` fetches the next page. The next-page response
+  re-renders this same partial, so its outer frame id matches the placeholder
+  and Turbo appends it in place. `key` namespaces the frames so multiple
+  collections (e.g. home rails) don't collide.
+
+  Locals:
+    key         - unique string per collection (e.g. "recent_movies")
+    pagy        - the Pagy object
+    items       - current page records
+    card        - partial path rendered per item (as :item)
+    next_url    - URL for the next page, or nil (caller builds it)
+    card_locals - optional extra locals for the card partial
+%>
+<% card_locals ||= {} %>
+<%= turbo_frame_tag "#{key}_page_#{pagy.page}", target: :_top do %>
+  <%= render partial: card, collection: items, as: :item, locals: card_locals %>
+
+  <% if pagy.next && next_url.present? %>
+    <%= turbo_frame_tag "#{key}_page_#{pagy.next}", src: next_url, loading: :lazy, target: :_top do %>
+      <span class="pagination-loader"><%= icon(:spinner) %></span>
+    <% end %>
+  <% end %>
+<% end %>

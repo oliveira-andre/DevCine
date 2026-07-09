@@ -2,14 +2,31 @@ module MediaHelper
   # Renders an image for an Active Storage image attachment as a bounded
   # variant, falling back to an external URL (e.g. a Movie backdrop_key), then
   # to a CSS placeholder tile when nothing is available.
+  # Renders a lazy-loaded image inside a wrapper that shows a loading spinner
+  # until the image loads (then swaps it in), or a placeholder if the image
+  # errors or none is available. The caller's `class:` goes on the wrapper so
+  # existing layout classes (poster-card__img, hero__img) still position it.
   def poster_image_tag(attachment, external_url = nil, alt:, limit: [ 800, 800 ], **opts)
-    if attachment.respond_to?(:attached?) && attachment.attached?
-      image_tag attachment.variant(resize_to_limit: limit), alt: alt, loading: "lazy", **opts
-    elsif external_url.present?
-      image_tag external_url, alt: alt, loading: "lazy", **opts
-    else
-      opts[:class] = [ opts[:class], "poster-placeholder" ].compact.join(" ")
-      content_tag :div, "", role: "img", "aria-label": alt, **opts
+    wrapper_class = [ "media", opts.delete(:class) ].compact.join(" ")
+
+    src =
+      if attachment.respond_to?(:attached?) && attachment.attached?
+        attachment.variant(resize_to_limit: limit)
+      elsif external_url.present?
+        external_url
+      end
+
+    if src.nil?
+      return content_tag(:div, "", class: "#{wrapper_class} poster-placeholder",
+                         role: "img", "aria-label": alt, **opts)
+    end
+
+    content_tag :div, class: wrapper_class, data: { controller: "lazy-image" }, **opts do
+      concat content_tag(:span, icon(:spinner), class: "media__spinner",
+                         data: { "lazy-image-target": "spinner" })
+      concat image_tag(src, alt: alt, loading: "lazy", decoding: "async", class: "media__img",
+                       data: { "lazy-image-target": "image",
+                               action: "load->lazy-image#loaded error->lazy-image#failed" })
     end
   end
 

@@ -1,0 +1,33 @@
+/* Icon system — inline SVGs emitted by the `icons` helper. Scope: global.
+   Icons inherit color via currentColor and size via the font-size / em box. */
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1em;
+  height: 1em;
+  line-height: 0;
+  flex: none;
+}
+
+.icon svg {
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+  display: block;
+}
+
+/* Loading spinner rotation (DESIGN §7 easing). */
+.icon--spin svg {
+  animation: icon-spin 900ms linear infinite;
+  transform-origin: 50% 50%;
+}
+
+@keyframes icon-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .icon--spin svg { animation-duration: 2.4s; }
+}

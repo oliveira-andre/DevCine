@@ -23,7 +23,7 @@ RSpec.describe "Home screen", type: :system do
     expect(page).to have_css(".hero__slide", count: 4, visible: :all)
 
     titles = page.all(".rail__title").map(&:text)
-    expect(titles).to eq(["Recently added videos", "Recently added movies", "Recently added series"])
+    expect(titles).to eq([ "Recently added videos", "Recently added movies", "Recently added series" ])
   end
 
   it "puts the Last watched rail first when the member has watch history" do

@@ -8,8 +8,17 @@
 
   <div class="home__rails page">
     <%= render "home/rail", title: "Last watched", items: @last_watched %>
-    <%= render "home/rail", title: "Recently added videos", items: @recent_videos %>
-    <%= render "home/rail", title: "Recently added movies", items: @recent_movies %>
-    <%= render "home/rail", title: "Recently added series", items: @recent_series %>
+
+    <%= render "home/rail", title: "Recently added videos", key: "videos",
+          items: @recent_videos, pagy: @videos_pagy,
+          next_url: (@videos_pagy.next ? videos_path(page: @videos_pagy.next) : nil) %>
+
+    <%= render "home/rail", title: "Recently added movies", key: "movies",
+          items: @recent_movies, pagy: @movies_pagy,
+          next_url: (@movies_pagy.next ? movies_path(page: @movies_pagy.next) : nil) %>
+
+    <%= render "home/rail", title: "Recently added series", key: "series",
+          items: @recent_series, pagy: @series_pagy,
+          next_url: (@series_pagy.next ? series_path(page: @series_pagy.next) : nil) %>
   </div>
 </main>

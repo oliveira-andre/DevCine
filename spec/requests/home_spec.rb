@@ -55,4 +55,18 @@ RSpec.describe "Home", type: :request do
       expect(response.body).to include("Last watched")
     end
   end
+
+  describe "public-only content (US4)" do
+    it "excludes private and unlisted videos from the home rails" do
+      create(:video, kind: :standalone, visibility: :public, title: "Public Clip Zeta")
+      create(:video, kind: :standalone, visibility: :private, title: "Private Clip Zeta")
+      create(:video, kind: :standalone, visibility: :unlisted, title: "Unlisted Clip Zeta")
+      sign_in(create(:user, password: "password123"))
+
+      get root_path
+      expect(response.body).to include("Public Clip Zeta")
+      expect(response.body).not_to include("Private Clip Zeta")
+      expect(response.body).not_to include("Unlisted Clip Zeta")
+    end
+  end
 end

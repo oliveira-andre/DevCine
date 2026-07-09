@@ -1,31 +1,20 @@
-<header class="site-header" data-controller="mobile-search">
+<header class="site-header">
   <%= link_to root_path, class: "site-header__brand", "aria-label": "DevCine home" do %>
-    <%= image_tag "/logo_with_word.png", alt: "DevCine", class: "site-header__logo" %>
+    <%= image_tag "/logo_with_word.png", alt: "DevCine", class: "site-header__logo site-header__logo--desktop" %>
+    <%= image_tag "/logo.png", alt: "DevCine", class: "site-header__logo site-header__logo--mobile" %>
   <% end %>
 
   <div class="site-header__actions">
-    <div class="search">
-      <form class="search__inline" role="search" action="#">
-        <input type="search" class="search__field" placeholder="Search" aria-label="Search">
-      </form>
-      <button type="button" class="search__trigger" aria-label="Open search"
-              data-action="mobile-search#open">
-        <span aria-hidden="true">🔍</span>
-      </button>
-    </div>
-
-    <%= link_to root_path, class: "avatar", title: Current.user&.display_label,
-          "aria-label": "Account" do %>
-      <%= Current.user&.initials %>
+    <%# Search is a control that navigates to the dedicated /search page. %>
+    <%= link_to search_path, class: "search-box", role: "search",
+          data: { controller: "search-redirect", action: "focus->search-redirect#go" } do %>
+      <span class="search-box__placeholder">Search</span>
     <% end %>
-  </div>
 
-  <div class="search__overlay" data-mobile-search-target="overlay">
-    <button type="button" class="search__overlay-close" aria-label="Close search"
-            data-action="mobile-search#close">✕</button>
-    <form role="search" action="#">
-      <input type="search" class="search__field" placeholder="Search DevCine"
-             aria-label="Search" data-mobile-search-target="field">
-    </form>
+    <%# Avatar opens the left navigation drawer (controller on <body>). %>
+    <button type="button" class="avatar" data-action="drawer#open"
+            aria-label="Open menu" title="<%= Current.user&.display_label %>">
+      <%= Current.user&.initials %>
+    </button>
   </div>
 </header>

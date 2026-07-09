@@ -1,0 +1,38 @@
+/* Lazy media wrapper emitted by `poster_image_tag` (US1). The wrapper carries
+   the layout class (e.g. poster-card__img); the spinner sits centered until the
+   image loads, then fades in. On error the placeholder shows. Scope: global. */
+
+.media {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface-2);
+}
+
+.media__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity var(--dur-med) ease;
+}
+.media.is-loaded .media__img { opacity: 1; }
+
+.media__spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 28px;
+  color: var(--text-tertiary);
+}
+.media.is-loaded .media__spinner,
+.media.is-error .media__spinner { display: none; }
+
+/* On error, fall back to the placeholder gradient (matches .poster-placeholder). */
+.media.is-error { background: linear-gradient(135deg, var(--surface-2), var(--surface-3)); }
+
+.poster-placeholder {
+  background: linear-gradient(135deg, var(--surface-2), var(--surface-3));
+}

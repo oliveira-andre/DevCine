@@ -1,5 +1,7 @@
 <%# A horizontally-scrolled shelf of poster cards (FR-006/FR-007).
-    Hidden entirely when empty (FR-019). %>
+    Hidden entirely when empty (FR-019). When `pagy` + `next_url` are given, the
+    end-of-rail lazy Turbo Frame auto-appends the next page (US5); the arrows
+    only scroll already-loaded cards. %>
 <% if items.any? %>
   <section class="rail" data-controller="rail">
     <div class="rail__head">
@@ -10,7 +12,13 @@
       </div>
     </div>
     <div class="rail__track" data-rail-target="viewport">
-      <%= render partial: "home/poster_card", collection: items, as: :item %>
+      <% if local_assigns[:pagy] %>
+        <%= render "shared/paginated_frame",
+              key: key, pagy: pagy, items: items,
+              card: "home/poster_card", next_url: next_url %>
+      <% else %>
+        <%= render partial: "home/poster_card", collection: items, as: :item %>
+      <% end %>
     </div>
   </section>
 <% end %>

@@ -55,8 +55,8 @@ uploader = users[:admin]
 # ---------------------------------------------------------------------------
 # Catalog (only seeded once)
 # ---------------------------------------------------------------------------
-if Movie.count < 6
-  6.times do |i|
+if Movie.count < 24
+  24.times do |i|
     feature = Video.create!(
       title: "Feature Film #{i + 1}",
       description: "A seeded feature film.",
@@ -82,15 +82,21 @@ if Movie.count < 6
   end
 end
 
-if Video.standalone.count < 8
-  8.times do |i|
+# Standalone videos with a visibility mix (public / private / unlisted) so the
+# public-only home filter is demonstrable. >50 to exercise the 50/pg limit.
+if Video.standalone.count < 60
+  60.times do |i|
+    visibility = if (i % 5).zero? then :private
+    elsif (i % 7).zero? then :unlisted
+    else :public
+    end
     video = Video.create!(
       title: "Standalone Clip #{i + 1}",
       description: "A seeded standalone video.",
       duration_seconds: rand(60..1800),
       kind: :standalone,
       status: :ready,
-      visibility: :public,
+      visibility: visibility,
       file_size_bytes: 120_000_000,
       uploader: uploader,
       created_at: (i + 1).minutes.ago
@@ -100,8 +106,26 @@ if Video.standalone.count < 8
   end
 end
 
-if Serie.count < 4
-  4.times do |i|
+# Public live-kind videos back the "Lives" section and the live category.
+if Video.live.count < 8
+  8.times do |i|
+    live = Video.create!(
+      title: "Live Stream #{i + 1}",
+      description: "A seeded live stream.",
+      duration_seconds: rand(600..7200),
+      kind: :live,
+      status: :ready,
+      visibility: :public,
+      file_size_bytes: 0,
+      uploader: uploader,
+      created_at: (i + 1).minutes.ago
+    )
+    attach_file(live.thumbnail, MEDIA[:poster], filename: "thumb.webp")
+  end
+end
+
+if Serie.count < 24
+  24.times do |i|
     serie = Serie.create!(
       title: "Seeded Series #{i + 1}",
       description: "A seeded series.",
@@ -110,6 +134,22 @@ if Serie.count < 4
       created_at: (i + 1).hours.ago
     )
     attach_file(serie.poster, MEDIA[:serie], filename: "serie_poster.jpg")
+  end
+end
+
+# ---------------------------------------------------------------------------
+# Genres + taggings (drive /search categories and genre browse)
+# ---------------------------------------------------------------------------
+genres = %w[Gaming Drama Action Suspense Terror].map do |name|
+  Genre.find_or_create_by!(name: name)
+end
+
+if Tagging.none?
+  Movie.all.each_with_index do |movie, i|
+    Tagging.create!(genre: genres[i % genres.size], taggable: movie)
+  end
+  Serie.all.each_with_index do |serie, i|
+    Tagging.create!(genre: genres[(i + 2) % genres.size], taggable: serie)
   end
 end
 

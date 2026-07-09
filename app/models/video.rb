@@ -50,6 +50,8 @@ class Video < ApplicationRecord
 
   # Most recently added first — feeds the "Recently added" rails.
   scope :recent, -> { order(created_at: :desc) }
-  # Standalone clips for the "Recently added videos" rail.
-  scope :standalone_recent, -> { standalone.recent }
+  # Public gate for any user-facing video listing (home, sections, browse).
+  scope :listable, -> { visibility_public }
+  # Standalone clips for the "Recently added videos" rail (public only).
+  scope :standalone_recent, -> { standalone.listable.recent }
 end
