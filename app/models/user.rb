@@ -18,13 +18,27 @@ class User < ApplicationRecord
   has_many :reviews, dependent: :destroy
   has_many :watchlist_items, dependent: :destroy
   has_many :likes, dependent: :destroy
+  # Videos this member liked (the Likes rail on the profile).
+  has_many :liked_videos, through: :likes, source: :likeable, source_type: "Video"
 
-  # Media (Active Storage): profile avatar (falls back to initials when absent).
+  # Media (Active Storage): profile avatar (falls back to initials when absent)
+  # and an optional full-screen profile cover/background.
   has_one_attached :avatar
+  has_one_attached :cover
 
   normalizes :email_address, with: ->(e) { e.strip.downcase }
 
   validates :email_address, presence: true, uniqueness: true
+  validate :avatar_and_cover_are_images
+
+  def avatar_and_cover_are_images
+    { avatar: avatar, cover: cover }.each do |name, attachment|
+      next unless attachment.attached?
+      next if attachment.blob.content_type.to_s.start_with?("image/")
+
+      errors.add(name, "must be an image")
+    end
+  end
 
   # Label shown next to / inside the rounded header avatar.
   def display_label

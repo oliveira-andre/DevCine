@@ -1,7 +1,40 @@
-<% content_for :title, "Account" %>
+<% content_for :title, @owner ? "Your account" : @user.display_label %>
+<% content_for :page_styles do %>
+  <%= stylesheet_link_tag "home", "listing", "account", "data-turbo-track": "reload" %>
+<% end %>
 
-<main class="page listing">
-  <h1 class="listing__title">Account</h1>
-  <p class="u-meta"><%= @user.display_label %></p>
-  <p class="u-caption">Account management is coming soon.</p>
+<main class="account">
+  <%= render "accounts/background", user: @user %>
+
+  <header class="account__header">
+    <% if @owner %>
+      <%= link_to edit_account_path, class: "account__avatar-link", data: { turbo_frame: "modal" },
+            "aria-label": "Update profile picture" do %>
+        <%= render "accounts/avatar", user: @user %>
+        <span class="account__avatar-edit">Edit</span>
+      <% end %>
+    <% else %>
+      <%= render "accounts/avatar", user: @user %>
+    <% end %>
+
+    <%= render "accounts/name", user: @user, owner: @owner %>
+
+    <% if @owner %>
+      <div class="account__actions">
+        <%= link_to edit_settings_password_path, class: "account__action", title: "Change password",
+              "aria-label": "Change password", data: { turbo_frame: "modal" } do %><%= icon(:settings) %><% end %>
+        <%= link_to new_video_path, class: "account__action", title: "Upload video",
+              "aria-label": "Upload video", data: { turbo_frame: "modal" } do %><%= icon(:movie) %><% end %>
+      </div>
+    <% end %>
+  </header>
+
+  <div class="account__rails page">
+    <%= render "accounts/uploads_rail", items: @recent_uploads %>
+    <%= render "home/rail", title: "Likes", items: @likes %>
+    <%= render "accounts/playlists_rail", playlists: @playlists %>
+    <% if @owner && @history %>
+      <%= render "home/rail", title: "History", items: @history %>
+    <% end %>
+  </div>
 </main>

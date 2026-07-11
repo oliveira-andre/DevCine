@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_07_01_032502) do
+ActiveRecord::Schema[8.0].define(version: 2026_07_09_233004) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -253,7 +253,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_01_032502) do
   create_table "videos", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "title", null: false
     t.text "description"
-    t.integer "duration_seconds", null: false
+    t.integer "duration_seconds"
     t.integer "status", default: 0
     t.integer "visibility", default: 0
     t.integer "kind", default: 0
@@ -265,6 +265,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_01_032502) do
     t.uuid "uploader_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "maturity_rating", default: 0, null: false
     t.index ["slug"], name: "index_videos_on_slug", unique: true
     t.index ["uploader_id"], name: "index_videos_on_uploader_id"
   end

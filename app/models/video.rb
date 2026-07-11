@@ -25,6 +25,17 @@ class Video < ApplicationRecord
     tutorial: 5
   }
 
+  # Same age-rating scale as Serie/Movie for catalog consistency.
+  enum :maturity_rating, {
+    L: 0,
+    A6: 1,
+    A10: 2,
+    A12: 3,
+    A14: 4,
+    A16: 5,
+    A18: 6
+  }
+
   belongs_to :uploader, class_name: "User", foreign_key: "uploader_id", inverse_of: :uploaded_videos
 
   has_many :episodes, dependent: :destroy
@@ -44,9 +55,20 @@ class Video < ApplicationRecord
   has_one_attached :thumbnail
   has_one_attached :preview
 
-  validates :title, :duration_seconds, presence: true
-  validates :duration_seconds, numericality: { greater_than: 0 }
+  # Set by the upload flow so the video file is required there (but not for
+  # seeded catalog videos which have no uploaded file).
+  attr_accessor :require_file
+
+  validates :title, presence: true
+  # Duration is unknown until the (deferred) processing pipeline runs, so it is
+  # optional at upload time; when present it must be positive.
+  validates :duration_seconds, numericality: { greater_than: 0 }, allow_nil: true
   validates :file_size_bytes, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
+  validate :uploaded_file_present, if: :require_file
+
+  def uploaded_file_present
+    errors.add(:file, "can't be blank") unless file.attached?
+  end
 
   # Most recently added first — feeds the "Recently added" rails.
   scope :recent, -> { order(created_at: :desc) }

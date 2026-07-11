@@ -1,7 +1,7 @@
 FactoryBot.define do
   factory :playlist_item do
-    playlist { nil }
-    video { nil }
-    position { 1 }
+    association :playlist
+    association :video
+    sequence(:position) { |n| n }
   end
 end

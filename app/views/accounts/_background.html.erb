@@ -1,0 +1,5 @@
+<div class="account__bg" id="account_bg">
+  <% if user.cover.attached? %>
+    <%= image_tag user.cover.variant(resize_to_limit: [ 1600, 900 ]), alt: "", class: "account__bg-img" %>
+  <% end %>
+</div>

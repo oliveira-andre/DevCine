@@ -168,6 +168,41 @@ if member.watch_progresses.none?
   end
 end
 
+# ---------------------------------------------------------------------------
+# Profile content for the member: uploads, likes, playlists, view history
+# ---------------------------------------------------------------------------
+if member.uploaded_videos.none?
+  3.times do |i|
+    v = Video.create!(
+      title: "My Upload #{i + 1}", description: "A seeded member upload.",
+      duration_seconds: rand(120..1800), kind: :standalone, status: :ready,
+      visibility: (i.zero? ? :private : :public), maturity_rating: :L,
+      file_size_bytes: 90_000_000, uploader: member, created_at: (i + 1).minutes.ago
+    )
+    attach_file(v.thumbnail, MEDIA[:poster], filename: "thumb.webp")
+  end
+end
+
+if member.likes.none?
+  Video.listable.limit(6).each { |v| Like.find_or_create_by!(user: member, likeable: v) }
+end
+
+if member.playlists.none?
+  [ "Favorites", "Watch Later", "Best of 2026" ].each_with_index do |title, i|
+    pl = Playlist.create!(user: member, title: title, visibility: (i == 2 ? :private : :public))
+    Video.listable.limit(rand(2..5)).each_with_index do |v, pos|
+      PlaylistItem.create!(playlist: pl, video: v, position: pos + 1)
+    end
+  end
+end
+
+if member.video_views.none?
+  Video.listable.order(created_at: :desc).limit(6).each_with_index do |v, i|
+    VideoView.create!(user: member, video: v, watched_at: (i + 1).hours.ago, ip_hash: SecureRandom.hex(8))
+  end
+end
+
 puts "Seeded: #{User.count} users, #{Movie.count} movies, " \
      "#{Video.standalone.count} standalone videos, #{Serie.count} series, " \
-     "#{WatchProgress.count} watch-progress records."
+     "#{member.uploaded_videos.count} member uploads, #{member.likes.count} likes, " \
+     "#{member.playlists.count} playlists, #{member.video_views.count} views."

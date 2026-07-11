@@ -1,8 +1,8 @@
 FactoryBot.define do
   factory :video_view do
-    video { nil }
-    user { nil }
-    watched_at { "2026-06-24 19:27:21" }
-    ip_hash { "MyString" }
+    association :video
+    association :user
+    watched_at { Time.current }
+    ip_hash { SecureRandom.hex(8) }
   end
 end

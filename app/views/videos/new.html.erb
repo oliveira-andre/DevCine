@@ -1,0 +1,52 @@
+<%= modal title: "Upload video", size: :wide do %>
+  <%= form_with model: @video, url: videos_path, class: "modal__form upload-form" do |form| %>
+    <% if @video.errors.any? %>
+      <div class="form-flash form-flash-alert upload-form__flash"><%= @video.errors.full_messages.first %></div>
+    <% end %>
+
+    <div class="upload-form__grid">
+      <%# Left: metadata fields %>
+      <div class="upload-form__col">
+        <div class="field">
+          <%= form.label :title, class: "field-label" %>
+          <%= form.text_field :title, required: true, class: "field-input" %>
+        </div>
+
+        <div class="field">
+          <%= form.label :description, class: "field-label" %>
+          <%= form.text_area :description, rows: 5, class: "field-input" %>
+        </div>
+
+        <div class="field">
+          <%= form.label :maturity_rating, "Maturity", class: "field-label" %>
+          <%= form.select :maturity_rating, Video.maturity_ratings.keys.map { |k| [ k, k ] },
+                {}, class: "field-input" %>
+        </div>
+
+        <div class="field">
+          <%= form.label :visibility, class: "field-label" %>
+          <%= form.select :visibility, Video.visibilities.keys.map { |k| [ k.titleize, k ] },
+                { selected: "public" }, class: "field-input" %>
+        </div>
+      </div>
+
+      <%# Right: video file + thumbnail uploads %>
+      <div class="upload-form__col">
+        <div class="field">
+          <%= form.label :file, "Video file", class: "field-label" %>
+          <%= form.file_field :file, required: true, accept: "video/*", class: "field-input" %>
+        </div>
+
+        <div class="field" data-controller="image-preview">
+          <%= form.label :thumbnail, "Thumbnail (optional)", class: "field-label" %>
+          <%= form.file_field :thumbnail, accept: "image/*", class: "field-input",
+                data: { "image-preview-target": "input", action: "change->image-preview#show" } %>
+          <%= image_tag("", class: "image-preview", alt: "Thumbnail preview",
+                data: { "image-preview-target": "preview" }) %>
+        </div>
+      </div>
+    </div>
+
+    <%= form.submit "Upload", class: "btn btn-primary btn-block upload-form__submit" %>
+  <% end %>
+<% end %>

@@ -19,8 +19,9 @@
 
     <%# Shared design-token layer (order matters: tokens first). %>
     <%= stylesheet_link_tag "shared/variables", "shared/typography", "shared/reset",
-                            "shared/layout", "shared/buttons", "shared/forms", "shared/header",
-                            "shared/icons", "shared/media", "shared/drawer",
+                            "shared/focus", "shared/layout", "shared/buttons", "shared/forms",
+                            "shared/header", "shared/icons", "shared/media", "shared/drawer",
+                            "shared/modal",
                             "data-turbo-track": "reload" %>
     <%# Page-scoped stylesheet(s), provided per view via content_for(:page_styles). %>
     <%= yield :page_styles %>
@@ -33,5 +34,7 @@
       <%= render "shared/drawer" %>
     <% end %>
     <%= yield %>
+    <%# Shared modal target — new/edit forms render into this frame (Constitution I). %>
+    <%= turbo_frame_tag "modal" %>
   </body>
 </html>

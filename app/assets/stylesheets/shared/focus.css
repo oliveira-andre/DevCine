@@ -1,0 +1,30 @@
+/* Global input/link style cleanup (US1, FR-001..FR-003). Scope: global.
+   Loaded AFTER reset.css so it overrides the default focus-visible outline.
+
+   Links carry no underline; inputs/links/buttons drop the default browser
+   outline — but keyboard focus still shows a clear ring via :focus-visible, so
+   accessibility is preserved. */
+
+a {
+  text-decoration: none;
+}
+
+a:focus,
+input:focus,
+button:focus,
+select:focus,
+textarea:focus,
+[tabindex]:focus {
+  outline: none;
+}
+
+a:focus-visible,
+input:focus-visible,
+button:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-blue-glow);
+  border-radius: 4px;
+}

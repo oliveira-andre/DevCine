@@ -17,5 +17,9 @@ FactoryBot.define do
     trait :with_avatar do
       after(:build) { |user| AttachmentHelpers.attach_sample(user, :avatar, filename: "avatar.jpg") }
     end
+
+    trait :with_cover do
+      after(:build) { |user| AttachmentHelpers.attach_sample(user, :cover, filename: "cover.jpg") }
+    end
   end
 end

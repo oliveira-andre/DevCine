@@ -1,0 +1,31 @@
+<%= modal title: "Change password" do %>
+  <%= form_with model: @user, url: settings_password_path, method: :patch, class: "modal__form",
+        data: { controller: "password-confirmation" } do |form| %>
+    <% if @user.errors.any? %>
+      <div class="form-flash form-flash-alert"><%= @user.errors.full_messages.first %></div>
+    <% end %>
+
+    <div class="field">
+      <%= form.label :current_password, "Current password", class: "field-label" %>
+      <%= form.password_field :current_password, required: true, autocomplete: "current-password",
+            class: "field-input" %>
+    </div>
+
+    <div class="field">
+      <%= form.label :password, "New password", class: "field-label" %>
+      <%= form.password_field :password, required: true, autocomplete: "new-password", class: "field-input",
+            data: { "password-confirmation-target": "password", action: "input->password-confirmation#check" } %>
+    </div>
+
+    <div class="field">
+      <%= form.label :password_confirmation, "Confirm new password", class: "field-label" %>
+      <%= form.password_field :password_confirmation, required: true, autocomplete: "new-password",
+            class: "field-input",
+            data: { "password-confirmation-target": "confirmation", action: "input->password-confirmation#check" } %>
+      <p class="field-error" data-password-confirmation-target="message"></p>
+    </div>
+
+    <%= form.submit "Update password", class: "btn btn-primary btn-block",
+          data: { "password-confirmation-target": "submit" } %>
+  <% end %>
+<% end %>

@@ -11,7 +11,7 @@
         <button type="button" class="rail__arrow" data-action="rail#next" aria-label="Scroll right">›</button>
       </div>
     </div>
-    <div class="rail__track" data-rail-target="viewport">
+    <%= tag.div class: "rail__track", data: { rail_target: "viewport" }, id: local_assigns[:track_id] do %>
       <% if local_assigns[:pagy] %>
         <%= render "shared/paginated_frame",
               key: key, pagy: pagy, items: items,
@@ -19,6 +19,6 @@
       <% else %>
         <%= render partial: "home/poster_card", collection: items, as: :item %>
       <% end %>
-    </div>
+    <% end %>
   </section>
 <% end %>

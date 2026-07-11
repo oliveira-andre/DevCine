@@ -41,7 +41,7 @@ module MediaHelper
       { title: record.title, image: record.poster, external: nil, preview: nil }
     when Video
       { title: record.title, image: record.thumbnail, external: nil, preview: record.preview }
-    when WatchProgress
+    when WatchProgress, VideoView
       video = record.video
       { title: video.title, image: video.thumbnail, external: nil, preview: video.preview }
     else

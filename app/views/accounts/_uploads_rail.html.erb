@@ -1,0 +1,19 @@
+<%# Recent uploads rail. Unlike other rails, its track always renders (with the
+    prepend target id) so a newly-uploaded card can append even from an empty
+    starting state. %>
+<section class="rail" data-controller="rail">
+  <div class="rail__head">
+    <h2 class="rail__title">Recent uploads</h2>
+    <div class="rail__arrows">
+      <button type="button" class="rail__arrow" data-action="rail#prev" aria-label="Scroll left">‹</button>
+      <button type="button" class="rail__arrow" data-action="rail#next" aria-label="Scroll right">›</button>
+    </div>
+  </div>
+  <%= tag.div class: "rail__track", data: { rail_target: "viewport" }, id: "recent_uploads_items" do %>
+    <% if items.any? %>
+      <%= render partial: "home/poster_card", collection: items, as: :item %>
+    <% else %>
+      <p class="rail__empty">No uploads yet.</p>
+    <% end %>
+  <% end %>
+</section>

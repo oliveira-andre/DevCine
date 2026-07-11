@@ -1,0 +1,8 @@
+<span class="account__avatar" id="account_avatar">
+  <% if user.avatar.attached? %>
+    <%= image_tag user.avatar.variant(resize_to_fill: [ 200, 200 ]), alt: user.display_label,
+          class: "account__avatar-img" %>
+  <% else %>
+    <span class="account__avatar-initials"><%= user.initials %></span>
+  <% end %>
+</span>

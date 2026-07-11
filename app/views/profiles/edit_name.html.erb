@@ -1,0 +1,10 @@
+<%= turbo_frame_tag "account_name" do %>
+  <%= form_with model: @user, url: name_account_path, method: :patch,
+        class: "account__name-form", data: { controller: "autofocus" } do |form| %>
+    <%= form.text_field :display_name, required: true, class: "field-input account__name-input",
+          placeholder: "Display name", "aria-label": "Display name",
+          data: { "autofocus-target": "input" } %>
+    <%= form.submit "Save", class: "btn btn-primary account__name-save" %>
+    <%= link_to "Cancel", account_path, class: "account__name-cancel" %>
+  <% end %>
+<% end %>

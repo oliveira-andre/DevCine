@@ -1,4 +1,15 @@
 class Movie < ApplicationRecord
+  # Same age-rating scale as Serie/Video for catalog consistency.
+  enum :maturity_rating, {
+    L: 0,
+    A6: 1,
+    A10: 2,
+    A12: 3,
+    A14: 4,
+    A16: 5,
+    A18: 6
+  }
+
   belongs_to :video
   belongs_to :trailer, class_name: "Video", optional: true
 

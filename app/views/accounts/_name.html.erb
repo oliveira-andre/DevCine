@@ -1,0 +1,8 @@
+<%= turbo_frame_tag "account_name" do %>
+  <% if owner %>
+    <%= link_to user.display_label, edit_name_account_path,
+          class: "account__name account__name--editable", title: "Edit name" %>
+  <% else %>
+    <h1 class="account__name"><%= user.display_label %></h1>
+  <% end %>
+<% end %>

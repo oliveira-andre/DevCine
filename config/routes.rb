@@ -5,13 +5,23 @@ Rails.application.routes.draw do
 
   # Search entry page + section listing pages + category browse (feature 003).
   get "search", to: "search#index"
-  resources :videos, only: :index
+  resources :videos, only: %i[index new create] # new/create = standalone upload modal (004)
   resources :movies, only: :index
   get "series", to: "series#index", as: :series # "series" is uncountable → force series_path
   get "lives", to: "lives#index"
   get "genres/:slug", to: "catalog/browse#show", as: :genre_browse
   get "kinds/:kind", to: "catalog/browse#show", as: :kind_browse
-  get "account", to: "accounts#show"
+
+  # Account profile + modals (004). Order matters: specific routes before :slug.
+  get "account/edit", to: "profiles#edit", as: :edit_account
+  get "account/name/edit", to: "profiles#edit_name", as: :edit_name_account
+  patch "account/name", to: "profiles#update_name", as: :name_account
+  get "account", to: "accounts#show", as: :account
+  patch "account", to: "profiles#update", as: :update_account
+  get "account/:slug", to: "accounts#show", as: :public_account
+  namespace :settings do
+    resource :password, only: %i[edit update]
+  end
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

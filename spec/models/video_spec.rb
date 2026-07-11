@@ -15,8 +15,16 @@ RSpec.describe Video, type: :model do
 
   describe "validations" do
     it { is_expected.to validate_presence_of(:title) }
-    it { is_expected.to validate_presence_of(:duration_seconds) }
-    it { is_expected.to validate_numericality_of(:duration_seconds).is_greater_than(0) }
+    # duration_seconds is optional (unknown until processing) but positive when present
+    it { is_expected.to validate_numericality_of(:duration_seconds).is_greater_than(0).allow_nil }
+  end
+
+  describe "maturity_rating" do
+    it { is_expected.to define_enum_for(:maturity_rating).with_values(L: 0, A6: 1, A10: 2, A12: 3, A14: 4, A16: 5, A18: 6) }
+
+    it "is valid without a duration (upload time)" do
+      expect(build(:video, duration_seconds: nil)).to be_valid
+    end
   end
 
   describe "attachments" do

@@ -18,10 +18,19 @@ RSpec.describe User, type: :model do
     it { is_expected.to have_many(:sessions).dependent(:destroy) }
     it { is_expected.to have_many(:watch_progresses).dependent(:destroy) }
     it { is_expected.to have_many(:uploaded_videos).class_name("Video").with_foreign_key(:uploader_id) }
+    it { is_expected.to have_many(:liked_videos).through(:likes).source(:likeable) }
+
+    it "liked_videos returns only videos the user liked" do
+      user = create(:user)
+      video = create(:video)
+      create(:like, user: user, likeable: video)
+      expect(user.liked_videos).to contain_exactly(video)
+    end
   end
 
   describe "attachments" do
     it { expect(described_class.reflect_on_attachment(:avatar)).to be_present }
+    it { expect(described_class.reflect_on_attachment(:cover)).to be_present }
   end
 
   describe "#initials" do

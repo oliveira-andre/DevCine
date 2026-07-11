@@ -1,0 +1,14 @@
+<% if playlists.any? %>
+  <section class="rail" data-controller="rail">
+    <div class="rail__head">
+      <h2 class="rail__title">Playlists</h2>
+      <div class="rail__arrows">
+        <button type="button" class="rail__arrow" data-action="rail#prev" aria-label="Scroll left">‹</button>
+        <button type="button" class="rail__arrow" data-action="rail#next" aria-label="Scroll right">›</button>
+      </div>
+    </div>
+    <div class="rail__track" data-rail-target="viewport">
+      <%= render partial: "accounts/playlist_card", collection: playlists, as: :playlist %>
+    </div>
+  </section>
+<% end %>
