@@ -21,7 +21,33 @@ Rails.application.routes.draw do
   get "account/:slug", to: "accounts#show", as: :public_account
   namespace :settings do
     resource :password, only: %i[edit update]
+    # PIN for restricted content (006): modal (show), first-time setup (create),
+    # and unlock verification.
+    resource :pin, only: %i[show create] do
+      post :unlock
+    end
   end
+
+  # Admin-only area (guarded by Admin::BaseController#require_admin).
+  namespace :admin do
+    get "dashboard", to: "dashboard#show"
+  end
+
+  # Video player (feature 005). :slug is the video's FriendlyId. The related and
+  # comments#index endpoints are the src of lazy-loaded Turbo Frames (FR-028).
+  get  "playing/:slug",          to: "player#show",        as: :player
+  get  "playing/:slug/related",  to: "player#related",     as: :player_related
+  post "playing/:slug/views",    to: "video_views#create", as: :player_views
+  post "playing/:slug/progress", to: "watch_progresses#create", as: :player_progress
+  get  "playing/:slug/comments", to: "comments#index",     as: :player_comments
+  post "playing/:slug/comments", to: "comments#create"
+
+  # Like/dislike reactions on a video or comment (feature 005 enhancement).
+  post "reactions/:type/:id", to: "reactions#create", as: :reactions
+
+  # Add-to-playlist modal (feature 005 enhancement).
+  get  "playing/:slug/add-to-playlist", to: "playlist_additions#new", as: :add_to_playlist
+  post "playlists/:playlist_id/toggle/:slug", to: "playlist_additions#create", as: :toggle_playlist_video
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

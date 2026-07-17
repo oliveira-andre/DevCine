@@ -32,3 +32,7 @@
 
 # Ignore master key for decrypting credentials and more.
 /config/master.key
+
+.playwright-mcp/
+# these are not actual specs from rspec, these are spec-kit specs.
+specs/

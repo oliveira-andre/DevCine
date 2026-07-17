@@ -1,6 +1,6 @@
 <% content_for :title, "Search" %>
 <% content_for :page_styles do %>
-  <%= stylesheet_link_tag "search", "data-turbo-track": "reload" %>
+  <%= stylesheet_link_tag "search", "home", "listing", "data-turbo-track": "dynamic" %>
 <% end %>
 
 <main class="search-page">
@@ -11,19 +11,48 @@
           data: { "autofocus-target": "input" } %>
   <% end %>
 
-  <section class="search-page__categories">
-    <h2 class="search-page__heading">Genres</h2>
-    <div class="chips">
-      <% @genres.each do |genre| %>
-        <%= link_to genre.name, genre_browse_path(slug: genre.slug), class: "chip" %>
-      <% end %>
-    </div>
+  <% if @query.present? %>
+    <section class="search-page__results">
+      <% if @videos.any? || @movies.any? || @series.any? %>
+        <% if @videos.any? %>
+          <h2 class="search-page__heading">Videos</h2>
+          <div class="listing__grid">
+            <%= render partial: "home/poster_card", collection: @videos, as: :item %>
+          </div>
+        <% end %>
 
-    <h2 class="search-page__heading">Categories</h2>
-    <div class="chips">
-      <% @kinds.each do |kind| %>
-        <%= link_to kind.titleize, kind_browse_path(kind: kind), class: "chip" %>
+        <% if @movies.any? %>
+          <h2 class="search-page__heading">Movies</h2>
+          <div class="listing__grid">
+            <%= render partial: "home/poster_card", collection: @movies, as: :item %>
+          </div>
+        <% end %>
+
+        <% if @series.any? %>
+          <h2 class="search-page__heading">Series</h2>
+          <div class="listing__grid">
+            <%= render partial: "home/poster_card", collection: @series, as: :item %>
+          </div>
+        <% end %>
+      <% else %>
+        <p class="search-page__empty">No results for “<%= @query %>”</p>
       <% end %>
-    </div>
-  </section>
+    </section>
+  <% else %>
+    <section class="search-page__categories">
+      <h2 class="search-page__heading">Genres</h2>
+      <div class="chips">
+        <% @genres.each do |genre| %>
+          <%= link_to genre.name, genre_browse_path(slug: genre.slug), class: "chip" %>
+        <% end %>
+      </div>
+
+      <h2 class="search-page__heading">Categories</h2>
+      <div class="chips">
+        <% @kinds.each do |kind| %>
+          <%= link_to kind.titleize, kind_browse_path(kind: kind), class: "chip" %>
+        <% end %>
+      </div>
+    </section>
+  <% end %>
 </main>

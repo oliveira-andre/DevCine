@@ -1,0 +1,15 @@
+<%# Lazy related sidebar frame (US8). Same-kind, recent, public. %>
+<%= turbo_frame_tag "related" do %>
+  <h2 class="player__section-title">More like this</h2>
+  <% if @related.any? %>
+    <% @related.each do |video| %>
+      <%= link_to player_path(video.slug), class: "related__item" do %>
+        <%= poster_image_tag video.thumbnail, nil, alt: video.title,
+              class: "related__img", limit: [ 400, 240 ] %>
+        <div class="related__title"><%= video.title %></div>
+      <% end %>
+    <% end %>
+  <% else %>
+    <p class="related__empty">No related videos yet.</p>
+  <% end %>
+<% end %>

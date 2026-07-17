@@ -1,0 +1,18 @@
+<%# Lazy comments frame content (US7). Page 1's outer frame id is
+    "comments_page_1" so it matches the lazy frame on the player shell; deeper
+    pages append via the nested lazy frame (infinite scroll). %>
+<%= turbo_frame_tag "comments_page_#{@pagy.page}", target: "_top" do %>
+  <% if @comments.empty? && @pagy.page == 1 %>
+    <p class="comments__empty" id="comments_empty">No comments yet</p>
+  <% else %>
+    <%= render partial: "comments/comment", collection: @comments, as: :comment %>
+
+    <% if @pagy.next %>
+      <%= turbo_frame_tag "comments_page_#{@pagy.next}",
+            src: player_comments_path(@video.slug, page: @pagy.next),
+            loading: :lazy, target: "_top" do %>
+        <span class="player__loader"><%= icon(:spinner) %></span>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

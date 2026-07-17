@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_07_09_233004) do
+ActiveRecord::Schema[8.0].define(version: 2026_07_15_032607) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -95,7 +95,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_09_233004) do
     t.uuid "likeable_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "kind", default: 0, null: false
     t.index ["likeable_type", "likeable_id"], name: "index_likes_on_likeable"
+    t.index ["user_id", "likeable_type", "likeable_id"], name: "index_likes_on_user_and_likeable", unique: true
     t.index ["user_id"], name: "index_likes_on_user_id"
   end
 
@@ -128,6 +130,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_09_233004) do
     t.integer "position", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["playlist_id", "video_id"], name: "index_playlist_items_on_playlist_and_video", unique: true
     t.index ["playlist_id"], name: "index_playlist_items_on_playlist_id"
     t.index ["video_id"], name: "index_playlist_items_on_video_id"
   end
@@ -225,6 +228,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_09_233004) do
     t.integer "role", default: 0
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "pin_attempts", default: 0, null: false
     t.index ["email_address"], name: "index_users_on_email_address", unique: true
     t.index ["handle"], name: "index_users_on_handle", unique: true
   end
@@ -246,6 +250,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_09_233004) do
     t.string "ip_hash"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["user_id", "video_id"], name: "index_video_views_on_user_and_video", unique: true
     t.index ["user_id"], name: "index_video_views_on_user_id"
     t.index ["video_id"], name: "index_video_views_on_video_id"
   end
@@ -266,8 +271,10 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_09_233004) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "maturity_rating", default: 0, null: false
+    t.index ["kind", "visibility"], name: "index_videos_on_kind_and_visibility"
     t.index ["slug"], name: "index_videos_on_slug", unique: true
     t.index ["uploader_id"], name: "index_videos_on_uploader_id"
+    t.index ["visibility", "created_at"], name: "index_videos_on_visibility_and_created_at"
   end
 
   create_table "watch_progresses", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -277,6 +284,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_09_233004) do
     t.boolean "completed"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["user_id", "video_id"], name: "index_watch_progresses_on_user_and_video", unique: true
     t.index ["user_id"], name: "index_watch_progresses_on_user_id"
     t.index ["video_id"], name: "index_watch_progresses_on_video_id"
   end

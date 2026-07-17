@@ -1,8 +1,30 @@
-<h1>Forgot your password?</h1>
-
-<%= tag.div(flash[:alert], style: "color:red") if flash[:alert] %>
-
-<%= form_with url: passwords_path do |form| %>
-  <%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username", placeholder: "Enter your email address", value: params[:email_address] %><br>
-  <%= form.submit "Email reset instructions" %>
+<% content_for :title, "Forgot your password?" %>
+<% content_for :page_styles do %>
+  <%= stylesheet_link_tag "auth", "data-turbo-track": "dynamic" %>
 <% end %>
+
+<main class="auth">
+  <div class="auth__card">
+    <%= image_tag "/logo_with_word.png", alt: "DevCine", class: "auth__logo" %>
+
+    <% if flash[:alert] %>
+      <div class="form-flash form-flash-alert"><%= flash[:alert] %></div>
+    <% end %>
+
+    <%= form_with url: passwords_path, class: "auth__form" do |form| %>
+      <div class="field">
+        <%= form.label :email_address, "Login", class: "field-label" %>
+        <%= form.email_field :email_address, required: true, autofocus: true,
+              autocomplete: "username", class: "field-input",
+              value: params[:email_address] %>
+      </div>
+
+      <%= form.submit "Email reset instructions", class: "btn btn-primary auth__submit" %>
+    <% end %>
+
+    <p class="auth__alt">
+      Remembered it?
+      <%= link_to "Sign in", new_session_path, class: "auth__link" %>
+    </p>
+  </div>
+</main>

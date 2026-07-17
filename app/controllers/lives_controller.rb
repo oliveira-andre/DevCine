@@ -1,10 +1,10 @@
 class LivesController < ApplicationController
   include Paginatable
 
-  # Public live-kind videos (50/pg).
+  # Live-kind videos (50/pg) — policy-scoped.
   def index
     @pagy, @lives = paginate(
-      Video.live.listable.recent.with_attached_thumbnail,
+      policy_scope(Video).live.recent.with_attached_thumbnail,
       limit: 50
     )
   end

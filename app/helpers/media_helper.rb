@@ -33,19 +33,21 @@ module MediaHelper
   # Normalizes the different home-rail record types into a common card shape.
   # :image is an Active Storage attachment, :external an optional fallback URL,
   # :preview an optional Video preview attachment (hover clip).
+  # :video is the underlying playable Video (or nil) so cards can link to the
+  # player (feature 005).
   def home_card(record)
     case record
     when Movie
-      { title: record.title, image: record.poster, external: nil, preview: record.video&.preview }
+      { title: record.title, image: record.poster, external: nil, preview: record.video&.preview, video: record.video }
     when Serie
-      { title: record.title, image: record.poster, external: nil, preview: nil }
+      { title: record.title, image: record.poster, external: nil, preview: nil, video: nil }
     when Video
-      { title: record.title, image: record.thumbnail, external: nil, preview: record.preview }
+      { title: record.title, image: record.thumbnail, external: nil, preview: record.preview, video: record }
     when WatchProgress, VideoView
       video = record.video
-      { title: video.title, image: video.thumbnail, external: nil, preview: video.preview }
+      { title: video.title, image: video.thumbnail, external: nil, preview: video.preview, video: video }
     else
-      { title: record.try(:title).to_s, image: nil, external: nil, preview: nil }
+      { title: record.try(:title).to_s, image: nil, external: nil, preview: nil, video: nil }
     end
   end
 end

@@ -4,20 +4,32 @@
       <div class="form-flash form-flash-alert"><%= @user.errors.full_messages.first %></div>
     <% end %>
 
-    <div class="field" data-controller="image-preview">
+    <div class="field">
       <%= form.label :avatar, "Profile picture", class: "field-label" %>
-      <%= form.file_field :avatar, accept: "image/*", class: "field-input",
-            data: { "image-preview-target": "input", action: "change->image-preview#show" } %>
-      <%= image_tag("", class: "image-preview", alt: "Profile preview",
-            data: { "image-preview-target": "preview" }) %>
+      <div class="uploader uploader--image" data-controller="file-upload">
+        <%= form.file_field :avatar, accept: "image/*", class: "uploader__input",
+              data: { "file-upload-target": "input", action: "change->file-upload#change" } %>
+        <%= image_tag("", class: "image-preview", alt: "Profile preview",
+              data: { "file-upload-target": "preview" }) %>
+        <div class="uploader__prompt">
+          <%= icon(:image) %>
+          <span>Choose a profile picture</span>
+        </div>
+      </div>
     </div>
 
-    <div class="field" data-controller="image-preview">
+    <div class="field">
       <%= form.label :cover, "Cover image (optional)", class: "field-label" %>
-      <%= form.file_field :cover, accept: "image/*", class: "field-input",
-            data: { "image-preview-target": "input", action: "change->image-preview#show" } %>
-      <%= image_tag("", class: "image-preview", alt: "Cover preview",
-            data: { "image-preview-target": "preview" }) %>
+      <div class="uploader uploader--image" data-controller="file-upload">
+        <%= form.file_field :cover, accept: "image/*", class: "uploader__input",
+              data: { "file-upload-target": "input", action: "change->file-upload#change" } %>
+        <%= image_tag("", class: "image-preview", alt: "Cover preview",
+              data: { "file-upload-target": "preview" }) %>
+        <div class="uploader__prompt">
+          <%= icon(:image) %>
+          <span>Choose a cover image</span>
+        </div>
+      </div>
     </div>
 
     <%= form.submit "Save", class: "btn btn-primary btn-block" %>

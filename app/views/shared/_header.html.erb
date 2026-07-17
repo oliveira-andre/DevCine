@@ -6,8 +6,8 @@
 
   <div class="site-header__actions">
     <%# Search is a control that navigates to the dedicated /search page. %>
-    <%= link_to search_path, class: "search-box", role: "search",
-          data: { controller: "search-redirect", action: "focus->search-redirect#go" } do %>
+    <%# A plain link — navigating on focus broke keyboard tabbing. %>
+    <%= link_to search_path, class: "search-box", role: "search" do %>
       <span class="search-box__placeholder">Search</span>
     <% end %>
 

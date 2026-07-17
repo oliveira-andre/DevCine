@@ -183,21 +183,42 @@ if member.uploaded_videos.none?
   end
 end
 
+# ---------------------------------------------------------------------------
+# Restricted catalog (feature 006): PIN-gated title + an ungated public A18 one
+# ---------------------------------------------------------------------------
+if Video.visibility_restricted.none?
+  restricted = Video.create!(
+    title: "Restricted Feature", description: "A18 PIN-gated seeded title.",
+    duration_seconds: 4800, kind: :standalone, status: :ready,
+    visibility: :restricted, maturity_rating: :A18,
+    file_size_bytes: 90_000_000, uploader: uploader
+  )
+  attach_file(restricted.thumbnail, MEDIA[:poster], filename: "thumb.webp")
+
+  violent = Video.create!(
+    title: "Public Violent Movie", description: "A18 but public — no PIN needed.",
+    duration_seconds: 5400, kind: :standalone, status: :ready,
+    visibility: :public, maturity_rating: :A18,
+    file_size_bytes: 90_000_000, uploader: uploader
+  )
+  attach_file(violent.thumbnail, MEDIA[:poster], filename: "thumb.webp")
+end
+
 if member.likes.none?
-  Video.listable.limit(6).each { |v| Like.find_or_create_by!(user: member, likeable: v) }
+  Video.visibility_public.limit(6).each { |v| Like.find_or_create_by!(user: member, likeable: v) }
 end
 
 if member.playlists.none?
   [ "Favorites", "Watch Later", "Best of 2026" ].each_with_index do |title, i|
     pl = Playlist.create!(user: member, title: title, visibility: (i == 2 ? :private : :public))
-    Video.listable.limit(rand(2..5)).each_with_index do |v, pos|
+    Video.visibility_public.limit(rand(2..5)).each_with_index do |v, pos|
       PlaylistItem.create!(playlist: pl, video: v, position: pos + 1)
     end
   end
 end
 
 if member.video_views.none?
-  Video.listable.order(created_at: :desc).limit(6).each_with_index do |v, i|
+  Video.visibility_public.order(created_at: :desc).limit(6).each_with_index do |v, i|
     VideoView.create!(user: member, video: v, watched_at: (i + 1).hours.ago, ip_hash: SecureRandom.hex(8))
   end
 end

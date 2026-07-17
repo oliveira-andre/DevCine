@@ -1,0 +1,6 @@
+<%= turbo_stream.update "modal" do %>
+  <%= modal title: "Restricted content" do %>
+    <p class="pin-modal__status"><%= icon(:check) %> PIN created.</p>
+    <p class="pin-modal__hint">Click the lock again and enter your PIN to unlock restricted content.</p>
+  <% end %>
+<% end %>

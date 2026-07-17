@@ -1,0 +1,49 @@
+<%= modal title: "Restricted content" do %>
+  <% if pin_unlocked? %>
+    <p class="pin-modal__status">Restricted content is unlocked for this session.</p>
+    <p class="pin-modal__hint">Refreshing the page locks it again.</p>
+  <% elsif @user.pin? %>
+    <%# Enter PIN — the stored PIN is never displayed. %>
+    <%= form_with url: unlock_settings_pin_path, class: "modal__form pin-modal__form" do |form| %>
+      <% if @user.errors.any? || flash.now[:pin_error] %>
+        <div class="form-flash form-flash-alert">Wrong PIN.
+          <%= @user.remaining_pin_attempts %> attempt<%= "s" unless @user.remaining_pin_attempts == 1 %> remaining.</div>
+      <% end %>
+
+      <div class="field">
+        <%= form.label :pin, "Enter your PIN", class: "field-label" %>
+        <%= form.password_field :pin, required: true, autocomplete: "one-time-code",
+              inputmode: "numeric", pattern: "[0-9]{4,6}", maxlength: 6,
+              class: "field-input pin-modal__input", autofocus: true %>
+      </div>
+
+      <%= form.submit "Unlock", class: "btn btn-primary btn-block" %>
+    <% end %>
+  <% else %>
+    <%# First-time setup. Flat field names (pin / pin_confirmation). %>
+    <%= form_with url: settings_pin_path, method: :post,
+          class: "modal__form pin-modal__form" do |form| %>
+      <% if @user.errors.any? %>
+        <div class="form-flash form-flash-alert"><%= @user.errors.full_messages.first %></div>
+      <% end %>
+
+      <p class="pin-modal__hint">Create a 4–6 digit PIN to protect restricted content.</p>
+
+      <div class="field">
+        <%= form.label :pin, "PIN", class: "field-label" %>
+        <%= form.password_field :pin, required: true, autocomplete: "one-time-code",
+              inputmode: "numeric", pattern: "[0-9]{4,6}", maxlength: 6,
+              class: "field-input pin-modal__input", autofocus: true %>
+      </div>
+
+      <div class="field">
+        <%= form.label :pin_confirmation, "Confirm PIN", class: "field-label" %>
+        <%= form.password_field :pin_confirmation, required: true, autocomplete: "one-time-code",
+              inputmode: "numeric", pattern: "[0-9]{4,6}", maxlength: 6,
+              class: "field-input pin-modal__input" %>
+      </div>
+
+      <%= form.submit "Create PIN", class: "btn btn-primary btn-block" %>
+    <% end %>
+  <% end %>
+<% end %>

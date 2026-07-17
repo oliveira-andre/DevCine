@@ -59,13 +59,14 @@
 
 body.modal-open { overflow: hidden; }
 
-/* Live image preview (image-preview controller): hidden until a file is chosen. */
-.image-preview {
-  display: none;
-  max-width: 100%;
-  max-height: 220px;
-  border-radius: var(--radius-tile);
-  margin-top: var(--space-3);
-  object-fit: cover;
+/* PIN modal (restricted content, feature 006). */
+.pin-modal__hint { color: var(--text-secondary); font-size: var(--text-meta); margin-bottom: var(--space-4); }
+.pin-modal__status { display: flex; align-items: center; gap: var(--space-2); font-weight: 600; }
+.pin-modal__status .icon { width: 20px; height: 20px; color: var(--success); }
+/* Centered, spaced digits for the numeric PIN entry. */
+.pin-modal__input {
+  text-align: center;
+  letter-spacing: 0.5em;
+  font-size: var(--text-h3);
+  padding-left: 0.5em; /* offset the trailing letter-spacing so digits stay centered */
 }
-.image-preview.is-visible { display: block; }

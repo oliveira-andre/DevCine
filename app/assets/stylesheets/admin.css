@@ -1,0 +1,40 @@
+/* Page-scoped styles for /admin/dashboard. */
+
+.admin {
+  min-height: 100vh;
+  background: var(--home-gradient);
+  padding: var(--space-8) var(--space-6);
+}
+
+.admin__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-8);
+}
+.admin__icon { width: 32px; height: 32px; color: var(--accent-blue); }
+.admin__title { font-size: var(--text-h1); }
+
+.admin__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--space-4);
+}
+
+.admin-stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-6);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+}
+.admin-stat__value { font-size: var(--text-h1); font-weight: 700; }
+.admin-stat__label {
+  font-size: var(--text-meta);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+}

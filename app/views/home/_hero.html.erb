@@ -6,11 +6,18 @@
            data-action="mouseenter->hero-carousel#pause mouseleave->hero-carousel#resume">
     <% movies.each_with_index do |movie, index| %>
       <div class="hero__slide<%= ' is-active' if index.zero? %>" data-hero-carousel-target="slide">
-        <%= poster_image_tag movie.backdrop, movie.backdrop_key,
-              alt: movie.title, limit: [1920, 1080], class: "hero__img" %>
-        <div class="hero__overlay">
-          <h2 class="hero__title"><%= movie.title %></h2>
-        </div>
+        <% slide = capture do %>
+          <%= poster_image_tag movie.backdrop, movie.backdrop_key,
+                alt: movie.title, limit: [ 1920, 1080 ], class: "hero__img" %>
+          <div class="hero__overlay">
+            <h2 class="hero__title"><%= movie.title %></h2>
+          </div>
+        <% end %>
+        <% if movie.video && policy(movie.video).watch? %>
+          <%= link_to slide, player_path(movie.video.slug), class: "hero__link" %>
+        <% else %>
+          <%= slide %>
+        <% end %>
       </div>
     <% end %>
   </section>

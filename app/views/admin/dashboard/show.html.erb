@@ -1,0 +1,30 @@
+<% content_for :title, "Admin dashboard" %>
+<% content_for :page_styles do %>
+  <%= stylesheet_link_tag "admin", "data-turbo-track": "dynamic" %>
+<% end %>
+
+<main class="admin">
+  <header class="admin__head">
+    <%= icon(:dashboard, class: "admin__icon") %>
+    <h1 class="admin__title">Admin dashboard</h1>
+  </header>
+
+  <section class="admin__stats">
+    <div class="admin-stat">
+      <span class="admin-stat__value"><%= @users_count %></span>
+      <span class="admin-stat__label">Members</span>
+    </div>
+    <div class="admin-stat">
+      <span class="admin-stat__value"><%= @videos_count %></span>
+      <span class="admin-stat__label">Videos</span>
+    </div>
+    <div class="admin-stat">
+      <span class="admin-stat__value"><%= @movies_count %></span>
+      <span class="admin-stat__label">Movies</span>
+    </div>
+    <div class="admin-stat">
+      <span class="admin-stat__value"><%= @playlists_count %></span>
+      <span class="admin-stat__label">Playlists</span>
+    </div>
+  </section>
+</main>

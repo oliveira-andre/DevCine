@@ -1,8 +1,7 @@
 FactoryBot.define do
   factory :comment do
-    user { nil }
-    video { nil }
-    parent_id { "" }
-    body { "MyText" }
+    association :user
+    association :video
+    body { FFaker::Lorem.sentence }
   end
 end

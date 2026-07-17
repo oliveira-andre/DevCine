@@ -1,0 +1,11 @@
+<% included = playlist.playlist_items.exists?(video_id: video.id) %>
+<%= button_to toggle_playlist_video_path(playlist_id: playlist.id, slug: video.slug),
+      form: { id: "playlist_row_#{playlist.id}", class: "playlist-add__form" },
+      class: "playlist-add__row#{' is-added' if included}" do %>
+  <span class="playlist-add__title"><%= playlist.title %></span>
+  <% if included %>
+    <%= icon(:check, class: "playlist-add__check") %>
+  <% else %>
+    <%= icon(:plus) %>
+  <% end %>
+<% end %>

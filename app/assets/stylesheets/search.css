@@ -34,25 +34,42 @@
 }
 
 .search-page__categories { width: 100%; max-width: 640px; }
+
+/* Query results: wider than the tiles column; reuses the listing grid. */
+.search-page__results { width: 100%; max-width: 1200px; }
+.search-page__empty {
+  color: var(--text-tertiary);
+  font-size: var(--text-h3);
+  padding: var(--space-8) 0;
+  text-align: center;
+}
 .search-page__heading {
   font-size: var(--text-h2);
   margin: var(--space-6) 0 var(--space-3);
 }
 
-.chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.chips {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--space-3);
+}
 .chip {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-pill);
+  justify-content: center;
+  text-align: center;
+  min-height: 104px;
+  padding: var(--space-4);
+  border-radius: var(--radius-card);
   background: var(--surface-2);
   border: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
-  font-size: var(--text-meta);
+  color: var(--text-primary);
+  font-size: var(--text-h3);
   font-weight: 600;
+  transition: border-color var(--dur-fast) ease, background var(--dur-fast) ease;
 }
 .chip:hover,
 .chip:focus-visible {
   border-color: var(--accent-blue);
-  color: var(--text-primary);
+  background: var(--surface-3);
 }

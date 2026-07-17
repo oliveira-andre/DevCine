@@ -1,0 +1,84 @@
+<% content_for :title, @video.title %>
+<% content_for :page_styles do %>
+  <%= stylesheet_link_tag "player", "data-turbo-track": "dynamic" %>
+<% end %>
+
+<main class="player"
+      data-controller="player"
+      data-player-views-url-value="<%= player_views_path(@video.slug) %>"
+      data-player-progress-url-value="<%= player_progress_path(@video.slug) %>"
+      data-player-resume-value="<%= @resume_position.to_i %>"
+      data-player-title-value="<%= @video.title %>"
+      data-player-artwork-value="<%= @video.thumbnail.attached? ? url_for(@video.thumbnail) : "/logo.png" %>">
+  <div class="player__stage"
+       data-action="pointermove->player#activity touchstart->player#activity click->player#activity">
+    <% if @video.file.attached? %>
+      <video class="player__video"
+             data-player-target="video"
+             playsinline webkit-playsinline preload="metadata"
+             poster="<%= @video.thumbnail.attached? ? url_for(@video.thumbnail) : "" %>"
+             src="<%= url_for(@video.file) %>"></video>
+
+      <%= render "player/controls" %>
+
+      <button type="button" class="player__btn player__fullscreen"
+              data-action="player#toggleFullscreen" aria-label="Toggle fullscreen">
+        <%= icon(:fullscreen) %>
+      </button>
+    <% else %>
+      <div class="player__unavailable">This video is not available yet.</div>
+    <% end %>
+  </div>
+
+  <%# Details revealed on scroll (not in fullscreen): left col + related sidebar. %>
+  <section class="player__details">
+    <div class="player__main">
+      <div class="player__actions">
+        <%= render "reactions/reactions", record: @video %>
+        <div class="menu" data-controller="menu">
+          <button type="button" class="reaction-btn menu__toggle"
+                  data-action="menu#toggle" aria-label="More options"><%= icon(:dots) %></button>
+          <div class="menu__list" data-menu-target="list" hidden>
+            <button type="button" class="menu__item" data-controller="clipboard"
+                    data-clipboard-text-value="<%= player_url(@video.slug) %>"
+                    data-action="clipboard#copy">
+              <%= icon(:share) %><span data-clipboard-target="label">Share</span>
+            </button>
+            <%= link_to add_to_playlist_path(@video.slug), class: "menu__item",
+                  data: { turbo_frame: "modal" } do %>
+              <%= icon(:plus) %><span>Add to playlist</span>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <h1 class="player__title"><%= @video.title %></h1>
+
+      <% if @video.description.present? %>
+        <% if @video.description.length > 200 %>
+          <div class="player__description read-more" data-controller="read-more">
+            <div class="read-more__content"><%= simple_format(@video.description) %></div>
+            <button type="button" class="read-more__trigger"
+                    data-read-more-target="trigger" data-action="read-more#toggle">Read more</button>
+          </div>
+        <% else %>
+          <div class="player__description"><%= simple_format(@video.description) %></div>
+        <% end %>
+      <% end %>
+
+      <div class="player__comments">
+        <h2 class="player__section-title">Comments</h2>
+        <%= render "comments/form", video: @video, comment: Comment.new %>
+        <%= turbo_frame_tag "comments_page_1", src: player_comments_path(@video.slug), loading: :lazy do %>
+          <span class="player__loader"><%= icon(:spinner) %></span>
+        <% end %>
+      </div>
+    </div>
+
+    <aside class="player__sidebar">
+      <%= turbo_frame_tag "related", src: player_related_path(@video.slug), loading: :lazy do %>
+        <span class="player__loader"><%= icon(:spinner) %></span>
+      <% end %>
+    </aside>
+  </section>
+</main>

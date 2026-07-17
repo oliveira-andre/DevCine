@@ -1,0 +1,9 @@
+<%# Close the modal and hand the client half of the unlock token to the
+    body-level pin-lock controller, which holds it in memory. The next in-app
+    navigation renders unlocked (feature 006). %>
+<%= turbo_stream.update "modal", "" %>
+<%= turbo_stream.append "body" do %>
+  <div data-controller="pin-lock-handoff"
+       data-pin-lock-handoff-token-value="<%= @token %>"
+       hidden></div>
+<% end %>

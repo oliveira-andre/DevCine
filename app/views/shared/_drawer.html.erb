@@ -12,6 +12,9 @@
       <li><%= link_to movies_path, class: "drawer__link" do %><%= icon(:movie) %><span>Movies</span><% end %></li>
       <li><%= link_to series_path, class: "drawer__link" do %><%= icon(:serie) %><span>Series</span><% end %></li>
       <li><%= link_to account_path, class: "drawer__link" do %><%= icon(:account) %><span>Account</span><% end %></li>
+      <% if Current.user&.admin? %>
+        <li><%= link_to admin_dashboard_path, class: "drawer__link" do %><%= icon(:dashboard) %><span>Dashboard</span><% end %></li>
+      <% end %>
     </ul>
 
     <div class="drawer__footer">

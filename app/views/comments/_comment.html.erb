@@ -1,0 +1,35 @@
+<article class="comment<%= " comment--reply" if comment.reply? %>" id="<%= dom_id(comment) %>">
+  <div class="comment__head">
+    <span class="comment__author"><%= comment.user.display_label %></span>
+    <time class="comment__time"><%= time_ago_in_words(comment.created_at) %> ago</time>
+  </div>
+
+  <% if comment.long? %>
+    <div class="comment__body read-more" data-controller="read-more">
+      <div class="read-more__content"><%= simple_format(comment.body) %></div>
+      <button type="button" class="read-more__trigger"
+              data-read-more-target="trigger" data-action="read-more#toggle">Read more</button>
+    </div>
+  <% else %>
+    <div class="comment__body"><%= simple_format(comment.body) %></div>
+  <% end %>
+
+  <div class="comment__actions">
+    <%= render "reactions/reactions", record: comment %>
+  </div>
+
+  <% unless comment.reply? %>
+    <%# Reply form sits BELOW the like/dislike row and spans the full width. %>
+    <details class="comment__reply">
+      <summary class="comment__reply-toggle">Reply</summary>
+      <%= render "comments/form", video: comment.video,
+            comment: Comment.new(parent_id: comment.id), form_id: "reply_form_#{comment.id}",
+            placeholder: "Add a reply…", submit_label: "Reply" %>
+    </details>
+
+    <div class="comment__replies" id="replies_<%= comment.id %>">
+      <%# sort_by (not .order) so eager-loaded replies don't re-query %>
+      <%= render partial: "comments/comment", collection: comment.replies.sort_by(&:created_at), as: :comment %>
+    </div>
+  <% end %>
+</article>

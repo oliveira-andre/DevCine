@@ -1,9 +1,37 @@
-<h1>Update your password</h1>
-
-<%= tag.div(flash[:alert], style: "color:red") if flash[:alert] %>
-
-<%= form_with url: password_path(params[:token]), method: :put do |form| %>
-  <%= form.password_field :password, required: true, autocomplete: "new-password", placeholder: "Enter new password", maxlength: 72 %><br>
-  <%= form.password_field :password_confirmation, required: true, autocomplete: "new-password", placeholder: "Repeat new password", maxlength: 72 %><br>
-  <%= form.submit "Save" %>
+<% content_for :title, "Update your password" %>
+<% content_for :page_styles do %>
+  <%= stylesheet_link_tag "auth", "data-turbo-track": "dynamic" %>
 <% end %>
+
+<main class="auth">
+  <div class="auth__card">
+    <%= image_tag "/logo_with_word.png", alt: "DevCine", class: "auth__logo" %>
+
+    <% if flash[:alert] %>
+      <div class="form-flash form-flash-alert"><%= flash[:alert] %></div>
+    <% end %>
+
+    <%= form_with url: password_path(params[:token]), method: :put, class: "auth__form",
+          data: { controller: "password-confirmation" } do |form| %>
+      <div class="field">
+        <%= form.label :password, "Nova Senha", class: "field-label" %>
+        <%= form.password_field :password, required: true, autofocus: true,
+              autocomplete: "new-password", maxlength: 72, class: "field-input",
+              data: { "password-confirmation-target": "password",
+                      action: "input->password-confirmation#check" } %>
+      </div>
+
+      <div class="field">
+        <%= form.label :password_confirmation, "Confirme a Senha", class: "field-label" %>
+        <%= form.password_field :password_confirmation, required: true,
+              autocomplete: "new-password", maxlength: 72, class: "field-input",
+              data: { "password-confirmation-target": "confirmation",
+                      action: "input->password-confirmation#check" } %>
+        <p class="field-error" data-password-confirmation-target="message"></p>
+      </div>
+
+      <%= form.submit "Save", class: "btn btn-primary auth__submit",
+            data: { "password-confirmation-target": "submit" } %>
+    <% end %>
+  </div>
+</main>

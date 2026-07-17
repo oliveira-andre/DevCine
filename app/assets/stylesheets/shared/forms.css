@@ -47,3 +47,77 @@
 }
 .form-flash-alert { background: rgba(227, 52, 47, 0.15); color: #ff9c98; }
 .form-flash-notice { background: rgba(31, 157, 85, 0.15); color: #7fe0aa; }
+
+/* Custom file uploader (file-upload controller) — replaces the native file
+   input UI everywhere. The real <input> is transparent and overlays the box so
+   the whole area is a click target and remains interactable for tests. */
+.uploader {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 128px;
+  padding: var(--space-4);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-card);
+  background: var(--surface-3);
+  color: var(--text-secondary);
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color var(--dur-fast) ease, color var(--dur-fast) ease;
+}
+.uploader:hover { border-color: var(--accent-blue); color: var(--text-primary); }
+.uploader.is-filled { border-style: solid; }
+
+.uploader__input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.uploader__prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  text-align: center;
+  font-size: var(--text-meta);
+  font-weight: 600;
+  pointer-events: none;
+}
+.uploader__prompt .icon { width: 28px; height: 28px; }
+.uploader.is-filled .uploader__prompt { display: none; }
+
+/* Image uploader: preview fills the box once an image is chosen. */
+.image-preview {
+  display: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.image-preview.is-visible { display: block; }
+
+/* File (video) uploader: reveal the filename + check once a file is chosen. */
+.uploader__status {
+  display: none;
+  align-items: center;
+  gap: var(--space-3);
+  max-width: 100%;
+  font-size: var(--text-meta);
+  font-weight: 600;
+  pointer-events: none;
+}
+.uploader.is-filled .uploader__status { display: flex; }
+.uploader--file.is-filled { color: var(--text-primary); }
+.uploader__status .icon { width: 24px; height: 24px; flex-shrink: 0; }
+.uploader__filename {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.uploader__check { color: var(--success); }

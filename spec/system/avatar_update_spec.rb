@@ -17,7 +17,7 @@ RSpec.describe "Avatar update", type: :system do
     find(".account__avatar-link").click
     expect(page).to have_css("dialog.modal[open]")
 
-    attach_file "Profile picture", Rails.root.join("spec/fixtures/files/sample_image.jpg")
+    attach_file "Profile picture", Rails.root.join("spec/fixtures/files/sample_image.jpg"), make_visible: true
     expect(page).to have_css("img.image-preview.is-visible")
 
     click_button "Save"

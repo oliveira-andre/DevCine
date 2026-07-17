@@ -14,5 +14,9 @@ FactoryBot.define do
     trait :with_thumbnail do
       after(:build) { |video| AttachmentHelpers.attach_sample(video, :thumbnail, filename: "thumb.jpg") }
     end
+
+    trait :with_file do
+      after(:build) { |video| AttachmentHelpers.attach_sample(video, :file, filename: "clip.mp4") }
+    end
   end
 end

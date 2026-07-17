@@ -1,5 +1,7 @@
 class Video < ApplicationRecord
   extend FriendlyId
+  extend Cacheable
+  include Reactable
   friendly_id :title, use: :slugged
 
   enum :status, {
@@ -10,10 +12,12 @@ class Video < ApplicationRecord
 
   # Prefixed so the `private`/`public` values don't collide with Ruby's
   # Module#private / Module#public (methods become visibility_private?, etc.).
+  # `restricted` (006) is the PIN-gated adult catalog — always rated A18.
   enum :visibility, {
     private: 0,
     public: 1,
-    unlisted: 2
+    unlisted: 2,
+    restricted: 3
   }, prefix: true
 
   enum :kind, {
@@ -44,6 +48,9 @@ class Video < ApplicationRecord
   has_many :video_views, dependent: :destroy
   has_many :watch_progresses, dependent: :destroy
   has_many :comments, dependent: :destroy
+  # Membership in playlists (incl. the auto "Videos you liked") — destroy the
+  # join rows with the video so it can be deleted (feature 005 enhancement).
+  has_many :playlist_items, dependent: :destroy
 
   has_many :likes, as: :likeable, dependent: :destroy
 
@@ -60,6 +67,8 @@ class Video < ApplicationRecord
   attr_accessor :require_file
 
   validates :title, presence: true
+  # Restricted (PIN-gated) titles are A18-only by construction (FR-016).
+  validate :restricted_requires_a18
   # Duration is unknown until the (deferred) processing pipeline runs, so it is
   # optional at upload time; when present it must be positive.
   validates :duration_seconds, numericality: { greater_than: 0 }, allow_nil: true
@@ -70,10 +79,40 @@ class Video < ApplicationRecord
     errors.add(:file, "can't be blank") unless file.attached?
   end
 
+  def restricted_requires_a18
+    return unless visibility_restricted? && maturity_rating != "A18"
+
+    errors.add(:visibility, "restricted titles must be rated A18")
+  end
+
   # Most recently added first — feeds the "Recently added" rails.
   scope :recent, -> { order(created_at: :desc) }
-  # Public gate for any user-facing video listing (home, sections, browse).
-  scope :listable, -> { visibility_public }
-  # Standalone clips for the "Recently added videos" rail (public only).
-  scope :standalone_recent, -> { standalone.listable.recent }
+  # NOTE (006): the old `listable` scope and `playable_by?` were replaced by
+  # VideoPolicy (Scope#resolve / #watch?) — the single visibility authority.
+
+  # Same-kind related videos for the player sidebar (FR-026): recent, visible to
+  # this viewer, excluding self. Cached per (kind, unlock-state, version) so a
+  # locked session never sees an unlocked session's list — Constitution VI.
+  def related(auth_context, limit: 12)
+    version = Video.cache_version([ "videos", kind ])
+    unlocked = auth_context.pin_unlocked
+    ids = Video.cache_read([ "related", kind, id, limit, unlocked, version ]) do
+      VideoPolicy::Scope.new(auth_context, Video)
+                        .resolve.where(kind: kind).where.not(id: id)
+                        .recent.limit(limit).pluck(:id)
+    end
+    Video.where(id: ids).with_attached_thumbnail.index_by(&:id).values_at(*ids).compact
+  end
+
+  # Invalidate cached reads on any change (Constitution VI).
+  after_commit :bust_player_caches
+
+  private
+
+  def bust_player_caches
+    Rails.cache.delete([ "video", slug ])
+    old_slug = previous_changes["slug"]&.first
+    Rails.cache.delete([ "video", old_slug ]) if old_slug.present?
+    Video.bump_version([ "videos", kind ])
+  end
 end

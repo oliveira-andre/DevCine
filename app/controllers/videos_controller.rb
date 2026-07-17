@@ -2,10 +2,10 @@ class VideosController < ApplicationController
   include Paginatable
   include ModalLayout
 
-  # Public standalone videos (50/pg).
+  # Standalone videos (50/pg) — policy-scoped (restricted only when unlocked).
   def index
     @pagy, @videos = paginate(
-      Video.standalone.listable.recent.with_attached_thumbnail.with_attached_preview,
+      policy_scope(Video).standalone.recent.with_attached_thumbnail.with_attached_preview,
       limit: 50
     )
   end

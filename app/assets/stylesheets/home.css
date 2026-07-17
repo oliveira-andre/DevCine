@@ -96,6 +96,9 @@
 @media (min-width: 768px) { .poster-card { width: 30vw; } }
 @media (min-width: 1024px) { .poster-card { width: 18vw; } }
 .poster-card:hover { transform: scale(1.05); }
+.poster-card__link { display: block; color: inherit; }
+/* The hero anchor must fill the slide, or the 100%-height backdrop collapses to 0. */
+.hero__link { display: block; height: 100%; color: inherit; }
 
 .poster-card__media {
   position: relative;

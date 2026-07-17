@@ -16,7 +16,7 @@ RSpec.describe "Image previews", type: :system do
     find(".account__action[aria-label='Upload video']").click
     expect(page).to have_css("dialog.modal[open]")
 
-    attach_file "Thumbnail (optional)", Rails.root.join("spec/fixtures/files/sample_image.jpg")
+    attach_file "Thumbnail (optional)", Rails.root.join("spec/fixtures/files/sample_image.jpg"), make_visible: true
     expect(page).to have_css("img.image-preview.is-visible")
   end
 end

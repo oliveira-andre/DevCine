@@ -1,5 +1,5 @@
 <% content_for :page_styles do %>
-  <%= stylesheet_link_tag "auth", "data-turbo-track": "reload" %>
+  <%= stylesheet_link_tag "auth", "data-turbo-track": "dynamic" %>
 <% end %>
 
 <main class="auth">
@@ -8,6 +8,9 @@
 
     <% if flash[:alert] %>
       <div class="form-flash form-flash-alert"><%= flash[:alert] %></div>
+    <% end %>
+    <% if flash[:notice] %>
+      <div class="form-flash form-flash-notice"><%= flash[:notice] %></div>
     <% end %>
 
     <%= form_with url: session_path, class: "auth__form" do |form| %>
@@ -30,6 +33,9 @@
     <p class="auth__alt">
       You don't have an account yet?
       <%= link_to "Sign Up", new_registration_path, class: "auth__link" %>
+    </p>
+    <p class="auth__alt">
+      <%= link_to "Forgot your password?", new_password_path, class: "auth__link" %>
     </p>
   </div>
 </main>

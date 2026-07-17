@@ -1,0 +1,17 @@
+<% if @comment.reply? %>
+  <%= turbo_stream.append "replies_#{@comment.parent_id}" do %>
+    <%= render "comments/comment", comment: @comment %>
+  <% end %>
+  <%= turbo_stream.replace "reply_form_#{@comment.parent_id}" do %>
+    <%= render "comments/form", video: @video, comment: Comment.new(parent_id: @comment.parent_id),
+          form_id: "reply_form_#{@comment.parent_id}", placeholder: "Add a reply…", submit_label: "Reply" %>
+  <% end %>
+<% else %>
+  <%= turbo_stream.remove "comments_empty" %>
+  <%= turbo_stream.prepend "comments_page_1" do %>
+    <%= render "comments/comment", comment: @comment %>
+  <% end %>
+  <%= turbo_stream.replace "comment_form" do %>
+    <%= render "comments/form", video: @video, comment: Comment.new %>
+  <% end %>
+<% end %>

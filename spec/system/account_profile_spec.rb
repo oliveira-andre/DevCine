@@ -21,7 +21,7 @@ RSpec.describe "Account profile", type: :system do
 
     expect(page).to have_css(".account__bg")
     expect(page).to have_css(".account__avatar")
-    expect(page).to have_css(".account__action", count: 2) # cog + movie
+    expect(page).to have_css(".account__action", count: 3) # cog + movie + lock (006)
 
     titles = page.all(".rail__title").map(&:text)
     expect(titles).to include("Recent uploads", "Likes", "Playlists", "History")

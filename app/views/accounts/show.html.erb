@@ -1,6 +1,6 @@
 <% content_for :title, @owner ? "Your account" : @user.display_label %>
 <% content_for :page_styles do %>
-  <%= stylesheet_link_tag "home", "listing", "account", "data-turbo-track": "reload" %>
+  <%= stylesheet_link_tag "home", "listing", "account", "data-turbo-track": "dynamic" %>
 <% end %>
 
 <main class="account">
@@ -25,6 +25,10 @@
               "aria-label": "Change password", data: { turbo_frame: "modal" } do %><%= icon(:settings) %><% end %>
         <%= link_to new_video_path, class: "account__action", title: "Upload video",
               "aria-label": "Upload video", data: { turbo_frame: "modal" } do %><%= icon(:movie) %><% end %>
+        <%= link_to settings_pin_path,
+              class: "account__action account__action--lock#{' is-unlocked' if pin_unlocked?}",
+              title: "Restricted content", "aria-label": "Restricted content",
+              data: { turbo_frame: "modal" } do %><%= icon(:lock) %><% end %>
       </div>
     <% end %>
   </header>

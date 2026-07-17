@@ -17,4 +17,36 @@ RSpec.describe "Search", type: :request do
       Video.kinds.each_key { |kind| expect(response.body).to include(kind.titleize) }
     end
   end
+
+  describe "GET /search?q=" do
+    it "returns title matches across videos, movies, and series" do
+      create(:video, title: "Galaxy Warriors", visibility: :public)
+      create(:movie, title: "Galaxy Quest")
+      Serie.create!(title: "Galaxy Rangers")
+      create(:video, title: "Unrelated Clip", visibility: :public)
+
+      get search_path(q: "galaxy")
+      expect(response.body).to include("Galaxy Warriors")
+      expect(response.body).to include("Galaxy Quest")
+      expect(response.body).to include("Galaxy Rangers")
+      expect(response.body).not_to include("Unrelated Clip")
+    end
+
+    it "excludes private videos from results" do
+      create(:video, title: "Galaxy Secret", visibility: :private, uploader: create(:user))
+      get search_path(q: "galaxy")
+      expect(response.body).not_to include("Galaxy Secret")
+    end
+
+    it "shows an empty state when nothing matches" do
+      get search_path(q: "zzzz-no-match")
+      expect(response.body).to include("No results for")
+    end
+
+    it "treats SQL LIKE wildcards literally" do
+      create(:video, title: "Percent Test", visibility: :public)
+      get search_path(q: "%")
+      expect(response.body).to include("No results for")
+    end
+  end
 end

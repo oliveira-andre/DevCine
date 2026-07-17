@@ -7,7 +7,11 @@ class Catalog::BrowseController < ApplicationController
     if params[:slug].present?
       @genre = Genre.friendly.find(params[:slug])
       @title = @genre.name
-      combined = (@genre.movies.to_a + @genre.series.to_a).sort_by(&:created_at).reverse
+      # Two models, one shelf: combined in memory (catalog-scale), policy-scoped,
+      # with posters + videos eager-loaded so the page renders without N+1s.
+      movies = policy_scope(@genre.movies).includes(:poster_attachment, video: :preview_attachment).to_a
+      series = policy_scope(@genre.series).includes(:poster_attachment).to_a
+      combined = (movies + series).sort_by(&:created_at).reverse
       @pagy, @items = paginate(combined, limit: 20)
     else
       @kind = params[:kind]
@@ -15,7 +19,7 @@ class Catalog::BrowseController < ApplicationController
 
       @title = @kind.titleize
       @pagy, @items = paginate(
-        Video.where(kind: @kind).listable.recent.with_attached_thumbnail, limit: 50
+        policy_scope(Video).where(kind: @kind).recent.with_attached_thumbnail, limit: 50
       )
     end
   end

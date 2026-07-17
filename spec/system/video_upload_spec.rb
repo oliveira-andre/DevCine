@@ -18,7 +18,7 @@ RSpec.describe "Video upload", type: :system do
     expect(page).to have_css("dialog.modal[open]")
 
     fill_in "Title", with: "My Brand New Clip"
-    attach_file "Video file", Rails.root.join("spec/fixtures/files/sample_image.jpg")
+    attach_file "Video file", Rails.root.join("spec/fixtures/files/sample_image.jpg"), make_visible: true
     click_button "Upload"
 
     expect(page).to have_no_css("dialog.modal[open]")
@@ -31,7 +31,7 @@ RSpec.describe "Video upload", type: :system do
     visit account_path
 
     find(".account__action[aria-label='Upload video']").click
-    attach_file "Video file", Rails.root.join("spec/fixtures/files/sample_image.jpg")
+    attach_file "Video file", Rails.root.join("spec/fixtures/files/sample_image.jpg"), make_visible: true
     # leave title blank; disable HTML5 required so the server validates
     page.execute_script("document.querySelector('input[name=\"video[title]\"]').removeAttribute('required')")
     click_button "Upload"

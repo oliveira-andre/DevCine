@@ -114,6 +114,14 @@
   cursor: pointer;
 }
 .account__action:hover { border-color: var(--text-primary); color: var(--text-primary); }
+/* Lock icon tints green while restricted content is unlocked this session (006). */
+.account__action--lock.is-unlocked { color: var(--success); border-color: var(--success); }
+
+/* PIN modal. */
+.pin-modal__hint { color: var(--text-secondary); font-size: var(--text-meta); margin-bottom: var(--space-4); }
+.pin-modal__status { display: flex; align-items: center; gap: var(--space-2); font-weight: 600; }
+.pin-modal__status .icon { width: 20px; height: 20px; color: var(--success); }
+.pin-modal__input { text-align: center; letter-spacing: 0.4em; font-size: var(--text-h3); }
 
 .account__rails {
   margin-top: var(--space-6);

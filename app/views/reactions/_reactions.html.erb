@@ -1,0 +1,16 @@
+<%# Like/dislike buttons for a Video or Comment. Turbo-Stream replaces this
+    span on toggle (feature 005 enhancement). %>
+<% mine = record.reaction_by(Current.user) %>
+<span id="<%= dom_id(record, :reactions) %>" class="reactions">
+  <%= button_to reactions_path(type: reactable_type(record), id: record.id, kind: :like),
+        class: "reaction-btn#{' is-active' if mine == 'like'}",
+        form_class: "reactions__form", "aria-label": "Like" do %>
+    <%= icon(:like) %><span class="reaction-btn__count"><%= record.likes_count %></span>
+  <% end %>
+
+  <%= button_to reactions_path(type: reactable_type(record), id: record.id, kind: :dislike),
+        class: "reaction-btn#{' is-active' if mine == 'dislike'}",
+        form_class: "reactions__form", "aria-label": "Dislike" do %>
+    <%= icon(:dislike) %><span class="reaction-btn__count"><%= record.dislikes_count %></span>
+  <% end %>
+</span>

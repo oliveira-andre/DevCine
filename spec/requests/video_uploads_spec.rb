@@ -44,5 +44,25 @@ RSpec.describe "Video uploads", type: :request do
       }.not_to change(Video, :count)
       expect(response).to have_http_status(:unprocessable_content)
     end
+
+    it "creates a restricted video when rated A18 (feature 006)" do
+      expect {
+        post videos_path, params: { video: {
+          title: "Gated Clip", visibility: "restricted", maturity_rating: "A18",
+          file: upload("sample_image.jpg", "video/mp4")
+        } }
+      }.to change(member.uploaded_videos.where(visibility: :restricted), :count).by(1)
+    end
+
+    it "rejects a restricted video rated below A18" do
+      expect {
+        post videos_path, params: { video: {
+          title: "Bad Gate", visibility: "restricted", maturity_rating: "A14",
+          file: upload("sample_image.jpg", "video/mp4")
+        } }
+      }.not_to change(Video, :count)
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include("restricted titles must be rated A18")
+    end
   end
 end

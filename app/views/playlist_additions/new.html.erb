@@ -1,0 +1,11 @@
+<%= modal title: "Add to playlist" do %>
+  <div class="playlist-add">
+    <% if @playlists.any? %>
+      <% @playlists.each do |playlist| %>
+        <%= render "playlist_additions/row", playlist: playlist, video: @video %>
+      <% end %>
+    <% else %>
+      <p class="playlist-add__empty">You don't have any playlists yet.</p>
+    <% end %>
+  </div>
+<% end %>

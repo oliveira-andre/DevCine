@@ -25,7 +25,8 @@
 
         <div class="field">
           <%= form.label :visibility, class: "field-label" %>
-          <%= form.select :visibility, Video.visibilities.keys.map { |k| [ k.titleize, k ] },
+          <%= form.select :visibility,
+                Video.visibilities.keys.map { |k| [ (k == "restricted" ? "Restricted (PIN) — A18" : k.titleize), k ] },
                 { selected: "public" }, class: "field-input" %>
         </div>
       </div>
@@ -34,15 +35,33 @@
       <div class="upload-form__col">
         <div class="field">
           <%= form.label :file, "Video file", class: "field-label" %>
-          <%= form.file_field :file, required: true, accept: "video/*", class: "field-input" %>
+          <div class="uploader uploader--file" data-controller="file-upload">
+            <%= form.file_field :file, required: true, accept: "video/*", class: "uploader__input",
+                  data: { "file-upload-target": "input", action: "change->file-upload#change" } %>
+            <div class="uploader__prompt">
+              <%= icon(:movie) %>
+              <span>Choose a video file</span>
+            </div>
+            <div class="uploader__status">
+              <%= icon(:movie) %>
+              <span class="uploader__filename" data-file-upload-target="filename"></span>
+              <%= icon(:check, class: "uploader__check") %>
+            </div>
+          </div>
         </div>
 
-        <div class="field" data-controller="image-preview">
+        <div class="field">
           <%= form.label :thumbnail, "Thumbnail (optional)", class: "field-label" %>
-          <%= form.file_field :thumbnail, accept: "image/*", class: "field-input",
-                data: { "image-preview-target": "input", action: "change->image-preview#show" } %>
-          <%= image_tag("", class: "image-preview", alt: "Thumbnail preview",
-                data: { "image-preview-target": "preview" }) %>
+          <div class="uploader uploader--image" data-controller="file-upload">
+            <%= form.file_field :thumbnail, accept: "image/*", class: "uploader__input",
+                  data: { "file-upload-target": "input", action: "change->file-upload#change" } %>
+            <%= image_tag("", class: "image-preview", alt: "Thumbnail preview",
+                  data: { "file-upload-target": "preview" }) %>
+            <div class="uploader__prompt">
+              <%= icon(:image) %>
+              <span>Choose a thumbnail</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

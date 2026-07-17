@@ -1,0 +1,12 @@
+<%= form_with model: comment, url: player_comments_path(video.slug),
+      id: local_assigns.fetch(:form_id, "comment_form"), class: "comments__form" do |form| %>
+  <% if comment.parent_id.present? %><%= form.hidden_field :parent_id %><% end %>
+  <% if comment.errors.any? %>
+    <p class="field-error comments__error"><%= comment.errors.full_messages.first %></p>
+  <% end %>
+  <%= form.text_area :body, rows: 3, class: "comments__input",
+        placeholder: local_assigns.fetch(:placeholder, "Add a comment…"), "aria-label": "Comment" %>
+  <div class="comments__actions">
+    <%= form.submit local_assigns.fetch(:submit_label, "Comment"), class: "btn btn-primary comments__submit" %>
+  </div>
+<% end %>

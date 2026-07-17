@@ -1,17 +1,26 @@
 <%# Rounded poster card. Plays the item's preview clip only after >2s hover
-    (FR-028); otherwise shows the poster/thumbnail. %>
+    (FR-028); otherwise shows the poster/thumbnail. When the card maps to a
+    playable Video it links to the player (feature 005). %>
 <% card = home_card(item) %>
 <article class="poster-card"
          data-controller="hover-preview"
          data-hover-preview-delay-value="2000"
          data-action="mouseenter->hover-preview#start mouseleave->hover-preview#stop">
-  <div class="poster-card__media">
-    <%= poster_image_tag card[:image], card[:external], alt: card[:title], class: "poster-card__img" %>
-    <% if card[:preview].respond_to?(:attached?) && card[:preview].attached? %>
-      <video class="poster-card__preview" muted loop playsinline preload="none"
-             data-hover-preview-target="video"
-             data-src="<%= url_for(card[:preview]) %>"></video>
-    <% end %>
-  </div>
-  <h3 class="poster-card__title" title="<%= card[:title] %>"><%= card[:title] %></h3>
+  <% inner = capture do %>
+    <div class="poster-card__media">
+      <%= poster_image_tag card[:image], card[:external], alt: card[:title], class: "poster-card__img" %>
+      <% if card[:preview].respond_to?(:attached?) && card[:preview].attached? %>
+        <video class="poster-card__preview" muted loop playsinline preload="none"
+               data-hover-preview-target="video"
+               data-src="<%= url_for(card[:preview]) %>"></video>
+      <% end %>
+    </div>
+    <h3 class="poster-card__title" title="<%= card[:title] %>"><%= card[:title] %></h3>
+  <% end %>
+
+  <% if card[:video] %>
+    <%= link_to inner, player_path(card[:video].slug), class: "poster-card__link" %>
+  <% else %>
+    <%= inner %>
+  <% end %>
 </article>

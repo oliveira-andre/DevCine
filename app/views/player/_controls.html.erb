@@ -1,0 +1,29 @@
+<%# Center overlay controls (US1/US3/US4). Transparent bg; prev/back reuse the
+    forward/next icons mirrored (FR-012). Next/previous video are placeholders. %>
+<div class="player__controls" data-player-target="controls">
+  <button type="button" class="player__btn player__btn--mirror"
+          data-action="player#prev" aria-label="Previous video">
+    <%= icon(:next_video) %>
+  </button>
+
+  <button type="button" class="player__btn player__btn--mirror"
+          data-action="player#skipBack" aria-label="Back 5 seconds">
+    <%= icon(:forward_5) %>
+  </button>
+
+  <button type="button" class="player__btn player__btn--play"
+          data-action="player#toggle" aria-label="Play or pause">
+    <span class="player__icon-play"><%= icon(:play) %></span>
+    <span class="player__icon-pause"><%= icon(:pause) %></span>
+  </button>
+
+  <button type="button" class="player__btn"
+          data-action="player#skipForward" aria-label="Forward 5 seconds">
+    <%= icon(:forward_5) %>
+  </button>
+
+  <button type="button" class="player__btn"
+          data-action="player#next" aria-label="Next video">
+    <%= icon(:next_video) %>
+  </button>
+</div>
