@@ -1,30 +1,27 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: TEMPLATE (unversioned) → 1.0.0
-Bump rationale: Initial ratification — first concrete constitution replacing the
-unfilled template. MAJOR baseline established.
+Version change: 1.1.0 → 1.1.1
+Bump rationale: PATCH — clarified Principle VI to state that all caching MUST go through
+`Rails.cache` (e.g. `Rails.cache.fetch`) as the single mandatory mechanism, with no other
+caching approach permitted. No new principle; no semantic change to obligations.
 
-Modified principles: N/A (initial adoption)
-Added principles:
-  - I. Hotwire/Turbo-First Architecture
-  - II. Comprehensive Test Coverage (NON-NEGOTIABLE)
-  - III. Mobile-First, Multi-Platform Parity
-  - IV. Design System Fidelity
-  - V. Uninterrupted Playback (NON-NEGOTIABLE)
-Added sections:
-  - Product Scope
-  - Technology & Architecture Standards
-  - Development Workflow & Quality Gates
+Prior amendment (1.0.0 → 1.1.0, MINOR): added Principle VI. Cache-by-Default with
+Automatic Invalidation plus supporting Technology Standard and Quality Gate.
+
+Modified principles:
+  - VI. Cache-by-Default with Automatic Invalidation (clarified mechanism: Rails.cache)
+Added principles: N/A
+Added sections: None (extended Technology & Architecture Standards and Development
+  Workflow & Quality Gates with caching entries)
 Removed sections: None
 
 Templates requiring updates:
-  ✅ .specify/templates/plan-template.md (Constitution Check gate aligns; no edit required)
-  ✅ .specify/templates/spec-template.md (tests already mandatory here; no edit required)
-  ✅ .specify/templates/tasks-template.md (test tasks now mandatory per Principle II — see note below)
-  ⚠ .specify/templates/tasks-template.md states tests are OPTIONAL; generators MUST
-    treat tests as REQUIRED for this project per Principle II. Flagged for manual
-    follow-up if the template is regenerated.
+  ✅ .specify/templates/plan-template.md (Constitution Check derives gates from this file
+    generically; no edit required)
+  ✅ .specify/templates/spec-template.md (no principle enumeration; no edit required)
+  ✅ .specify/templates/tasks-template.md (no principle enumeration; tests remain REQUIRED
+    per Principle II as previously flagged)
 
 Follow-up TODOs: None
 -->
@@ -111,6 +108,38 @@ player MUST include tests and live verification of this behavior.
 **Rationale**: Continuous playback through screen-lock is the defining product promise;
 silent interruptions break the core experience.
 
+### VI. Cache-by-Default with Automatic Invalidation
+
+Read access to persisted data MUST be cached. Every model query that serves a read —
+whether a single record or a collection (categories, videos, playlists, and any other
+model) — MUST be served through `Rails.cache` rather than hitting the database on
+every request. `Rails.cache` (e.g. `Rails.cache.fetch`) is the single, mandatory caching
+mechanism: all cache reads and writes MUST go through it. Other caching mechanisms
+(view/fragment caching helpers, per-request memoization as a substitute, or bespoke
+in-memory stores) MUST NOT be used in its place. The following rules are non-negotiable:
+
+- **Cache on read**: Reads MUST go through `Rails.cache.fetch` (or an equivalent
+  `Rails.cache` call) keyed by a deterministic, version-aware key derived from the model
+  and its identity plus version (e.g. `cache_key_with_version`, record `id` +
+  `updated_at`, or a collection key incorporating `count` and `max(updated_at)`).
+- **Invalidate on write**: Any create, update, or destroy MUST expire (stale) the cache
+  for the affected record AND for every associated record or collection whose cached view
+  includes it. Uploading a new video MUST stale that video's cache and the caches of its
+  categories/genres and any collection that lists it; changing a category MUST stale that
+  category's cache and every collection derived from it; the same cascade applies to all
+  other records.
+- **Automatic, not ad-hoc**: Invalidation MUST be wired through model callbacks
+  (`after_commit`) and/or `touch:` associations so it cannot be forgotten at a call site.
+  Manual, scattered cache-busting is prohibited.
+- **No stale reads after a committed write**: A read issued after a write commits MUST
+  reflect that write. Correctness always wins over cache retention.
+- **Tested both ways**: Every cached path MUST have tests proving (a) the cache-hit path
+  avoids redundant queries and (b) a change to the underlying data invalidates the cache.
+
+**Rationale**: A streaming catalog is read-heavy; caching every model query keeps the app
+fast at scale, while callback-driven invalidation guarantees users never see stale
+categories, videos, or associations after a change.
+
 ## Technology & Architecture Standards
 
 - **Platform**: Ruby on Rails with the Hotwire stack (Turbo + Stimulus).
@@ -121,6 +150,10 @@ silent interruptions break the core experience.
 - **Styling**: Page-scoped CSS plus a `shared/` directory for typography and design
   tokens, governed by `DESIGN.md`.
 - **CRUD UX**: `new`/`edit` flows MUST use Turbo-rendered modals available app-wide.
+- **Caching**: Model read queries MUST be served through `Rails.cache` (e.g.
+  `Rails.cache.fetch`) with version-aware keys — no other caching mechanism — and writes
+  MUST invalidate the affected record and its associated records/collections via model
+  callbacks (Principle VI).
 
 ## Development Workflow & Quality Gates
 
@@ -134,6 +167,9 @@ For every task, the following gates MUST pass before it is marked complete:
    (Principle III).
 5. Styling traces to `DESIGN.md` and reuses `shared/` tokens (Principle IV).
 6. Any player-related change preserves uninterrupted playback (Principle V).
+7. Model read queries are cached and every write invalidates the affected record and its
+   associated records/collections, with tests for both the hit and invalidation paths
+   (Principle VI).
 
 Pull requests and reviews MUST confirm each applicable gate. Deviations require a
 documented justification recorded in the plan's Complexity Tracking section.
@@ -154,4 +190,4 @@ the constitution wins.
 - **Runtime guidance**: agents and contributors use the active feature plan and
   `DESIGN.md` for day-to-day development guidance, within the bounds set here.
 
-**Version**: 1.0.0 | **Ratified**: 2026-06-24 | **Last Amended**: 2026-06-24
+**Version**: 1.1.1 | **Ratified**: 2026-06-24 | **Last Amended**: 2026-07-13
