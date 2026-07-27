@@ -1,0 +1,230 @@
+/* Collection show page — Series & Playlists (feature 007). Page-scoped
+   (Constitution IV). Mobile-first: episode cards are horizontal rows; at desktop
+   they become square poster-style tiles. Tokens from shared/variables. */
+
+.collection {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--space-5) var(--space-4) var(--space-12);
+}
+
+/* --- Hero: centered thumbnail of the latest-watched (or poster/first) video --- */
+.collection__hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: var(--space-5);
+}
+/* Names the video the hero thumbnail links to. */
+.collection__hero-caption {
+  margin-top: var(--space-2);
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: var(--text-meta, 0.85rem);
+}
+.collection__hero-link {
+  display: block;
+  width: min(320px, 70vw);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+}
+.collection__hero-img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  display: block;
+}
+
+/* --- Head: title (left) + Play/Continue (right) --- */
+.collection__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+.collection__title { font-size: var(--text-h1, 1.6rem); min-width: 0; }
+
+/* Play/Continue button (US2): right of the title. */
+.collection__play {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+.collection__play .icon { width: 18px; height: 18px; }
+
+/* --- Seasons carousel (series only) — self-contained horizontal scroller --- */
+.seasons { margin-bottom: var(--space-5); }
+.seasons__bar { display: flex; align-items: center; gap: var(--space-2); }
+.seasons__track {
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  flex: 1 1 auto;
+}
+.seasons__track::-webkit-scrollbar { display: none; }
+.season-chip {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+}
+.season-chip.is-active {
+  background: var(--accent-blue);
+  color: var(--text-primary);
+  border-color: var(--accent-blue);
+}
+.seasons__arrows { display: flex; gap: var(--space-1); flex: 0 0 auto; }
+.seasons__arrow {
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+}
+.seasons__arrow:hover { color: var(--text-primary); }
+
+/* --- Episodes region + loading state (season swap / page fetch) --- */
+turbo-frame#episodes[aria-busy="true"] { opacity: 0.5; }
+turbo-frame#episodes[aria-busy="true"]::after {
+  content: "";
+  display: block;
+  width: 28px;
+  height: 28px;
+  margin: var(--space-6) auto;
+  border: 3px solid var(--border-subtle);
+  border-top-color: var(--accent-blue);
+  border-radius: 50%;
+  animation: collection-spin 0.7s linear infinite;
+}
+@keyframes collection-spin { to { transform: rotate(360deg); } }
+
+/* --- Episodes grid (mobile: stacked rows) --- */
+.episode-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+/* Loaded frames are layout-transparent so cards flow into the grid; the still-
+   loading lazy frame keeps a box so Turbo can observe it and auto-load. */
+.episode-grid turbo-frame { display: contents; }
+.episode-grid turbo-frame[src]:not([complete]) { display: block; }
+.episode-grid .pagination-loader { padding: var(--space-5); color: var(--text-tertiary); }
+
+/* --- Episode card (mobile: horizontal row) --- */
+.episode-card {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  padding: var(--space-2);
+  border-radius: var(--radius-card);
+  border: 2px solid transparent;
+  background: var(--surface-1);
+  color: var(--text-primary);
+}
+.episode-card__media {
+  position: relative;
+  flex: 0 0 40%;
+  max-width: 160px;
+  border-radius: var(--radius-tile);
+  overflow: hidden;
+}
+.episode-card__img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  display: block;
+}
+.episode-card__img--placeholder { background: var(--surface-3); }
+.episode-card__body { min-width: 0; }
+.episode-card__title {
+  font-size: var(--text-h3, 1rem);
+  margin-bottom: var(--space-1);
+}
+.episode-card__desc {
+  color: var(--text-tertiary);
+  font-size: var(--text-meta, 0.85rem);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+/* Current-episode marker (US5): blue outline + play state badge. */
+.episode-card { position: relative; }
+.episode-card--current { border-color: var(--accent-blue); }
+/* Mobile: the play state sits at the right of the row. */
+.episode-card__state {
+  flex: 0 0 auto;
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.episode-card__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-blue);
+  color: var(--text-primary);
+}
+.episode-card__badge .icon { width: 16px; height: 16px; }
+
+/* ============================ Desktop ============================ */
+@media (min-width: 768px) {
+  /* Episodes become a grid of square poster-style tiles (like the home rails). */
+  .episode-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-4);
+  }
+  .episode-grid turbo-frame { display: contents; }
+  .episode-grid turbo-frame[src]:not([complete]) { display: block; grid-column: 1 / -1; }
+  .episode-grid .pagination-loader { grid-column: 1 / -1; }
+
+  /* Card: thumbnail full-width on top, title + description below. */
+  .episode-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-2);
+    padding: var(--space-2);
+  }
+  .episode-card__media { flex: none; max-width: none; width: 100%; }
+  .episode-card__body { padding: 0 var(--space-1) var(--space-1); }
+
+  /* The play state overlays the thumbnail (covers the media box, badge centered). */
+  .episode-card__state {
+    position: absolute;
+    top: var(--space-2);
+    left: var(--space-2);
+    right: var(--space-2);
+    aspect-ratio: 16 / 9;
+    height: auto;
+    margin: 0;
+  }
+  .episode-card__badge { width: 52px; height: 52px; }
+  .episode-card__badge .icon { width: 20px; height: 20px; }
+}
+@media (min-width: 1024px) {
+  .episode-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* --- Empty state --- */
+.collection__empty {
+  color: var(--text-tertiary);
+  padding: var(--space-8) 0;
+  text-align: center;
+}

@@ -36,7 +36,7 @@
   <div class="account__rails page">
     <%= render "accounts/uploads_rail", items: @recent_uploads %>
     <%= render "home/rail", title: "Likes", items: @likes %>
-    <%= render "accounts/playlists_rail", playlists: @playlists %>
+    <%= render "accounts/playlists_rail", playlists: @playlists, owner: @owner %>
     <% if @owner && @history %>
       <%= render "home/rail", title: "History", items: @history %>
     <% end %>

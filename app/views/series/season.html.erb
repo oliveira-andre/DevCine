@@ -1,0 +1,4 @@
+<%# Episodes Turbo Frame for one season (feature 007) — the season-switch target
+    and infinite-scroll page source. Root is turbo-frame#episodes so a season
+    click swaps only this region. %>
+<%= render "collections/episodes", pagy: @pagy, videos: @videos, next_url: @next_url, current_id: @current_video&.id %>

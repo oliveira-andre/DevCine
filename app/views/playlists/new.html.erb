@@ -1,0 +1,18 @@
+<%= modal title: "New playlist" do %>
+  <%= form_with model: @playlist, url: playlists_path, class: "modal__form" do |form| %>
+    <% if @playlist.errors.any? %>
+      <div class="form-flash form-flash-alert"><%= @playlist.errors.full_messages.first %></div>
+    <% end %>
+
+    <div class="field">
+      <%= form.label :title, "Playlist name", class: "field-label" %>
+      <%= form.text_field :title, required: true, autofocus: true, maxlength: 100,
+            autocomplete: "off", class: "field-input" %>
+    </div>
+
+    <div class="modal__footer">
+      <button type="button" class="btn btn-outline" data-action="modal#close">Cancel</button>
+      <%= form.submit "Create", class: "btn btn-primary" %>
+    </div>
+  <% end %>
+<% end %>

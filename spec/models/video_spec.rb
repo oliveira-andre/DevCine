@@ -27,6 +27,30 @@ RSpec.describe Video, type: :model do
     it { is_expected.to validate_numericality_of(:duration_seconds).is_greater_than(0).allow_nil }
   end
 
+  # --- Live embed (feature 009) ---
+  describe "live embed URL" do
+    it "requires a valid https embed URL for a live video" do
+      expect(build(:video, kind: :live, live_embed_url: nil)).not_to be_valid
+      expect(build(:video, kind: :live, live_embed_url: "")).not_to be_valid
+      expect(build(:video, kind: :live, live_embed_url: "http://insecure.example/embed")).not_to be_valid
+      expect(build(:video, kind: :live, live_embed_url: "not a url")).not_to be_valid
+      expect(build(:video, kind: :live, live_embed_url: "https://www.youtube.com/embed/abc")).to be_valid
+    end
+
+    it "does not require an embed URL for non-live videos" do
+      expect(build(:video, kind: :standalone, live_embed_url: nil)).to be_valid
+    end
+
+    it "#embed? is true only for a live with an embed URL" do
+      expect(build(:video, :live).embed?).to be(true)
+      expect(build(:video, kind: :standalone).embed?).to be(false)
+    end
+
+    it "#embed_src returns the stored embed URL" do
+      expect(build(:video, :live).embed_src).to eq("https://www.youtube.com/embed/O8bnDdWsk8Q")
+    end
+  end
+
   describe "maturity_rating" do
     it { is_expected.to define_enum_for(:maturity_rating).with_values(L: 0, A6: 1, A10: 2, A12: 3, A14: 4, A16: 5, A18: 6) }
 
@@ -52,7 +76,6 @@ RSpec.describe Video, type: :model do
         expect(Video.recent.to_a).to eq([ newer, older ])
       end
     end
-
   end
 
   # --- Restricted visibility (feature 006) ---

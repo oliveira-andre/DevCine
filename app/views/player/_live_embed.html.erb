@@ -1,0 +1,10 @@
+<%# Live embed (feature 009): the stored URL is used ONLY as the iframe src
+    (attribute-escaped) — never rendered as raw markup. Responsive 16:9. %>
+<div class="live-embed">
+  <iframe class="live-embed__frame"
+          src="<%= @video.embed_src %>"
+          title="<%= @video.title %>"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          referrerpolicy="strict-origin-when-cross-origin"
+          allowfullscreen></iframe>
+</div>

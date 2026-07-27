@@ -1,10 +1,10 @@
 FactoryBot.define do
   factory :episode do
-    season { nil }
-    video { nil }
-    title { "MyString" }
+    association :season
+    association :video
+    sequence(:title) { |n| "Episode #{n}" }
     description { "MyText" }
-    position { 1 }
+    sequence(:position) { |n| n }
     release_date { "2026-06-24" }
   end
 end

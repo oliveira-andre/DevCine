@@ -1,11 +1,21 @@
 <% included = playlist.playlist_items.exists?(video_id: video.id) %>
-<%= button_to toggle_playlist_video_path(playlist_id: playlist.id, slug: video.slug),
-      form: { id: "playlist_row_#{playlist.id}", class: "playlist-add__form" },
-      class: "playlist-add__row#{' is-added' if included}" do %>
-  <span class="playlist-add__title"><%= playlist.title %></span>
-  <% if included %>
-    <%= icon(:check, class: "playlist-add__check") %>
-  <% else %>
-    <%= icon(:plus) %>
+<div id="playlist_row_<%= playlist.id %>" class="playlist-add__item">
+  <%= button_to toggle_playlist_video_path(playlist_id: playlist.id, slug: video.slug),
+        form: { class: "playlist-add__form" },
+        class: "playlist-add__row#{' is-added' if included}" do %>
+    <span class="playlist-add__title"><%= playlist.title %></span>
+    <% if included %>
+      <%= icon(:check, class: "playlist-add__check") %>
+    <% else %>
+      <%= icon(:plus) %>
+    <% end %>
   <% end %>
-<% end %>
+
+  <% unless playlist.system? %>
+    <%= button_to playlist_path(playlist), method: :delete, class: "playlist-add__delete",
+          form: { class: "playlist-add__delete-form", data: { turbo_confirm: "Delete this playlist? (Videos are kept.)" } },
+          "aria-label": "Delete #{playlist.title}" do %>
+      <%= icon(:trash) %>
+    <% end %>
+  <% end %>
+</div>

@@ -59,6 +59,14 @@
 
 body.modal-open { overflow: hidden; }
 
+/* Submit/Cancel row at the bottom of a modal form (feature 008). */
+.modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+
 /* PIN modal (restricted content, feature 006). */
 .pin-modal__hint { color: var(--text-secondary); font-size: var(--text-meta); margin-bottom: var(--space-4); }
 .pin-modal__status { display: flex; align-items: center; gap: var(--space-2); font-weight: 600; }

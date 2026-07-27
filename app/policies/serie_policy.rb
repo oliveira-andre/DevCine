@@ -2,6 +2,13 @@
 # exist and are ALL restricted (mixed series stay listed — their restricted
 # episodes are gated at the video level). Feature 006.
 class SeriePolicy < ApplicationPolicy
+  # Visible on the show page exactly when the listing scope would include it
+  # (all-restricted series stay hidden while locked). Controllers load via
+  # policy_scope, so this is a belt-and-suspenders predicate.
+  def show?
+    Scope.new(user, Serie.where(id: record.id)).resolve.exists?
+  end
+
   class Scope < ApplicationPolicy::Scope
     def resolve
       return scope.all if pin_unlocked?

@@ -1,0 +1,15 @@
+<%# Admin sidebar (feature 009): persistent nav shared by admin pages. %>
+<aside class="admin__sidebar">
+  <nav class="admin__nav" aria-label="Admin">
+    <% dash = current_page?(admin_dashboard_path) %>
+    <%= link_to admin_dashboard_path, class: "admin__navlink#{' is-active' if dash}",
+          "aria-current": (dash ? "page" : nil) do %>
+      <%= icon(:dashboard) %><span>Dashboard</span>
+    <% end %>
+    <% lives = current_page?(admin_lives_path) %>
+    <%= link_to admin_lives_path, class: "admin__navlink#{' is-active' if lives}",
+          "aria-current": (lives ? "page" : nil) do %>
+      <%= icon(:live) %><span>Lives</span>
+    <% end %>
+  </nav>
+</aside>

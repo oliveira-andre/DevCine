@@ -1,0 +1,18 @@
+<% content_for :title, @serie.title %>
+<% content_for :page_styles do %>
+  <%= stylesheet_link_tag "collection", "data-turbo-track": "dynamic" %>
+<% end %>
+
+<main class="collection">
+  <%# Series need no link context — the player derives the series from the episode. %>
+  <%= render "collections/hero", hero_video: @hero_video, poster: @serie.poster %>
+
+  <div class="collection__head">
+    <h1 class="collection__title"><%= @serie.title %></h1>
+    <%= render "collections/play_button", play_target: @play_target, current_video: @current_video %>
+  </div>
+
+  <%= render "collections/seasons", serie: @serie, active_season: @season if @season %>
+
+  <%= render "collections/episodes", pagy: @pagy, videos: @videos, next_url: @next_url, current_id: @current_video&.id %>
+</main>

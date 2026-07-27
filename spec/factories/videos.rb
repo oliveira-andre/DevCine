@@ -15,6 +15,12 @@ FactoryBot.define do
       after(:build) { |video| AttachmentHelpers.attach_sample(video, :thumbnail, filename: "thumb.jpg") }
     end
 
+    # Live videos play via an embed URL, not a file (feature 009).
+    trait :live do
+      kind { :live }
+      live_embed_url { "https://www.youtube.com/embed/O8bnDdWsk8Q" }
+    end
+
     trait :with_file do
       after(:build) { |video| AttachmentHelpers.attach_sample(video, :file, filename: "clip.mp4") }
     end

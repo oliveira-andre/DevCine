@@ -1,0 +1,24 @@
+<%# Seasons carousel (feature 007, US3) — series only. Horizontal, scrollable
+    like the home rails (rail_controller); each chip swaps only the episodes
+    Turbo Frame. season_switch marks the clicked chip active optimistically.
+    Locals: serie, active_season. %>
+<% seasons = serie.ordered_seasons %>
+<% if seasons.any? %>
+  <section class="seasons" data-controller="rail season-switch" aria-label="Seasons">
+    <div class="seasons__bar">
+      <div class="seasons__track" data-rail-target="viewport">
+        <% seasons.each do |s| %>
+          <% active = s.id == active_season.id %>
+          <%= link_to s.name, serie_season_path(serie, s.position),
+                class: "season-chip#{' is-active' if active}",
+                data: { turbo_frame: "episodes", action: "season-switch#select" },
+                "aria-current": (active ? "true" : nil) %>
+        <% end %>
+      </div>
+      <div class="seasons__arrows">
+        <button type="button" class="seasons__arrow" data-action="rail#prev" aria-label="Scroll left">‹</button>
+        <button type="button" class="seasons__arrow" data-action="rail#next" aria-label="Scroll right">›</button>
+      </div>
+    </div>
+  </section>
+<% end %>

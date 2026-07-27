@@ -38,9 +38,9 @@ end
 # Test accounts (password: 12345678)
 # ---------------------------------------------------------------------------
 users = {
-  member:  { email: "user@codeline.online",    role: :user,    name: "Test Viewer" },
-  blocked: { email: "blocked@codeline.online", role: :blocked, name: "Blocked User" },
-  admin:   { email: "admin@codeline.online",   role: :admin,   name: "Admin User" }
+  member:  { email: "user@codeline.company",    role: :user,    name: "Test Viewer" },
+  blocked: { email: "blocked@codeline.company", role: :blocked, name: "Blocked User" },
+  admin:   { email: "admin@codeline.company",   role: :admin,   name: "Admin User" }
 }.transform_values do |attrs|
   User.find_or_create_by!(email_address: attrs[:email]) do |u|
     u.password = "12345678"
@@ -117,6 +117,7 @@ if Video.live.count < 8
       status: :ready,
       visibility: :public,
       file_size_bytes: 0,
+      live_embed_url: "https://www.youtube.com/embed/O8bnDdWsk8Q",
       uploader: uploader,
       created_at: (i + 1).minutes.ago
     )
@@ -134,6 +135,27 @@ if Serie.count < 24
       created_at: (i + 1).hours.ago
     )
     attach_file(serie.poster, MEDIA[:serie], filename: "serie_poster.jpg")
+  end
+end
+
+# ---------------------------------------------------------------------------
+# One rich series with seasons + episodes (feature 007 collection-show demo):
+# season 1 has 15 episodes (> one page → infinite scroll), season 2 has 4.
+# ---------------------------------------------------------------------------
+if Episode.none?
+  serie = Serie.order(:created_at).first
+  [ [ 1, 15 ], [ 2, 4 ] ].each do |num, count|
+    season = Season.create!(serie: serie, name: "Season #{num}", position: num)
+    count.times do |i|
+      ep_video = Video.create!(
+        title: "#{serie.title} S#{num}E#{i + 1}",
+        description: "Episode #{i + 1} of season #{num}.",
+        duration_seconds: rand(1200..2600), kind: :episode, status: :ready,
+        visibility: :public, maturity_rating: :A12, uploader: uploader
+      )
+      attach_file(ep_video.thumbnail, MEDIA[:poster], filename: "thumb.webp")
+      Episode.create!(season: season, video: ep_video, title: "Episode #{i + 1}", position: i + 1)
+    end
   end
 end
 
@@ -221,6 +243,24 @@ if member.video_views.none?
   Video.visibility_public.order(created_at: :desc).limit(6).each_with_index do |v, i|
     VideoView.create!(user: member, video: v, watched_at: (i + 1).hours.ago, ip_hash: SecureRandom.hex(8))
   end
+end
+
+# A playlist with more than one page of videos (feature 007 infinite-scroll demo).
+if member.playlists.where(title: "Big Mix").none?
+  big = Playlist.create!(user: member, title: "Big Mix", visibility: :public)
+  Video.visibility_public.limit(15).each_with_index do |v, pos|
+    PlaylistItem.create!(playlist: big, video: v, position: pos + 1)
+  end
+end
+
+# Mark one episode of the rich series as watched so the collection show page
+# demonstrates the "current episode" marker + Continue out of the box (feature
+# 007). Normally the player records this on playback start; seeded episodes have
+# no file to play, so we record it here.
+episode_video = Video.where(kind: :episode).order(:created_at).offset(2).first
+if episode_video && member.video_views.where(video: episode_video).none?
+  VideoView.record!(member, episode_video)
+  WatchProgress.record!(member, episode_video, position: 90, duration: episode_video.duration_seconds)
 end
 
 puts "Seeded: #{User.count} users, #{Movie.count} movies, " \

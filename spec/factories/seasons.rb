@@ -1,9 +1,9 @@
 FactoryBot.define do
   factory :season do
-    serie { nil }
-    name { "MyString" }
+    association :serie
+    sequence(:name) { |n| "Season #{n}" }
     description { "MyText" }
-    position { 1 }
+    sequence(:position) { |n| n }
     release_date { "2026-06-24" }
   end
 end

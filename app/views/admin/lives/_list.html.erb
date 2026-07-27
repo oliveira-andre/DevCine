@@ -1,0 +1,14 @@
+<%# Paginated list of live rows (feature 009). The flex container (.admin-lives)
+    is the turbo-frame itself (see index) so a Turbo-Stream-prepended row lands
+    inside it and gets the same gap spacing. Infinite scroll via the shared
+    frame; the next-page URL carries the search query so search + scroll compose. %>
+<% if @lives.any? %>
+  <%= render "shared/paginated_frame",
+        key: "admin_lives",
+        pagy: @pagy,
+        items: @lives,
+        card: "admin/lives/row",
+        next_url: (@pagy&.next ? admin_lives_path(q: @query, page: @pagy.next) : nil) %>
+<% else %>
+  <p class="admin-lives__empty"><%= @query.present? ? "No lives match “#{@query}”." : "No lives yet — tap Add to create one." %></p>
+<% end %>

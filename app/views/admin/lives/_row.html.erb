@@ -1,0 +1,11 @@
+<%# One live row (feature 009): title left, edit (pencil) + delete (trash) right. %>
+<div id="admin_live_row_<%= item.id %>" class="admin-live">
+  <span class="admin-live__title"><%= item.title %></span>
+  <div class="admin-live__actions">
+    <%= link_to edit_admin_life_path(item), class: "admin-live__action", data: { turbo_frame: "modal" },
+          "aria-label": "Edit #{item.title}" do %><%= icon(:pencil) %><% end %>
+    <%= button_to admin_life_path(item), method: :delete, class: "admin-live__action admin-live__action--danger",
+          form: { class: "admin-live__delete-form", data: { turbo_confirm: "Delete “#{item.title}”?" } },
+          "aria-label": "Delete #{item.title}" do %><%= icon(:trash) %><% end %>
+  </div>
+</div>

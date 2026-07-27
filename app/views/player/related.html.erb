@@ -1,9 +1,12 @@
-<%# Lazy related sidebar frame (US8). Same-kind, recent, public. %>
+<%# Lazy related sidebar frame (US8). Inside a collection it lists the sequence
+    IN ORDER (feature 007); otherwise same-kind, recent. %>
 <%= turbo_frame_tag "related" do %>
-  <h2 class="player__section-title">More like this</h2>
+  <h2 class="player__section-title"><%= @sequenced ? "Episodes" : "More like this" %></h2>
   <% if @related.any? %>
     <% @related.each do |video| %>
-      <%= link_to player_path(video.slug), class: "related__item" do %>
+      <%# Break out of the #related frame — a full player visit, not a frame swap. %>
+      <%= link_to player_path(video.slug, sequence_params), class: "related__item",
+            data: { turbo_frame: "_top" } do %>
         <%= poster_image_tag video.thumbnail, nil, alt: video.title,
               class: "related__img", limit: [ 400, 240 ] %>
         <div class="related__title"><%= video.title %></div>

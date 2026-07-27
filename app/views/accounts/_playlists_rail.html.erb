@@ -1,14 +1,27 @@
-<% if playlists.any? %>
+<%# Playlists rail. For the owner the header (title + create button) always shows
+    so the first playlist can be created (feature 008); non-owners keep the
+    hide-when-empty behavior. `owner` local defaults to false. %>
+<% owner = local_assigns.fetch(:owner, false) %>
+<% if playlists.any? || owner %>
   <section class="rail" data-controller="rail">
     <div class="rail__head">
       <h2 class="rail__title">Playlists</h2>
-      <div class="rail__arrows">
-        <button type="button" class="rail__arrow" data-action="rail#prev" aria-label="Scroll left">‹</button>
-        <button type="button" class="rail__arrow" data-action="rail#next" aria-label="Scroll right">›</button>
+      <div class="rail__actions">
+        <% if owner %>
+          <%= link_to new_playlist_path, class: "rail__add", data: { turbo_frame: "modal" },
+                "aria-label": "Create a playlist", title: "Create a playlist" do %><%= icon(:plus) %><% end %>
+        <% end %>
+        <div class="rail__arrows">
+          <button type="button" class="rail__arrow" data-action="rail#prev" aria-label="Scroll left">‹</button>
+          <button type="button" class="rail__arrow" data-action="rail#next" aria-label="Scroll right">›</button>
+        </div>
       </div>
     </div>
-    <div class="rail__track" data-rail-target="viewport">
-      <%= render partial: "accounts/playlist_card", collection: playlists, as: :playlist %>
+    <div id="account_playlists" class="rail__track" data-rail-target="viewport">
+      <%= render partial: "accounts/playlist_card", collection: playlists, as: :playlist, locals: { owner: owner } %>
+      <% if playlists.empty? %>
+        <p class="rail__empty">No playlists yet — tap + to create one.</p>
+      <% end %>
     </div>
   </section>
 <% end %>

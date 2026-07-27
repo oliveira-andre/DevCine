@@ -1,11 +1,16 @@
 <%= modal title: "Add to playlist" do %>
   <div class="playlist-add">
-    <% if @playlists.any? %>
-      <% @playlists.each do |playlist| %>
-        <%= render "playlist_additions/row", playlist: playlist, video: @video %>
+    <div id="playlist-add-list" class="playlist-add__list">
+      <% if @playlists.any? %>
+        <% @playlists.each do |playlist| %>
+          <%= render "playlist_additions/row", playlist: playlist, video: @video %>
+        <% end %>
+      <% else %>
+        <p class="playlist-add__empty">You don't have any playlists yet.</p>
       <% end %>
-    <% else %>
-      <p class="playlist-add__empty">You don't have any playlists yet.</p>
-    <% end %>
+    </div>
+
+    <%# Inline "Add a playlist" create control (feature 008, US1). %>
+    <%= render "playlist_additions/create_row", video: @video %>
   </div>
 <% end %>

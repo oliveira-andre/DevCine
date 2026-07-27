@@ -66,7 +66,7 @@ RSpec.describe "Listings", type: :request do
 
   describe "GET /lives" do
     it "lists public live-kind videos" do
-      create_list(:video, 3, kind: :live, visibility: :public)
+      create_list(:video, 3, :live, visibility: :public)
       create(:video, kind: :standalone, visibility: :public) # excluded
       get lives_path
       expect(response).to have_http_status(:ok)

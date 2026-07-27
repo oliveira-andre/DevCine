@@ -10,6 +10,20 @@ RSpec.describe Playlist, type: :model do
   it { is_expected.to have_many(:videos).through(:playlist_items) }
   it { is_expected.to define_enum_for(:visibility).with_values(private: 0, public: 1, unlisted: 2).with_prefix }
 
+  describe "title validation (feature 008)" do
+    let(:user) { create(:user) }
+
+    it "requires a present title" do
+      expect(Playlist.new(user: user, title: "")).not_to be_valid
+      expect(Playlist.new(user: user, title: "   ")).not_to be_valid
+    end
+
+    it "bounds the title to 100 characters" do
+      expect(Playlist.new(user: user, title: "a" * 101)).not_to be_valid
+      expect(Playlist.new(user: user, title: "a" * 100)).to be_valid
+    end
+  end
+
   describe "#videos_count" do
     it "counts the playlist's videos" do
       playlist = create(:playlist, :with_videos, videos_count: 3)

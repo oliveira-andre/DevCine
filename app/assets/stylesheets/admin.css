@@ -1,9 +1,40 @@
-/* Page-scoped styles for /admin/dashboard. */
+/* Page-scoped styles for the admin area (dashboard + lives). */
 
 .admin {
   min-height: 100vh;
   background: var(--home-gradient);
   padding: var(--space-8) var(--space-6);
+}
+
+/* Sidebar shell (feature 009): sidebar + content. Mobile-first = stacked, with
+   the sidebar as a horizontal nav; desktop = a fixed-width left column. */
+.admin--shell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+.admin__content { min-width: 0; flex: 1 1 auto; }
+.admin__sidebar { flex: 0 0 auto; }
+.admin__nav { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+.admin__navlink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+}
+.admin__navlink .icon { width: 18px; height: 18px; }
+.admin__navlink.is-active { background: var(--accent-blue); border-color: var(--accent-blue); color: var(--text-primary); }
+.admin__navlink:hover { color: var(--text-primary); }
+
+@media (min-width: 900px) {
+  .admin--shell { flex-direction: row; align-items: flex-start; }
+  .admin__sidebar { position: sticky; top: var(--space-6); width: 220px; }
+  .admin__nav { flex-direction: column; }
+  .admin__navlink { justify-content: flex-start; }
 }
 
 .admin__head {
@@ -38,3 +69,42 @@
   letter-spacing: 0.08em;
   color: var(--text-secondary);
 }
+
+/* Lives management (feature 009). */
+.admin__head--lives { justify-content: space-between; flex-wrap: wrap; gap: var(--space-3); }
+.admin__toolbar { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+.admin__add { display: inline-flex; align-items: center; gap: var(--space-2); }
+.admin__add .icon { width: 16px; height: 16px; }
+
+.admin-search { position: relative; display: flex; align-items: center; }
+.admin-search__icon { position: absolute; left: var(--space-3); display: inline-flex; color: var(--text-tertiary); }
+.admin-search__icon .icon { width: 16px; height: 16px; }
+.admin-search__input { padding-left: var(--space-8); min-width: 220px; }
+
+.admin-lives { display: flex; flex-direction: column; gap: var(--space-2); }
+.admin-lives turbo-frame { display: contents; }
+.admin-lives turbo-frame[src]:not([complete]) { display: block; }
+.admin-lives__empty { color: var(--text-tertiary); padding: var(--space-6) 0; }
+
+.admin-live {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+}
+.admin-live__title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admin-live__actions { display: flex; align-items: center; gap: var(--space-2); flex: 0 0 auto; }
+.admin-live__delete-form { margin: 0; }
+.admin-live__action {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-tile); background: var(--surface-3);
+  color: var(--text-secondary); cursor: pointer;
+}
+.admin-live__action:hover { color: var(--text-primary); border-color: var(--accent-blue); }
+.admin-live__action--danger:hover { color: var(--danger); border-color: var(--danger); }
+.admin-live__action .icon { width: 16px; height: 16px; }

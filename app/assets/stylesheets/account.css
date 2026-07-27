@@ -148,3 +148,47 @@
   font-size: var(--text-meta);
   padding: var(--space-4) 0;
 }
+
+/* Playlists rail: create (+) button beside the title + empty state (feature 008). */
+.rail__actions { display: flex; align-items: center; gap: var(--space-2); }
+.rail__add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+.rail__add:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+.rail__add .icon { width: 18px; height: 18px; }
+.rail__empty { color: var(--text-tertiary); font-size: var(--text-meta); padding: var(--space-4) 0; }
+
+/* Playlist card delete (feature 008 delete): trash beside the title. */
+.playlist-card-wrap { position: relative; }
+.playlist-card__titlebar { display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-2); }
+.playlist-card__titlelink {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.playlist-card__delete-form { flex: 0 0 auto; margin: 0; }
+.playlist-card__delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+}
+.playlist-card__delete:hover { color: var(--danger); background: var(--surface-2); }
+.playlist-card__delete .icon { width: 16px; height: 16px; }

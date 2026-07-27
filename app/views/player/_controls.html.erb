@@ -1,8 +1,10 @@
 <%# Center overlay controls (US1/US3/US4). Transparent bg; prev/back reuse the
-    forward/next icons mirrored (FR-012). Next/previous video are placeholders. %>
+    forward/next icons mirrored (FR-012). Prev/next video appear only inside a
+    collection sequence with a real neighbor (feature 007). %>
 <div class="player__controls" data-player-target="controls">
   <button type="button" class="player__btn player__btn--mirror"
-          data-action="player#prev" aria-label="Previous video">
+          data-action="player#prev" data-player-target="prevBtn"
+          aria-label="Previous video" <%= "hidden" unless @prev_video %>>
     <%= icon(:next_video) %>
   </button>
 
@@ -23,7 +25,8 @@
   </button>
 
   <button type="button" class="player__btn"
-          data-action="player#next" aria-label="Next video">
+          data-action="player#next" data-player-target="nextBtn"
+          aria-label="Next video" <%= "hidden" unless @next_video %>>
     <%= icon(:next_video) %>
   </button>
 </div>

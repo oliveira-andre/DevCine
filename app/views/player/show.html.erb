@@ -9,10 +9,14 @@
       data-player-progress-url-value="<%= player_progress_path(@video.slug) %>"
       data-player-resume-value="<%= @resume_position.to_i %>"
       data-player-title-value="<%= @video.title %>"
-      data-player-artwork-value="<%= @video.thumbnail.attached? ? url_for(@video.thumbnail) : "/logo.png" %>">
+      data-player-artwork-value="<%= @video.thumbnail.attached? ? url_for(@video.thumbnail) : "/logo.png" %>"
+      data-player-prev-url-value="<%= @prev_video ? player_path(@prev_video.slug, sequence_params) : "" %>"
+      data-player-next-url-value="<%= @next_video ? player_path(@next_video.slug, sequence_params) : "" %>">
   <div class="player__stage"
        data-action="pointermove->player#activity touchstart->player#activity click->player#activity">
-    <% if @video.file.attached? %>
+    <% if @video.embed? %>
+      <%= render "player/live_embed" %>
+    <% elsif @video.file.attached? %>
       <video class="player__video"
              data-player-target="video"
              playsinline webkit-playsinline preload="metadata"
@@ -76,7 +80,7 @@
     </div>
 
     <aside class="player__sidebar">
-      <%= turbo_frame_tag "related", src: player_related_path(@video.slug), loading: :lazy do %>
+      <%= turbo_frame_tag "related", src: player_related_path(@video.slug, sequence_params), loading: :lazy do %>
         <span class="player__loader"><%= icon(:spinner) %></span>
       <% end %>
     </aside>

@@ -74,7 +74,11 @@
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
-  padding-bottom: var(--space-2);
+  /* Room for the 1.05 hover zoom so the card's top/left (and its white border)
+     aren't clipped by this scroll container; the negative inline margin keeps
+     the rail flush with its title. */
+  padding: var(--space-2);
+  margin-inline: calc(-1 * var(--space-2));
 }
 .rail__track::-webkit-scrollbar { display: none; }
 /* Loaded frames are layout-transparent so lazily-appended pages flow into the
@@ -120,6 +124,17 @@
 }
 .poster-card__preview { opacity: 0; transition: opacity var(--dur-med) ease; }
 .poster-card.is-previewing .poster-card__preview { opacity: 1; }
+
+/* Live embed inside a poster card fills the 16:9 media box like the image; the
+   iframe's width/height attributes alone don't constrain it, so it would break
+   the card's aspect ratio and grow the tile (feature 009). */
+.poster-card__live-embed {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
 
 .poster-placeholder {
   width: 100%;

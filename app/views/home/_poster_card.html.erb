@@ -7,12 +7,25 @@
          data-hover-preview-delay-value="2000"
          data-action="mouseenter->hover-preview#start mouseleave->hover-preview#stop">
   <% inner = capture do %>
+    <% live_video = card[:video]&.live? ? card[:video] : nil %>
     <div class="poster-card__media">
-      <%= poster_image_tag card[:image], card[:external], alt: card[:title], class: "poster-card__img" %>
-      <% if card[:preview].respond_to?(:attached?) && card[:preview].attached? %>
-        <video class="poster-card__preview" muted loop playsinline preload="none"
-               data-hover-preview-target="video"
-               data-src="<%= url_for(card[:preview]) %>"></video>
+      <% if live_video %>
+        <iframe class="poster-card__live-embed"
+                width="100%" height="100%"
+                src="<%= live_video.live_embed_url %>"
+                title="<%= card[:title] %>"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerpolicy="strict-origin-when-cross-origin"
+                allowfullscreen
+             ></iframe>
+      <% else %>
+        <%= poster_image_tag card[:image], card[:external], alt: card[:title], class: "poster-card__img" %>
+        <% if card[:preview].respond_to?(:attached?) && card[:preview].attached? %>
+          <video class="poster-card__preview" muted loop playsinline preload="none"
+                data-hover-preview-target="video"
+                data-src="<%= url_for(card[:preview]) %>"></video>
+        <% end %>
       <% end %>
     </div>
     <h3 class="poster-card__title" title="<%= card[:title] %>"><%= card[:title] %></h3>
@@ -20,6 +33,8 @@
 
   <% if card[:video] %>
     <%= link_to inner, player_path(card[:video].slug), class: "poster-card__link" %>
+  <% elsif card[:link] %>
+    <%= link_to inner, card[:link], class: "poster-card__link" %>
   <% else %>
     <%= inner %>
   <% end %>

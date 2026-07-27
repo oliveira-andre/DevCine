@@ -22,7 +22,10 @@
       </div>
 
       <div class="field">
-        <%= form.label :password, "Senha", class: "field-label" %>
+        <div class="field-label-row">
+          <%= form.label :password, "Senha", class: "field-label" %>
+          <%= link_to "Forgot your password?", new_password_path, class: "auth__link auth__link--muted" %>
+        </div>
         <%= form.password_field :password, required: true,
               autocomplete: "current-password", maxlength: 72, class: "field-input" %>
       </div>
@@ -33,9 +36,6 @@
     <p class="auth__alt">
       You don't have an account yet?
       <%= link_to "Sign Up", new_registration_path, class: "auth__link" %>
-    </p>
-    <p class="auth__alt">
-      <%= link_to "Forgot your password?", new_password_path, class: "auth__link" %>
     </p>
   </div>
 </main>

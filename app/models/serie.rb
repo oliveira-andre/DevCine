@@ -1,5 +1,7 @@
 class Serie < ApplicationRecord
   extend FriendlyId
+  extend Cacheable
+  include Collection
   friendly_id :title, use: :slugged
 
   enum :status, {
@@ -36,4 +38,34 @@ class Serie < ApplicationRecord
 
   # Recency for the "Recently added series" rail.
   scope :recent, -> { order(created_at: :desc) }
+
+  # Seasons in display order (carousel + default-season pick).
+  def ordered_seasons
+    seasons.order(:position)
+  end
+
+  # All member video ids in canonical order: season.position → episode.position.
+  # Collection#ordered_video_ids filters these to the visible set + caches.
+  def raw_ordered_video_ids
+    Episode.joins(:season).where(seasons: { serie_id: id })
+           .order(Arel.sql("seasons.position ASC, episodes.position ASC"))
+           .pluck(:video_id)
+  end
+
+  # Visible video ids for ONE season (paginated by the controller). Cached under
+  # the serie's order version so a season/episode/video change invalidates it.
+  def season_video_ids(season, auth_context)
+    version = self.class.cache_version(order_cache_scope)
+    self.class.cache_read([ "season-order", id, season.id, auth_context.pin_unlocked, version ]) do
+      raw = season.episodes.order(:position).pluck(:video_id)
+      next [] if raw.empty?
+
+      visible = VideoPolicy::Scope.new(auth_context, Video.where(id: raw)).resolve.pluck(:id).to_set
+      raw.select { |vid| visible.include?(vid) }
+    end
+  end
+
+  # Bump the order version on any change to the serie itself (Constitution VI);
+  # season/episode/video changes bump the same scope from their own callbacks.
+  after_commit { Serie.bump_version(order_cache_scope) }
 end

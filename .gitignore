@@ -36,3 +36,6 @@
 .playwright-mcp/
 # these are not actual specs from rspec, these are spec-kit specs.
 specs/
+
+# macOS
+.DS_Store

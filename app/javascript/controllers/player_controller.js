@@ -6,10 +6,10 @@ import { Controller } from "@hotwired/stimulus"
 // visibility events (Constitution V) — pause only happens from the on-screen
 // control or a Media Session action.
 export default class extends Controller {
-  static targets = ["video", "controls"]
+  static targets = ["video", "controls", "prevBtn", "nextBtn"]
   static values = {
     viewsUrl: String, progressUrl: String, resume: Number,
-    title: String, artwork: String
+    title: String, artwork: String, prevUrl: String, nextUrl: String
   }
 
   static PROGRESS_INTERVAL = 10 // seconds between progress saves while playing
@@ -24,12 +24,14 @@ export default class extends Controller {
     this.onTimeUpdate = this.onTimeUpdate.bind(this)
     this.onLoadedMetadata = this.onLoadedMetadata.bind(this)
     this.onPageHide = this.onPageHide.bind(this)
+    this.onKey = this.onKey.bind(this)
     if (this.hasVideoTarget) {
       this.videoTarget.addEventListener("play", this.onPlay)
       this.videoTarget.addEventListener("pause", this.onPause)
       this.videoTarget.addEventListener("timeupdate", this.onTimeUpdate)
       this.videoTarget.addEventListener("loadedmetadata", this.onLoadedMetadata)
       window.addEventListener("pagehide", this.onPageHide)
+      document.addEventListener("keydown", this.onKey)
     }
     this.activity()
   }
@@ -43,8 +45,29 @@ export default class extends Controller {
       this.videoTarget.removeEventListener("timeupdate", this.onTimeUpdate)
       this.videoTarget.removeEventListener("loadedmetadata", this.onLoadedMetadata)
       window.removeEventListener("pagehide", this.onPageHide)
+      document.removeEventListener("keydown", this.onKey)
     }
     this.teardownMediaSession()
+  }
+
+  // Keyboard shortcuts: F toggles fullscreen, Space toggles play/pause. Ignored
+  // while typing (comments/replies) so the keys behave normally in text fields.
+  onKey(event) {
+    if (event.metaKey || event.ctrlKey || event.altKey) return
+
+    const el = event.target
+    const typing = el && (el.isContentEditable ||
+      /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))
+    if (typing) return
+
+    if (event.key === "f" || event.key === "F") {
+      event.preventDefault()
+      this.toggleFullscreen()
+    } else if (event.key === " " || event.code === "Space") {
+      event.preventDefault() // stop the page from scrolling
+      this.toggle()
+      this.activity()
+    }
   }
 
   // --- playback (US1) ---
@@ -62,9 +85,16 @@ export default class extends Controller {
     this.activity()
   }
 
-  // Next/previous video are placeholders for now (FR-007).
-  prev() {}
-  next() {}
+  // Navigate to the previous/next video in the collection sequence (feature 007).
+  // Also driven by the Media Session previoustrack/nexttrack handlers.
+  prev() { this.saveProgress(); this.visit(this.prevUrlValue) }
+  next() { this.saveProgress(); this.visit(this.nextUrlValue) }
+
+  visit(url) {
+    if (!url) return
+    if (window.Turbo) window.Turbo.visit(url)
+    else window.location.assign(url)
+  }
 
   // --- fullscreen (FR-023) ---
   toggleFullscreen() {

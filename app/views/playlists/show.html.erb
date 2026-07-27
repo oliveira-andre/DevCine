@@ -1,0 +1,16 @@
+<% content_for :title, @playlist.title %>
+<% content_for :page_styles do %>
+  <%= stylesheet_link_tag "collection", "data-turbo-track": "dynamic" %>
+<% end %>
+
+<% link_params = { list: @playlist.id } %>
+<main class="collection">
+  <%= render "collections/hero", hero_video: @hero_video, poster: nil, link_params: link_params %>
+
+  <div class="collection__head">
+    <h1 class="collection__title"><%= @playlist.title %></h1>
+    <%= render "collections/play_button", play_target: @play_target, current_video: @current_video, link_params: link_params %>
+  </div>
+
+  <%= render "collections/episodes", pagy: @pagy, videos: @videos, next_url: @next_url, current_id: @current_video&.id, link_params: link_params %>
+</main>

@@ -1,0 +1,25 @@
+<%# Centered collection thumbnail (feature 007, FR-003): the viewer's current
+    (latest-watched) video's thumbnail → else the collection poster → else the
+    first video's thumbnail. Links to the player of the current/first video. %>
+<% hero_video = local_assigns[:hero_video] %>
+<% poster = local_assigns[:poster] %>
+<% image = if hero_video&.thumbnail&.attached?
+     hero_video.thumbnail
+   elsif poster&.attached?
+     poster
+   end %>
+<div class="collection__hero">
+  <% if hero_video %>
+    <%= link_to player_path(hero_video.slug, local_assigns[:link_params] || {}), class: "collection__hero-link", "aria-label": "Play #{hero_video.title}" do %>
+      <% if image %>
+        <%= poster_image_tag image, alt: hero_video.title, class: "collection__hero-img" %>
+      <% else %>
+        <span class="collection__hero-img collection__hero-img--placeholder"></span>
+      <% end %>
+    <% end %>
+    <%# Names the video the hero links to, so it's clear what will play. %>
+    <p class="collection__hero-caption"><%= hero_video.title %></p>
+  <% elsif image %>
+    <%= poster_image_tag image, alt: "", class: "collection__hero-img" %>
+  <% end %>
+</div>

@@ -1,0 +1,28 @@
+<%# One video in a collection (feature 007). Mobile: horizontal row (thumbnail
+    left; title + clamped description; play state at the right). Desktop: square
+    poster-style tile (play state overlaid on the thumbnail). Whole card links to
+    the player. The current episode (US5) gets the --current modifier + play
+    icon. Locals: item (Video), current_id. %>
+<% current = local_assigns[:current_id].present? && item.id == local_assigns[:current_id] %>
+<%= link_to player_path(item.slug, local_assigns[:link_params] || {}),
+      class: "episode-card#{' episode-card--current' if current}",
+      "aria-current": (current ? "true" : nil) do %>
+  <div class="episode-card__media">
+    <% if item.thumbnail.attached? %>
+      <%= poster_image_tag item.thumbnail, alt: item.title, class: "episode-card__img", loading: "lazy" %>
+    <% else %>
+      <span class="episode-card__img episode-card__img--placeholder"></span>
+    <% end %>
+  </div>
+  <div class="episode-card__body">
+    <h3 class="episode-card__title"><%= item.title %></h3>
+    <% if item.description.present? %>
+      <p class="episode-card__desc"><%= item.description %></p>
+    <% end %>
+  </div>
+  <% if current %>
+    <span class="episode-card__state" aria-hidden="true">
+      <span class="episode-card__badge"><%= icon(:play) %></span>
+    </span>
+  <% end %>
+<% end %>

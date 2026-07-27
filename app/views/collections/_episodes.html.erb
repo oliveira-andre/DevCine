@@ -1,0 +1,18 @@
+<%# The episodes/videos region (feature 007) — a Turbo Frame so a season click
+    swaps only this region, and the shared paginated frame auto-appends further
+    pages on scroll (US3/US4). Locals: pagy, videos, next_url, current_id. %>
+<%= turbo_frame_tag "episodes", class: "collection__episodes" do %>
+  <% if videos.any? %>
+    <div class="episode-grid">
+      <%= render "shared/paginated_frame",
+            key: "episodes",
+            pagy: pagy,
+            items: videos,
+            card: "collections/episode_card",
+            next_url: local_assigns[:next_url],
+            card_locals: { current_id: local_assigns[:current_id], link_params: local_assigns[:link_params] } %>
+    </div>
+  <% else %>
+    <p class="collection__empty">No videos here yet.</p>
+  <% end %>
+<% end %>

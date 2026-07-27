@@ -237,7 +237,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_15_032607) do
     t.uuid "video_id", null: false
     t.string "resolution", null: false
     t.integer "bitrate"
-    t.integer "format"
+    t.integer "format", default: 0
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["video_id"], name: "index_video_renditions_on_video_id"
@@ -264,7 +264,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_15_032607) do
     t.integer "kind", default: 0
     t.bigint "view_count", default: 0
     t.bigint "file_size_bytes", default: 0
-    t.string "live_embbed_url"
+    t.string "live_embed_url"
     t.string "slug"
     t.datetime "published_at", default: -> { "CURRENT_TIMESTAMP" }
     t.uuid "uploader_id", null: false

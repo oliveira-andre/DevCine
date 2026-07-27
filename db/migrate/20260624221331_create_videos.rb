@@ -9,7 +9,7 @@ class CreateVideos < ActiveRecord::Migration[8.0]
       t.integer :kind, default: 0
       t.bigint :view_count, default: 0
       t.bigint :file_size_bytes, default: 0
-      t.string :live_embbed_url
+      t.string :live_embed_url
       t.string :slug
       t.datetime :published_at, default: -> { "CURRENT_TIMESTAMP" }
       t.references :uploader, foreign_key: { to_table: :users }, type: :uuid, null: false

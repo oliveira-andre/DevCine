@@ -74,9 +74,39 @@ class Video < ApplicationRecord
   validates :duration_seconds, numericality: { greater_than: 0 }, allow_nil: true
   validates :file_size_bytes, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
   validate :uploaded_file_present, if: :require_file
+  # A live is played by embedding a stream URL, not a file (feature 009).
+  validate :live_requires_embed_url
+
+  def live_embed_url=(url)
+    super(url.to_s.gsub('live', 'embed'))
+  end
 
   def uploaded_file_present
     errors.add(:file, "can't be blank") unless file.attached?
+  end
+
+  # A live-kind video needs a well-formed https embed URL (FR-005/FR-013).
+  def live_requires_embed_url
+    return unless kind == "live"
+
+    uri = begin
+      URI.parse(live_embed_url.to_s)
+    rescue URI::InvalidURIError
+      nil
+    end
+    return if uri.is_a?(URI::HTTPS) && uri.host.present?
+
+    errors.add(:live_embed_url, "must be a valid https embed link")
+  end
+
+  # True when this video plays as an embedded stream (feature 009).
+  def embed?
+    kind == "live" && live_embed_url.present?
+  end
+
+  # The URL used only as the embed iframe's `src` (never rendered as raw HTML).
+  def embed_src
+    live_embed_url
   end
 
   def restricted_requires_a18
@@ -87,6 +117,12 @@ class Video < ApplicationRecord
 
   # Most recently added first — feeds the "Recently added" rails.
   scope :recent, -> { order(created_at: :desc) }
+
+  # The series this video belongs to as an episode, if any — used to auto-derive
+  # the sequence for prev/next navigation when no explicit context is given (007).
+  def parent_series
+    Serie.joins(seasons: :episodes).where(episodes: { video_id: id }).first
+  end
   # NOTE (006): the old `listable` scope and `playable_by?` were replaced by
   # VideoPolicy (Scope#resolve / #watch?) — the single visibility authority.
 
@@ -114,5 +150,17 @@ class Video < ApplicationRecord
     old_slug = previous_changes["slug"]&.first
     Rails.cache.delete([ "video", old_slug ]) if old_slug.present?
     Video.bump_version([ "videos", kind ])
+    bust_collection_caches
+  end
+
+  # A visibility/title/thumbnail change alters the ordered lists of every
+  # collection that includes this video (feature 007, Constitution VI).
+  def bust_collection_caches
+    Season.joins(:episodes).where(episodes: { video_id: id }).distinct.pluck(:serie_id).each do |serie_id|
+      Video.bump_version([ "collection-order", "serie", serie_id ])
+    end
+    PlaylistItem.where(video_id: id).distinct.pluck(:playlist_id).each do |playlist_id|
+      Video.bump_version([ "collection-order", "playlist", playlist_id ])
+    end
   end
 end

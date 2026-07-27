@@ -46,3 +46,17 @@
   font-weight: 600;
 }
 .auth__link:hover { color: var(--text-primary); }
+
+/* Password label + "Forgot your password?" on one row (label left, link right). */
+.field-label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.auth__link--muted {
+  font-size: var(--text-meta);
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+}

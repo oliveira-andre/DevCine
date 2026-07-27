@@ -1,6 +1,18 @@
-<article class="poster-card playlist-card">
-  <div class="poster-card__media playlist-card__media">
-    <span class="playlist-card__count"><%= pluralize(playlist.videos_count, "video") %></span>
+<article id="playlist_card_<%= playlist.id %>" class="poster-card playlist-card-wrap">
+  <%= link_to playlist_path(playlist), class: "poster-card__link" do %>
+    <div class="poster-card__media playlist-card__media">
+      <span class="playlist-card__count"><%= pluralize(playlist.videos_count, "video") %></span>
+    </div>
+  <% end %>
+  <div class="playlist-card__titlebar">
+    <%= link_to playlist.title, playlist_path(playlist),
+          class: "poster-card__title playlist-card__titlelink", title: playlist.title %>
+    <% if local_assigns[:owner] && !playlist.system? %>
+      <%= button_to playlist_path(playlist), method: :delete, class: "playlist-card__delete",
+            form: { class: "playlist-card__delete-form", data: { turbo_confirm: "Delete this playlist? (Videos are kept.)" } },
+            "aria-label": "Delete #{playlist.title}" do %>
+        <%= icon(:trash) %>
+      <% end %>
+    <% end %>
   </div>
-  <h3 class="poster-card__title" title="<%= playlist.title %>"><%= playlist.title %></h3>
 </article>

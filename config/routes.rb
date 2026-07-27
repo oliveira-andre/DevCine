@@ -3,16 +3,17 @@ Rails.application.routes.draw do
   resource :registration, only: %i[new create]
   resources :passwords, param: :token
 
-  # Search entry page + section listing pages + category browse (feature 003).
   get "search", to: "search#index"
-  resources :videos, only: %i[index new create] # new/create = standalone upload modal (004)
+  resources :videos, only: %i[index new create]
   resources :movies, only: :index
-  get "series", to: "series#index", as: :series # "series" is uncountable → force series_path
+  get "series", to: "series#index", as: :series
+  get "series/:slug", to: "series#show", as: :serie
+  get "series/:slug/seasons/:position", to: "series#season", as: :serie_season
+  resources :playlists, only: %i[show new create destroy]
   get "lives", to: "lives#index"
   get "genres/:slug", to: "catalog/browse#show", as: :genre_browse
   get "kinds/:kind", to: "catalog/browse#show", as: :kind_browse
 
-  # Account profile + modals (004). Order matters: specific routes before :slug.
   get "account/edit", to: "profiles#edit", as: :edit_account
   get "account/name/edit", to: "profiles#edit_name", as: :edit_name_account
   patch "account/name", to: "profiles#update_name", as: :name_account
@@ -21,20 +22,16 @@ Rails.application.routes.draw do
   get "account/:slug", to: "accounts#show", as: :public_account
   namespace :settings do
     resource :password, only: %i[edit update]
-    # PIN for restricted content (006): modal (show), first-time setup (create),
-    # and unlock verification.
     resource :pin, only: %i[show create] do
       post :unlock
     end
   end
 
-  # Admin-only area (guarded by Admin::BaseController#require_admin).
   namespace :admin do
     get "dashboard", to: "dashboard#show"
+    resources :lives # manage embed-based live videos (009)
   end
 
-  # Video player (feature 005). :slug is the video's FriendlyId. The related and
-  # comments#index endpoints are the src of lazy-loaded Turbo Frames (FR-028).
   get  "playing/:slug",          to: "player#show",        as: :player
   get  "playing/:slug/related",  to: "player#related",     as: :player_related
   post "playing/:slug/views",    to: "video_views#create", as: :player_views
@@ -42,10 +39,8 @@ Rails.application.routes.draw do
   get  "playing/:slug/comments", to: "comments#index",     as: :player_comments
   post "playing/:slug/comments", to: "comments#create"
 
-  # Like/dislike reactions on a video or comment (feature 005 enhancement).
   post "reactions/:type/:id", to: "reactions#create", as: :reactions
 
-  # Add-to-playlist modal (feature 005 enhancement).
   get  "playing/:slug/add-to-playlist", to: "playlist_additions#new", as: :add_to_playlist
   post "playlists/:playlist_id/toggle/:slug", to: "playlist_additions#create", as: :toggle_playlist_video
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
