@@ -22,19 +22,49 @@
     <%= stylesheet_link_tag "shared/variables", "shared/typography", "shared/reset",
                             "shared/focus", "shared/layout", "shared/buttons", "shared/forms",
                             "shared/header", "shared/icons", "shared/media", "shared/drawer",
-                            "shared/modal",
+                            "shared/modal", "shared/mini_player",
                             "data-turbo-track": "reload" %>
-    <%# Page-scoped stylesheet(s), provided per view via content_for(:page_styles). %>
+    <%# ALL page-scoped stylesheets, loaded up front: stream navigation swaps only
+        #page-content and never re-renders <head>, so every page's (class-scoped)
+        CSS must already be present. Files stay page-scoped per Constitution IV;
+        only delivery is consolidated. %>
+    <%= stylesheet_link_tag "account", "admin", "auth", "catalog_controls", "collection",
+                            "home", "listing", "player", "search", "subtitles",
+                            "vendor/pickr-nano",
+                            "data-turbo-track": "dynamic" %>
+    <%# Legacy per-view content_for(:page_styles) — harmless duplicates on full loads. %>
     <%= yield :page_styles %>
     <%= javascript_importmap_tags %>
   </head>
 
-  <body id="body" class="<%= content_for(:body_class) %>" data-controller="drawer pin-lock">
+  <body id="body" class="<%= content_for(:body_class) %>" data-controller="drawer pin-lock back-navigation">
     <% if authenticated? %>
       <%= render "shared/header" %>
       <%= render "shared/drawer" %>
     <% end %>
-    <%= yield %>
+
+    <%# Spotsby-style shell: in-app links navigate by streaming a new body into
+        this div. The mini-player below is a SIBLING — navigation never touches
+        it, so playback is uninterrupted by construction (Constitution V). %>
+    <div id="page-content">
+      <%= yield %>
+    </div>
+
+    <%# Toast notifications: a body-level sibling, floating over the page instead
+        of sitting in the flow under the header. Auth pages render their flash
+        inside the card, so this stays empty there. %>
+    <div id="flash" class="flash-stack" role="status" aria-live="polite">
+      <%= render "shared/flash" if authenticated? %>
+    </div>
+
+    <%# Persistent mini-player (feature 010). Stream navigation never touches this
+        sibling. data-turbo-permanent remains as a SAFETY NET: any link that
+        didn't opt into turbo_stream does a classic Drive visit, and permanent
+        keeps the player alive through that too (with the resume-on-render patch). %>
+    <% if authenticated? %>
+      <%= render "shared/mini_player" %>
+    <% end %>
+
     <%# Shared modal target — new/edit forms render into this frame (Constitution I). %>
     <%= turbo_frame_tag "modal" %>
   </body>

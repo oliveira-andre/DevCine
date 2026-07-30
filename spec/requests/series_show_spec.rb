@@ -22,7 +22,7 @@ RSpec.describe "Series show", type: :request do
       v2 = create(:video, :with_thumbnail, title: "Second", visibility: :public)
       serie = serie_with(v1, v2)
 
-      get serie_path(serie)
+      get series_path(serie)
 
       expect(response).to have_http_status(:ok)
       expect(response.body).to include(serie.title)
@@ -35,7 +35,7 @@ RSpec.describe "Series show", type: :request do
       gated = create(:video, :with_thumbnail, title: "Gated", visibility: :restricted, maturity_rating: :A18)
       serie = serie_with(public_v, gated)
 
-      get serie_path(serie)
+      get series_path(serie)
 
       expect(response.body).to include("Open")
       expect(response.body).not_to include(player_path(gated.slug))
@@ -43,12 +43,12 @@ RSpec.describe "Series show", type: :request do
 
     it "404s for an all-restricted series while locked" do
       serie = serie_with(create(:video, visibility: :restricted, maturity_rating: :A18))
-      get serie_path(serie)
+      get series_path(serie)
       expect(response).to have_http_status(:not_found)
     end
 
     it "404s for an unknown slug" do
-      get serie_path("does-not-exist")
+      get series_path("does-not-exist")
       expect(response).to have_http_status(:not_found)
     end
 
@@ -57,7 +57,7 @@ RSpec.describe "Series show", type: :request do
       v2 = create(:video, :with_thumbnail, visibility: :public)
       serie = serie_with(v1, v2)
 
-      get serie_path(serie)
+      get series_path(serie)
 
       expect(response.body).to include(">Play<")
       expect(response.body).to include(%(href="#{player_path(v1.slug)}"))
@@ -69,7 +69,7 @@ RSpec.describe "Series show", type: :request do
       serie = serie_with(v1, v2)
       VideoView.record!(member, v2)
 
-      get serie_path(serie)
+      get series_path(serie)
 
       expect(response.body).to include(">Continue<")
       # The Play button links to the resumed video (within the series sequence).
@@ -79,7 +79,7 @@ RSpec.describe "Series show", type: :request do
     it "omits the Play button for a series with no visible videos" do
       serie = create(:serie)
       create(:season, serie: serie, position: 1)
-      get serie_path(serie)
+      get series_path(serie)
       expect(response.body).not_to include("collection__play")
     end
   end
@@ -94,7 +94,7 @@ RSpec.describe "Series show", type: :request do
       create(:episode, season: season1, video: s1v, position: 1)
       create(:episode, season: season2, video: s2v, position: 1)
 
-      get serie_season_path(serie, 2)
+      get season_series_path(serie, 2)
 
       expect(response).to have_http_status(:ok)
       expect(response.body).to include("S2 Ep")
@@ -104,7 +104,7 @@ RSpec.describe "Series show", type: :request do
 
     it "404s for an unknown season position" do
       serie = serie_with(create(:video, visibility: :public))
-      get serie_season_path(serie, 99)
+      get season_series_path(serie, 99)
       expect(response).to have_http_status(:not_found)
     end
   end

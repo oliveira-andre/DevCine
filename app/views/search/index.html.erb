@@ -1,6 +1,6 @@
 <% content_for :title, "Search" %>
 <% content_for :page_styles do %>
-  <%= stylesheet_link_tag "search", "home", "listing", "data-turbo-track": "dynamic" %>
+  <%= stylesheet_link_tag "search", "home", "listing", "catalog_controls", "data-turbo-track": "dynamic" %>
 <% end %>
 
 <main class="search-page">
@@ -14,6 +14,7 @@
   <% if @query.present? %>
     <section class="search-page__results">
       <% if @videos.any? || @movies.any? || @series.any? %>
+        <%= render "shared/catalog_controls" %>
         <% if @videos.any? %>
           <h2 class="search-page__heading">Videos</h2>
           <div class="listing__grid">

@@ -19,7 +19,8 @@ RSpec.describe "Live embed playback", type: :system do
     visit player_path(live.slug)
     frame = find("iframe.live-embed__frame")
     expect(frame[:src]).to eq(live.live_embed_url)
-    expect(page).to have_no_css("video.player__video")
+    # A live is not handed to the persistent file player (feature 010).
+    expect(page).to have_no_css("[data-controller='player-source']")
   end
 
   it "shows the unavailable state when the embed URL is blank" do

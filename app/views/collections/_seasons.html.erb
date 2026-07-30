@@ -9,7 +9,7 @@
       <div class="seasons__track" data-rail-target="viewport">
         <% seasons.each do |s| %>
           <% active = s.id == active_season.id %>
-          <%= link_to s.name, serie_season_path(serie, s.position),
+          <%= link_to s.name, season_series_path(serie, s.position),
                 class: "season-chip#{' is-active' if active}",
                 data: { turbo_frame: "episodes", action: "season-switch#select" },
                 "aria-current": (active ? "true" : nil) %>

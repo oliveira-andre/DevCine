@@ -1,0 +1,81 @@
+/* Catalog controls row (feature 011): genre filter pills (movies/series) + a
+   sort dropdown pill, shown after the listing title and before the grid.
+   Mobile-first: the genre strip scrolls horizontally; tokens only. */
+
+.catalog-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+/* Genre pills scroll horizontally on small screens; the sort pill stays put. */
+.catalog-controls__genres {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.catalog-controls__genres::-webkit-scrollbar { display: none; }
+
+.catalog-controls__sort {
+  position: relative;
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+/* Pill (shared by genres + sort trigger). */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  white-space: nowrap;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  font-size: var(--text-meta);
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--dur-fast) ease, color var(--dur-fast) ease, background var(--dur-fast) ease;
+}
+.pill:hover { border-color: var(--accent-blue); color: var(--text-primary); }
+.pill.is-active {
+  background: var(--accent-blue);
+  border-color: var(--accent-blue);
+  color: #fff;
+}
+
+.pill--sort .icon { width: 14px; height: 14px; fill: currentColor; }
+
+/* Sort dropdown panel. */
+.catalog-controls__menu {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  right: 0;
+  z-index: 50;
+  min-width: 180px;
+  padding: var(--space-2);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.catalog-controls__menu a {
+  display: block;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-tile);
+  color: var(--text-secondary);
+  font-size: var(--text-meta);
+  text-decoration: none;
+}
+.catalog-controls__menu a:hover { background: var(--surface-3); color: var(--text-primary); }
+.catalog-controls__menu a.is-active { color: var(--accent-blue); font-weight: 700; }

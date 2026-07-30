@@ -14,7 +14,8 @@
 
         <div class="field">
           <%= form.label :description, class: "field-label" %>
-          <%= form.text_area :description, rows: 5, class: "field-input" %>
+          <%= form.text_area :description, rows: 5, class: "field-input",
+                data: { controller: "textarea-autogrow" } %>
         </div>
 
         <div class="field">

@@ -1,0 +1,73 @@
+/* Subtitle settings popup (feature 012). Page-scoped; tokens only. The toggle
+   button reuses .reaction-btn from player.css. */
+
+.subtitles { position: relative; display: inline-flex; }
+
+.subtitles__toggle.is-on { color: var(--accent-blue); border-color: var(--accent-blue); }
+
+/* Opens downward into the details area — opening upward would overlap the
+   expanded video (which sits above the page in stacking order). */
+.subtitles__popup {
+  position: absolute;
+  top: calc(100% + var(--space-2));
+  right: 0;
+  z-index: 60;
+  width: 260px;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+}
+.subtitles__popup[hidden] { display: none; }
+
+.subtitles__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--text-meta);
+  color: var(--text-secondary);
+}
+.subtitles__row > label:first-child { flex: 0 0 auto; }
+.subtitles__row input[type="color"] {
+  width: 40px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-tile);
+  background: none;
+  cursor: pointer;
+}
+.subtitles__row input[type="range"] { flex: 1 1 auto; }
+.subtitles__row select {
+  background: var(--surface-3);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-tile);
+  padding: var(--space-1) var(--space-2);
+}
+.subtitles__check { display: inline-flex; align-items: center; gap: var(--space-1); }
+
+/* stimulus-color-picker (Pickr) trigger sizing to fit the popup rows. */
+.subtitles__picker { display: inline-flex; }
+.subtitles__picker .pickr .pcr-button {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-tile);
+}
+
+.subtitles__off {
+  margin-top: var(--space-1);
+  padding: var(--space-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--danger);
+  font-weight: 600;
+  cursor: pointer;
+}
+.subtitles__off:hover { border-color: var(--danger); }

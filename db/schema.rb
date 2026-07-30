@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_07_15_032607) do
+ActiveRecord::Schema[8.0].define(version: 2026_07_28_192301) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -114,6 +114,19 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_15_032607) do
     t.datetime "updated_at", null: false
     t.index ["trailer_id"], name: "index_movies_on_trailer_id"
     t.index ["video_id"], name: "index_movies_on_video_id"
+  end
+
+  create_table "orderings", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.string "label", null: false
+    t.string "slug", null: false
+    t.string "field", null: false
+    t.string "direction", null: false
+    t.boolean "default", default: false, null: false
+    t.integer "position", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["position"], name: "index_orderings_on_position"
+    t.index ["slug"], name: "index_orderings_on_slug", unique: true
   end
 
   create_table "people", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -229,6 +242,12 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_15_032607) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "pin_attempts", default: 0, null: false
+    t.boolean "autoplay", default: true, null: false
+    t.boolean "subtitles_enabled", default: false, null: false
+    t.string "subtitle_text_color", default: "#FFFFFF", null: false
+    t.string "subtitle_background_color", default: "#000000"
+    t.integer "subtitle_font_size", default: 100, null: false
+    t.integer "subtitle_font_weight", default: 400, null: false
     t.index ["email_address"], name: "index_users_on_email_address", unique: true
     t.index ["handle"], name: "index_users_on_handle", unique: true
   end

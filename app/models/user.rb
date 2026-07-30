@@ -40,6 +40,14 @@ class User < ApplicationRecord
 
   validates :email_address, presence: true, uniqueness: true
   validate :avatar_and_cover_are_images
+
+  # Subtitle appearance preferences (feature 012). Background may be blank/nil =
+  # transparent; colors are #RRGGBB.
+  SUBTITLE_FONT_WEIGHTS = [ 100, 200, 300, 400, 500, 600, 700, 800, 900 ].freeze
+  validates :subtitle_text_color, format: { with: /\A#\h{6}\z/ }, allow_blank: true
+  validates :subtitle_background_color, format: { with: /\A#\h{6}\z/ }, allow_blank: true
+  validates :subtitle_font_size, numericality: { only_integer: true, in: 50..300 }
+  validates :subtitle_font_weight, inclusion: { in: SUBTITLE_FONT_WEIGHTS }
   # PIN format is validated only when a PIN is being set (FR-013).
   validates :pin, format: { with: /\A\d{4,6}\z/, message: "must be 4 to 6 digits" },
                   confirmation: { message: "doesn't match" }, if: -> { pin.present? }

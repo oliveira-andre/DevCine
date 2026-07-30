@@ -10,7 +10,7 @@
    end %>
 <div class="collection__hero">
   <% if hero_video %>
-    <%= link_to player_path(hero_video.slug, local_assigns[:link_params] || {}), class: "collection__hero-link", "aria-label": "Play #{hero_video.title}" do %>
+    <%= link_to player_path(hero_video.slug, local_assigns[:link_params] || {}), class: "collection__hero-link", "aria-label": "Play #{hero_video.title}", data: { turbo_stream: true } do %>
       <% if image %>
         <%= poster_image_tag image, alt: hero_video.title, class: "collection__hero-img" %>
       <% else %>

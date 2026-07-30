@@ -27,7 +27,7 @@ RSpec.describe "Current episode marker", type: :system do
     serie = serie_with(v1, v2)
     VideoView.record!(user, v2)
 
-    visit serie_path(serie)
+    visit series_path(serie)
 
     # Exactly one card marked, and it is the watched one.
     expect(page).to have_css(".episode-card--current", count: 1)
@@ -44,7 +44,7 @@ RSpec.describe "Current episode marker", type: :system do
     v1 = create(:video, :with_thumbnail, title: "One", visibility: :public)
     serie = serie_with(v1)
 
-    visit serie_path(serie)
+    visit series_path(serie)
 
     expect(page).to have_css(".episode-card")
     expect(page).to have_no_css(".episode-card--current")

@@ -26,7 +26,7 @@ RSpec.describe "Collection play/continue", type: :system do
     v2 = create(:video, :with_thumbnail, :with_file, title: "Two", visibility: :public)
     serie = serie_with(v1, v2)
 
-    visit serie_path(serie)
+    visit series_path(serie)
     expect(page).to have_link("Play")
     click_link "Play"
     expect(page).to have_current_path(player_path(v1.slug), ignore_query: true)
@@ -39,7 +39,7 @@ RSpec.describe "Collection play/continue", type: :system do
     WatchProgress.record!(user, v2, position: 30, duration: 600)
     VideoView.record!(user, v2)
 
-    visit serie_path(serie)
+    visit series_path(serie)
     expect(page).to have_link("Continue")
     click_link "Continue"
     expect(page).to have_current_path(player_path(v2.slug), ignore_query: true)

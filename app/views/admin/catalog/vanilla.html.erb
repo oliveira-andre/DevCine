@@ -1,0 +1,34 @@
+<%# Wizard step 2 (vanilla): name (+ seasons for a serie/anime). Success leaves
+    the modal via _top and lands on the upload page. %>
+<%= modal title: "New #{@kind == 'movie' ? 'movie' : (@kind == 'anime' ? 'anime' : 'TV show')}", size: :wide do %>
+  <%= form_with url: admin_catalog_index_path, method: :post, class: "modal__form" do %>
+    <% if @error.present? %>
+      <div class="form-flash form-flash-alert"><%= @error %></div>
+    <% end %>
+    <%= hidden_field_tag :kind, @kind %>
+
+    <div class="field">
+      <%= label_tag :title, "Name", class: "field-label" %>
+      <%= text_field_tag :title, nil, required: true, autofocus: true, class: "field-input" %>
+    </div>
+
+    <div class="field">
+      <%= label_tag :description, "Description (optional)", class: "field-label" %>
+      <%= text_area_tag :description, nil, rows: 3, class: "field-input",
+            data: { controller: "textarea-autogrow" } %>
+    </div>
+
+    <% unless @kind == "movie" %>
+      <div class="field">
+        <%= label_tag :seasons_count, "How many seasons?", class: "field-label" %>
+        <%= number_field_tag :seasons_count, 1, min: 1, max: 50, class: "field-input" %>
+        <p class="field-hint">You'll add episodes by uploading videos into each season.</p>
+      </div>
+    <% end %>
+
+    <div class="modal__footer">
+      <button type="button" class="btn btn-outline" data-action="modal#close">Cancel</button>
+      <%= submit_tag "Create", class: "btn btn-primary" %>
+    </div>
+  <% end %>
+<% end %>

@@ -1,0 +1,45 @@
+<%# Wizard step 2 (API): search the gateway chain for the name, pick a result.
+    The search form re-renders inside the modal; Import leaves via _top. %>
+<%= modal title: "Find #{@kind == 'movie' ? 'movie' : (@kind == 'anime' ? 'anime' : 'TV show')}", size: "wide" do %>
+  <% if @error.present? %>
+    <div class="form-flash form-flash-alert"><%= @error %></div>
+  <% end %>
+  <%= form_with url: search_admin_catalog_index_path, method: :get, class: "modal__form admin-catalog__search" do %>
+    <%= hidden_field_tag :kind, @kind %>
+    <div class="field">
+      <%= label_tag :q, "Name", class: "field-label" %>
+      <div class="admin-catalog__searchrow">
+        <%= text_field_tag :q, @query, required: true, autofocus: true, class: "field-input",
+              placeholder: "e.g. #{@kind == 'anime' ? 'Naruto' : (@kind == 'movie' ? 'Inception' : 'Breaking Bad')}" %>
+        <%= submit_tag "Search", class: "btn btn-primary" %>
+      </div>
+    </div>
+  <% end %>
+
+  <% if @query.present? %>
+    <% if @results.any? %>
+      <div class="admin-catalog__results">
+        <% @results.first(8).each do |result| %>
+          <div class="admin-catalog__result">
+            <% if result[:poster_url].present? %>
+              <img class="admin-catalog__poster" src="<%= result[:poster_url] %>" alt="" loading="lazy">
+            <% else %>
+              <div class="admin-catalog__poster admin-catalog__poster--empty"></div>
+            <% end %>
+            <div class="admin-catalog__meta">
+              <strong><%= result[:title] %></strong>
+              <% if result[:year] %><span class="admin-catalog__year"><%= result[:year] %></span><% end %>
+              <p class="admin-catalog__overview"><%= truncate(result[:overview].to_s, length: 140) %></p>
+              <%= button_to "Import", import_admin_catalog_index_path, method: :post,
+                    params: { kind: @kind, q: @query, source: result[:source], external_id: result[:external_id] },
+                    class: "btn btn-primary admin-catalog__import",
+                    data: { turbo_submits_with: "Importing…" } %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="admin-lives__empty">Nothing found for “<%= @query %>”. Try a different name, or go back and use manual entry.</p>
+    <% end %>
+  <% end %>
+<% end %>

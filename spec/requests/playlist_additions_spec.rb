@@ -8,7 +8,7 @@ RSpec.describe "Playlist additions", type: :request do
 
   describe "GET /playing/:slug/add-to-playlist" do
     it "renders the modal listing the user's playlists" do
-      get add_to_playlist_path(video.slug)
+      get add_to_playlist_player_path(video.slug)
       expect(response).to have_http_status(:ok)
       expect(response.body).to include(User::LIKED_PLAYLIST_TITLE)
     end

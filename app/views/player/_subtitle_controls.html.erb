@@ -1,0 +1,75 @@
+<%# Subtitle icon + settings popup (feature 012). Rendered on the player page for
+    file-based videos; the persistent player owns the captions overlay. %>
+<div class="subtitles" data-controller="subtitle-settings"
+     data-subtitle-settings-enabled-value="<%= Current.user.subtitles_enabled %>"
+     data-subtitle-settings-text-color-value="<%= Current.user.subtitle_text_color %>"
+     data-subtitle-settings-bg-color-value="<%= Current.user.subtitle_background_color %>"
+     data-subtitle-settings-font-size-value="<%= Current.user.subtitle_font_size %>"
+     data-subtitle-settings-font-weight-value="<%= Current.user.subtitle_font_weight %>"
+     data-subtitle-settings-update-url-value="<%= settings_subtitle_path %>"
+     data-subtitle-settings-tracks-value="<%= subtitle_tracks_json(@video, @subtitle_tracks) %>">
+  <button type="button"
+          class="reaction-btn subtitles__toggle <%= 'is-on' if Current.user.subtitles_enabled %>"
+          data-subtitle-settings-target="toggle"
+          data-action="subtitle-settings#iconClick" aria-label="Subtitles"
+          title="<%= Current.user.subtitles_enabled ? 'Subtitles on' : 'Subtitles off' %>">
+    <%= icon(:captions) %>
+  </button>
+
+  <div class="subtitles__popup" data-subtitle-settings-target="popup" hidden>
+    <div class="subtitles__row">
+      <label>Text color</label>
+      <div class="subtitles__picker" data-controller="color-picker"
+           data-color-picker-theme-value="nano">
+        <div data-color-picker-target="button"></div>
+        <input type="hidden" data-color-picker-target="input"
+               data-subtitle-settings-target="textColor"
+               data-action="change->subtitle-settings#changeText"
+               value="<%= Current.user.subtitle_text_color %>">
+      </div>
+    </div>
+
+    <div class="subtitles__row">
+      <label>Background</label>
+      <div class="subtitles__picker" data-controller="color-picker"
+           data-color-picker-theme-value="nano">
+        <div data-color-picker-target="button"></div>
+        <input type="hidden" data-color-picker-target="input"
+               data-subtitle-settings-target="bgColor"
+               data-action="change->subtitle-settings#changeBg"
+               value="<%= Current.user.subtitle_background_color %>">
+      </div>
+      <label class="subtitles__check">
+        <input type="checkbox" data-subtitle-settings-target="transparent"
+               data-action="change->subtitle-settings#toggleTransparent"> Transparent
+      </label>
+    </div>
+
+    <div class="subtitles__row">
+      <label>Font size</label>
+      <input type="range" min="50" max="300" step="10"
+             data-subtitle-settings-target="fontSize"
+             data-action="input->subtitle-settings#changeSize">
+    </div>
+
+    <div class="subtitles__row">
+      <label>Font weight</label>
+      <select data-subtitle-settings-target="fontWeight"
+              data-action="change->subtitle-settings#changeWeight">
+        <option value="400">Normal</option>
+        <option value="600">Semibold</option>
+        <option value="700">Bold</option>
+      </select>
+    </div>
+
+    <div class="subtitles__row" data-subtitle-settings-target="languageRow" hidden>
+      <label>Language</label>
+      <select data-subtitle-settings-target="language"
+              data-action="change->subtitle-settings#changeLanguage"></select>
+    </div>
+
+    <button type="button" class="subtitles__off" data-action="subtitle-settings#turnOff">
+      Turn off subtitles
+    </button>
+  </div>
+</div>

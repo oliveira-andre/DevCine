@@ -11,13 +11,22 @@ export default class extends Controller {
   connect() {
     this.addHeader = this.addHeader.bind(this)
     this.receive = this.receive.bind(this)
+    this.provide = this.provide.bind(this)
     document.addEventListener("turbo:before-fetch-request", this.addHeader)
     document.addEventListener("pin-lock:unlock", this.receive)
+    document.addEventListener("pin-lock:request-token", this.provide)
   }
 
   disconnect() {
     document.removeEventListener("turbo:before-fetch-request", this.addHeader)
     document.removeEventListener("pin-lock:unlock", this.receive)
+    document.removeEventListener("pin-lock:request-token", this.provide)
+  }
+
+  // Hand the current token to a synchronous requester (the mini-player uses a
+  // plain fetch for /up_next, which bypasses turbo:before-fetch-request).
+  provide(event) {
+    if (unlockToken) event.detail.token = unlockToken
   }
 
   // Attach the token to every Turbo fetch so the server can verify the session's

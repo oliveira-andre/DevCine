@@ -55,7 +55,7 @@ module Admin
     private
 
       def set_live
-        @live = Video.live.friendly.find(params[:id])
+        @live = Video.live.friendly.find(params[:slug])
       end
 
       def live_params

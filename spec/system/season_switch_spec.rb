@@ -23,7 +23,7 @@ RSpec.describe "Season switching", type: :system do
     create(:episode, season: season1, video: s1v, position: 1)
     create(:episode, season: season2, video: s2v, position: 1)
 
-    visit serie_path(serie)
+    visit series_path(serie)
 
     # Seasons appear in order; season 1 active by default.
     within(".seasons") do

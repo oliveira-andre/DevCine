@@ -1,4 +1,4 @@
-<%= form_with model: comment, url: player_comments_path(video.slug),
+<%= form_with model: comment, url: comments_player_path(video.slug),
       id: local_assigns.fetch(:form_id, "comment_form"), class: "comments__form" do |form| %>
   <% if comment.parent_id.present? %><%= form.hidden_field :parent_id %><% end %>
   <% if comment.errors.any? %>

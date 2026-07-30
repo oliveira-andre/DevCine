@@ -5,6 +5,29 @@ RSpec.describe User, type: :model do
     expect(build(:user)).to be_valid
   end
 
+  describe "autoplay preference (feature 010)" do
+    it "defaults to true for a new user" do
+      expect(create(:user).autoplay).to be(true)
+    end
+  end
+
+  describe "subtitle preferences (feature 012)" do
+    it "defaults to off, white on black, size 100, weight 400" do
+      u = create(:user)
+      expect(u.subtitles_enabled).to be(false)
+      expect(u.subtitle_text_color).to eq("#FFFFFF")
+      expect(u.subtitle_background_color).to eq("#000000")
+      expect(u.subtitle_font_size).to eq(100)
+      expect(u.subtitle_font_weight).to eq(400)
+    end
+
+    it "allows a blank (transparent) background but rejects a bad color/weight" do
+      expect(build(:user, subtitle_background_color: "")).to be_valid
+      expect(build(:user, subtitle_text_color: "red")).to be_invalid
+      expect(build(:user, subtitle_font_weight: 450)).to be_invalid
+    end
+  end
+
   describe "roles" do
     it { is_expected.to define_enum_for(:role).with_values(user: 0, admin: 1, blocked: 2) }
 

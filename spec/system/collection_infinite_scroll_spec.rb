@@ -23,7 +23,7 @@ RSpec.describe "Collection infinite scroll", type: :system do
       create(:episode, season: season, video: v, position: i + 1)
     end
 
-    visit serie_path(serie)
+    visit series_path(serie)
     expect(page).to have_content("Episode 01")
 
     # The last item is on page 2 — scrolling brings the lazy frame into view.

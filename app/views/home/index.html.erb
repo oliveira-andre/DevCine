@@ -19,6 +19,6 @@
 
     <%= render "home/rail", title: "Recently added series", key: "series",
           items: @recent_series, pagy: @series_pagy,
-          next_url: (@series_pagy.next ? series_path(page: @series_pagy.next) : nil) %>
+          next_url: (@series_pagy.next ? series_index_path(page: @series_pagy.next) : nil) %>
   </div>
 </main>

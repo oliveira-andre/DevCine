@@ -1,0 +1,14 @@
+<%# Autoplay preference toggle (feature 010, US5). Replaced in place via turbo
+    stream; on (re)connect it syncs the persistent player's live autoplay flag. %>
+<%= turbo_frame_tag "autoplay_toggle" do %>
+  <div data-controller="autoplay-toggle"
+       data-autoplay-toggle-enabled-value="<%= Current.user.autoplay %>">
+    <%= button_to settings_autoplay_path, method: :patch,
+          class: "player__autoplay#{' is-on' if Current.user.autoplay}",
+          form: { data: { turbo_stream: true } },
+          aria: { pressed: Current.user.autoplay },
+          title: (Current.user.autoplay ? "Autoplay is on" : "Autoplay is off") do %>
+      <%= icon(Current.user.autoplay ? :autoplay_on : :autoplay_off) %>
+    <% end %>
+  </div>
+<% end %>

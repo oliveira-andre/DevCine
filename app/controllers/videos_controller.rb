@@ -1,13 +1,13 @@
 class VideosController < ApplicationController
   include Paginatable
   include ModalLayout
+  include CatalogListing
 
-  # Standalone videos (50/pg) — policy-scoped (restricted only when unlocked).
+  # Standalone videos (50/pg) — policy-scoped (restricted only when unlocked),
+  # sorted per feature 011 (no genre pills — videos aren't genre-tagged).
   def index
-    @pagy, @videos = paginate(
-      policy_scope(Video).standalone.recent.with_attached_thumbnail.with_attached_preview,
-      limit: 50
-    )
+    scope = ordered(policy_scope(Video).standalone.with_attached_thumbnail.with_attached_preview)
+    @pagy, @videos = paginate(scope, limit: 50)
   end
 
   # Standalone video upload form, rendered in the shared modal (US5).

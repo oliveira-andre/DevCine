@@ -1,0 +1,11 @@
+<%# Item page summary (poster + description + year) — stream-replaced after the
+    edit modal saves. %>
+<div class="admin-catalog__item" id="admin_item_summary">
+  <% if item.poster.attached? %>
+    <%= image_tag url_for(item.poster), class: "admin-catalog__itemposter", alt: item.title %>
+  <% end %>
+  <div>
+    <% if item.description.present? %><p class="admin-catalog__desc"><%= truncate(item.description, length: 320) %></p><% end %>
+    <% if item.release_date.present? %><p class="admin-catalog__year">Released: <%= item.release_date.year %></p><% end %>
+  </div>
+</div>

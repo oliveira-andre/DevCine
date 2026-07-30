@@ -1,0 +1,35 @@
+<%#
+  Catalog controls row (feature 011). Ordering pill on every listing; genre pills
+  only when a `genres:` local is passed (movies/series). Renders correctly with an
+  empty ordering table (most-recent only) and with no genres.
+  Locals: genres (optional collection).
+%>
+<% genres = local_assigns[:genres] %>
+<div class="catalog-controls">
+  <% if genres.present? %>
+    <div class="catalog-controls__genres" role="tablist" aria-label="Filter by genre">
+      <%= link_to "All", listing_url(genre: nil),
+            class: "pill #{'is-active' if active_genre.nil?}",
+            aria: { selected: active_genre.nil? }, data: { turbo_stream: true } %>
+      <% genres.each do |genre| %>
+        <%= link_to genre.name, listing_url(genre: genre.slug),
+              class: "pill #{'is-active' if active_genre&.slug == genre.slug}",
+              aria: { selected: active_genre&.slug == genre.slug }, data: { turbo_stream: true } %>
+      <% end %>
+    </div>
+  <% end %>
+
+  <div class="catalog-controls__sort" data-controller="menu">
+    <button type="button" class="pill pill--sort" data-action="menu#toggle"
+            aria-haspopup="true" aria-label="Sort">
+      <span><%= current_ordering.label %></span>
+      <span class="pill__caret" aria-hidden="true">▾</span>
+    </button>
+    <div class="catalog-controls__menu" data-menu-target="list" role="menu" hidden>
+      <% catalog_orderings.each do |option| %>
+        <%= link_to option.label, listing_url(sort: option.slug), role: "menuitem", data: { turbo_stream: true },
+              class: ("is-active" if option.slug == current_ordering.slug) %>
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -1,11 +1,10 @@
 class LivesController < ApplicationController
   include Paginatable
+  include CatalogListing
 
-  # Live-kind videos (50/pg) — policy-scoped.
+  # Live-kind videos (50/pg) — policy-scoped, sorted per feature 011.
   def index
-    @pagy, @lives = paginate(
-      policy_scope(Video).live.recent.with_attached_thumbnail,
-      limit: 50
-    )
+    scope = ordered(policy_scope(Video).live.with_attached_thumbnail)
+    @pagy, @lives = paginate(scope, limit: 50)
   end
 end

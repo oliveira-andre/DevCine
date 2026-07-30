@@ -1,0 +1,22 @@
+<%# Actions for an UPLOADED slot: filename, download, subtitle manager, and a
+    confirmed remove (purges the file so a new one can be dropped).
+    Locals: video, type, item. %>
+<div class="admin-live__actions admin-file">
+  <span class="admin-file__name"><%= video.file.filename %></span>
+  <%= link_to rails_blob_path(video.file, disposition: "attachment"),
+        class: "admin-live__action", "aria-label": "Download #{video.file.filename}" do %>
+    <%= icon(:download) %>
+  <% end %>
+  <%= link_to new_admin_video_subtitle_path(video), class: "admin-live__action",
+        data: { turbo_frame: "modal" }, "aria-label": "Add subtitles for #{video.title}" do %>
+    <%= icon(:captions) %>
+  <% end %>
+  <%= button_to upload_admin_catalog_item_path(type, item), method: :delete,
+        params: { video_id: video.id },
+        class: "admin-live__action admin-live__action--danger",
+        form: { class: "admin-live__delete-form",
+                data: { turbo_confirm: "Remove #{video.file.filename}? You can upload a new file afterwards." } },
+        "aria-label": "Remove uploaded file" do %>
+    <%= icon(:trash) %>
+  <% end %>
+</div>

@@ -1,0 +1,23 @@
+<%# Wizard step 1: content type + creation mode. GET form navigates the modal
+    frame to the vanilla form or the API search (via the #start dispatcher). %>
+<%= modal title: "Add to catalog", size: :wide do %>
+  <%= form_with url: start_admin_catalog_index_path, method: :get, class: "modal__form" do %>
+    <fieldset class="field">
+      <legend class="field-label">What are you adding?</legend>
+      <label class="field-check"><%= radio_button_tag :kind, "movie", true %> Movie</label>
+      <label class="field-check"><%= radio_button_tag :kind, "serie" %> TV show</label>
+      <label class="field-check"><%= radio_button_tag :kind, "anime" %> Anime</label>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend class="field-label">How?</legend>
+      <label class="field-check"><%= radio_button_tag :mode, "api", true %> Look it up (TMDB / AniList / TVmaze)</label>
+      <label class="field-check"><%= radio_button_tag :mode, "vanilla" %> Enter everything manually</label>
+    </fieldset>
+
+    <div class="modal__footer">
+      <button type="button" class="btn btn-outline" data-action="modal#close">Cancel</button>
+      <%= submit_tag "Continue", class: "btn btn-primary" %>
+    </div>
+  <% end %>
+<% end %>

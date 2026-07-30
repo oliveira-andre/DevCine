@@ -1,0 +1,25 @@
+<%# Edit a catalog item's title + description in the shared modal. %>
+<% type = @item.is_a?(Movie) ? "movie" : "serie" %>
+<%= modal title: "Edit — #{@item.title}", size: :wide do %>
+  <%= form_with url: admin_catalog_item_path(type, @item), method: :patch, class: "modal__form" do %>
+    <% if @item.errors.any? %>
+      <div class="form-flash form-flash-alert"><%= @item.errors.full_messages.to_sentence %></div>
+    <% end %>
+
+    <div class="field">
+      <%= label_tag :title, "Name", class: "field-label" %>
+      <%= text_field_tag :title, @item.title, required: true, autofocus: true, class: "field-input" %>
+    </div>
+
+    <div class="field">
+      <%= label_tag :description, "Description", class: "field-label" %>
+      <%= text_area_tag :description, @item.description, rows: 5, class: "field-input",
+            data: { controller: "textarea-autogrow" } %>
+    </div>
+
+    <div class="modal__footer">
+      <button type="button" class="btn btn-outline" data-action="modal#close">Cancel</button>
+      <%= submit_tag "Save", class: "btn btn-primary" %>
+    </div>
+  <% end %>
+<% end %>

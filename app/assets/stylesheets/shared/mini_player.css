@@ -1,0 +1,241 @@
+/* Persistent mini-player (feature 010). Cross-cutting: rendered once in the
+   layout, OUTSIDE the #page-content Turbo frame, so it survives every in-app
+   navigation and keeps a single <video> playing (Constitution V).
+
+   Two visual states, toggled by JS classes:
+     .mini-player--expanded  → overlays the player page's #player-stage (JS sets
+                               top/left/width via inline styles from the stage rect).
+     .mini-player--docked    → small, bottom-right, on every other page.
+   All values come from shared tokens (Constitution IV). */
+
+#mini-player {
+  position: fixed;
+  z-index: 200; /* above header (100), below drawer (300) and the top-layer modal */
+  background: #000;
+  overflow: hidden;
+  /* geometry (top/left/width/height) is set inline by the controller per state */
+}
+
+#mini-player[hidden] { display: none; }
+
+/* Reserves the expanded player's area in the player-page flow so title/comments
+   flow below it; the fixed host overlays this box. */
+#player-stage { width: 100%; aspect-ratio: 16 / 9; }
+
+.mini-player__video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+
+/* Custom caption overlay (feature 012). Color/background/size/weight come from
+   CSS variables the player sets from the viewer's subtitle preferences. */
+.mini-player__captions {
+  position: absolute;
+  left: 50%;
+  bottom: 8%;
+  transform: translateX(-50%);
+  max-width: 92%;
+  text-align: center;
+  padding: 0.15em 0.5em;
+  border-radius: 4px;
+  color: var(--subtitle-color, #fff);
+  background: var(--subtitle-bg, #000);
+  font-size: calc(var(--subtitle-size, 100) * 0.016rem);
+  font-weight: var(--subtitle-weight, 400);
+  line-height: 1.3;
+  pointer-events: none;
+  z-index: 3;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+}
+.mini-player__captions[hidden] { display: none; }
+
+/* --- expanded (on the active video's player page) --- */
+/* Absolute (document-relative) so it scrolls WITH the page over #player-stage,
+   rather than staying pinned to the viewport. The id in the selector outranks
+   the base #mini-player { position: fixed } rule. */
+#mini-player.mini-player--expanded {
+  position: absolute;
+  border-radius: 0;
+}
+@media (min-width: 1024px) {
+  .mini-player--expanded { border-radius: var(--radius-card); }
+}
+
+/* --- docked (bottom-right, everywhere else) --- */
+.mini-player--docked {
+  bottom: var(--space-4);
+  right: var(--space-4);
+  width: 220px;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  border-radius: var(--radius-card);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+  border: 1px solid var(--border-subtle);
+  cursor: pointer;
+}
+@media (min-width: 768px) {
+  .mini-player--docked { width: 300px; }
+}
+
+/* --- controls overlay (US2): play/pause + close(X). Hidden until revealed. --- */
+.mini-player__controls {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  background: rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-fast) var(--ease-standard);
+}
+/* Revealed on tap (mobile) / hover (desktop) via the is-controls class. */
+.mini-player.is-controls .mini-player__controls { opacity: 1; pointer-events: auto; }
+@media (hover: hover) {
+  .mini-player--docked:hover .mini-player__controls { opacity: 1; pointer-events: auto; }
+}
+
+/* Docked: the whole tile opens the video on click; the controls stay visible but
+   the overlay itself lets clicks through, so only the buttons act. */
+.mini-player--docked { cursor: pointer; }
+.mini-player--docked .mini-player__controls {
+  opacity: 1;
+  pointer-events: none;
+  background: transparent;
+}
+.mini-player--docked .mini-player__play { pointer-events: auto; }
+.mini-player--docked .mini-player__close { pointer-events: auto; }
+
+.mini-player__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: rgba(0, 0, 0, 0.55);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+.mini-player__btn .icon { width: 22px; height: 22px; fill: currentColor; }
+
+/* Close pinned top-right (FR-006). */
+.mini-player__close {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  width: 32px;
+  height: 32px;
+  z-index: 1;
+}
+.mini-player__close .icon { width: 18px; height: 18px; }
+
+.mini-player__btn--mirror { transform: scaleX(-1); }
+.mini-player__play { width: 56px; height: 56px; }
+
+/* Both glyph spans are flex-centered so neither sits off-center (an inline span
+   would baseline-align and float the play triangle upward). The play triangle is
+   optically narrower than the pause bars, so it gets its own slightly larger
+   width to read as balanced. */
+.mini-player__icon-play,
+.mini-player__icon-pause {
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+.mini-player__icon-play { display: inline-flex; }
+.mini-player__icon-pause { display: none; }
+.mini-player__play .mini-player__icon-play .icon { width: 30px; height: 30px; }
+.mini-player__play .mini-player__icon-pause .icon { width: 26px; height: 26px; }
+
+/* Play/pause reflects state: show the correct glyph via .is-playing on host. */
+.mini-player.is-playing .mini-player__icon-play { display: none; }
+.mini-player.is-playing .mini-player__icon-pause { display: inline-flex; }
+
+/* --- EXPANDED chrome (player page): rich controls, fullscreen; no close/dock. --- */
+.mini-player__fullscreen {
+  position: absolute;
+  bottom: var(--space-3);
+  right: var(--space-3);
+  width: 40px;
+  height: 40px;
+}
+/* Rich controls (prev/skip/next/fullscreen) only in the expanded state. */
+.mini-player__rich { display: none; }
+.mini-player--expanded .mini-player__rich { display: inline-flex; }
+.mini-player--expanded .mini-player__close { display: none; }
+/* Expanded controls: full overlay, revealed on activity, auto-hidden when idle. */
+.mini-player--expanded .mini-player__controls { background: rgba(0, 0, 0, 0.15); }
+.mini-player--expanded.is-active .mini-player__controls { opacity: 1; pointer-events: auto; }
+.mini-player--expanded.is-active .mini-player__fullscreen { opacity: 1; pointer-events: auto; }
+.mini-player--expanded .mini-player__fullscreen {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-fast) var(--ease-standard);
+}
+
+/* --- DOCKED chrome: minimal (play/pause + close); no rich controls. --- */
+.mini-player--docked .mini-player__fullscreen { display: none; }
+
+/* --- timeline / seek bar (expanded only) --- */
+.mini-player__timeline,
+.mini-player__time { display: none; }
+.mini-player--expanded .mini-player__timeline {
+  display: block;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-fast) var(--ease-standard);
+}
+/* The timeline is part of the HUD: visible only while active (or paused). */
+.mini-player--expanded.is-active .mini-player__timeline { opacity: 1; pointer-events: auto; }
+.mini-player--expanded .mini-player__time { display: flex; }
+
+.mini-player__timeline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.25);
+  cursor: pointer;
+  z-index: 4;
+  touch-action: none;
+}
+.mini-player__timeline:hover { height: 9px; }
+.mini-player__timeline-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  background: var(--accent-blue);
+  pointer-events: none;
+}
+.mini-player__timeline-knob {
+  position: absolute;
+  top: 50%;
+  left: 0; /* moved to the fill's edge in JS via the fill width; simple: hide */
+  display: none;
+}
+
+.mini-player__time {
+  position: absolute;
+  left: var(--space-4);
+  bottom: var(--space-4);
+  gap: var(--space-1);
+  align-items: center;
+  color: #fff;
+  font-size: var(--text-meta);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  z-index: 4;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease-standard);
+}
+.mini-player--expanded.is-active .mini-player__time { opacity: 1; }
+.mini-player__time-sep { opacity: 0.6; }

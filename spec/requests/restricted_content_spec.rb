@@ -37,18 +37,18 @@ RSpec.describe "Restricted content gating", type: :request do
     it "404s the restricted player page, comments, related, views and progress" do
       get player_path(restricted.slug)
       expect(response).to have_http_status(:not_found)
-      get player_comments_path(restricted.slug)
+      get comments_player_path(restricted.slug)
       expect(response).to have_http_status(:not_found)
-      get player_related_path(restricted.slug)
+      get related_player_path(restricted.slug)
       expect(response).to have_http_status(:not_found)
-      post player_views_path(restricted.slug)
+      post views_player_path(restricted.slug)
       expect(response).to have_http_status(:not_found)
-      post player_progress_path(restricted.slug), params: { position: 10 }
+      post progress_player_path(restricted.slug), params: { position: 10 }
       expect(response).to have_http_status(:not_found)
     end
 
     it "keeps the restricted title out of a public video's related rail" do
-      get player_related_path(public_a18.slug)
+      get related_player_path(public_a18.slug)
       expect(response).to have_http_status(:ok)
       expect(response.body).not_to include("Hidden Gem XyZ")
     end
@@ -70,7 +70,7 @@ RSpec.describe "Restricted content gating", type: :request do
       get player_path(restricted.slug), headers: headers
       expect(response).to have_http_status(:ok)
 
-      get player_related_path(public_a18.slug), headers: headers
+      get related_player_path(public_a18.slug), headers: headers
       expect(response.body).to include("Hidden Gem XyZ")
     end
 

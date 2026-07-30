@@ -58,7 +58,7 @@ RSpec.describe "Listings", type: :request do
   describe "GET /series" do
     it "returns a bounded first page of 20" do
       create_list(:serie, 25)
-      get series_path
+      get series_index_path
       expect(response.body.scan('class="poster-card"').size).to eq(20)
       expect(response.body).to include('id="series_page_2"')
     end

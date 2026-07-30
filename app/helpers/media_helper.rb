@@ -40,7 +40,7 @@ module MediaHelper
     when Movie
       { title: record.title, image: record.poster, external: nil, preview: record.video&.preview, video: record.video }
     when Serie
-      { title: record.title, image: record.poster, external: nil, preview: nil, video: nil, link: serie_path(record) }
+      { title: record.title, image: record.poster, external: nil, preview: nil, video: nil, link: series_path(record) }
     when Video
       { title: record.title, image: record.thumbnail, external: nil, preview: record.preview, video: record }
     when WatchProgress, VideoView

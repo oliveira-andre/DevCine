@@ -1,0 +1,11 @@
+<%# Subtitle manager modal (feature 012): the video's existing tracks (filename +
+    edit + confirmed remove) followed by the add form with an SRT dropzone. %>
+<%= modal title: "Subtitles — #{@video.title}", size: :wide do %>
+  <% if @subtitles.any? %>
+    <div id="admin_subtitles" class="admin-lives admin-subtitles__list">
+      <%= render partial: "admin/subtitles/row", collection: @subtitles, as: :subtitle %>
+    </div>
+  <% end %>
+
+  <%= render "admin/subtitles/form" %>
+<% end %>

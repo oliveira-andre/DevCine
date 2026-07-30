@@ -13,14 +13,19 @@ class SessionsController < ApplicationController
     # session, so blocked status is never disclosed (FR-022).
     if user && !user.blocked?
       start_new_session_for user
+      # Auth transition: the whole chrome (header/drawer/player) changes, so the
+      # next render must be a full page, not a #page-content stream.
+      flash[:_full_render] = true
       redirect_to after_authentication_url
     else
+      flash[:_full_render] = true
       redirect_to new_session_path, alert: "Try another email address or password."
     end
   end
 
   def destroy
     terminate_session
+    flash[:_full_render] = true
     redirect_to new_session_path
   end
 end

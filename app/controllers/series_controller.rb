@@ -1,9 +1,11 @@
 class SeriesController < ApplicationController
   include Paginatable
+  include CatalogListing
 
-  # Series (20/pg) — policy-scoped (all-restricted series hidden while locked).
+  # Series (20/pg) — policy-scoped, genre-filtered and sorted (feature 011).
   def index
-    @pagy, @series = paginate(policy_scope(Serie).recent.with_attached_poster, limit: 20)
+    scope = ordered(by_genre(policy_scope(Serie).with_attached_poster))
+    @pagy, @series = paginate(scope, limit: 20)
   end
 
   # GET /series/:slug — the collection show page (feature 007). Renders the hero,
@@ -15,7 +17,7 @@ class SeriesController < ApplicationController
     @play_target = @serie.play_target(Current.user, pundit_user)
     @season = default_season
     @pagy, @videos = paginate_season(@season)
-    @next_url = @pagy&.next ? serie_season_path(@serie, @season.position, page: @pagy.next) : nil
+    @next_url = @pagy&.next ? season_series_path(@serie, @season.position, page: @pagy.next) : nil
   end
 
   # GET /series/:slug/seasons/:position — the episodes Turbo Frame for one season
@@ -25,7 +27,7 @@ class SeriesController < ApplicationController
     @season = @serie.seasons.find_by!(position: params[:position])
     @current_video = @serie.current_video(Current.user, pundit_user)
     @pagy, @videos = paginate_season(@season)
-    @next_url = @pagy&.next ? serie_season_path(@serie, @season.position, page: @pagy.next) : nil
+    @next_url = @pagy&.next ? season_series_path(@serie, @season.position, page: @pagy.next) : nil
     render :season
   end
 

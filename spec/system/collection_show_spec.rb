@@ -22,7 +22,7 @@ RSpec.describe "Collection show", type: :system do
     create(:episode, season: season, video: v1, position: 1)
     create(:episode, season: season, video: v2, position: 2)
 
-    visit serie_path(serie)
+    visit series_path(serie)
 
     expect(page).to have_css("main.collection")
     expect(page).to have_content(serie.title)
@@ -55,7 +55,7 @@ RSpec.describe "Collection show", type: :system do
     create(:episode, season: season, video: open_v, position: 1)
     create(:episode, season: season, video: gated, position: 2)
 
-    visit serie_path(serie)
+    visit series_path(serie)
 
     expect(page).to have_content("Public Ep")
     expect(page).to have_no_content("Restricted Ep")

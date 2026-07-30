@@ -32,9 +32,9 @@
   <% end %>
 
   <% if card[:video] %>
-    <%= link_to inner, player_path(card[:video].slug), class: "poster-card__link" %>
+    <%= link_to inner, player_path(card[:video].slug), class: "poster-card__link", data: { turbo_stream: true } %>
   <% elsif card[:link] %>
-    <%= link_to inner, card[:link], class: "poster-card__link" %>
+    <%= link_to inner, card[:link], class: "poster-card__link", data: { turbo_stream: true } %>
   <% else %>
     <%= inner %>
   <% end %>

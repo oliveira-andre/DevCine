@@ -8,7 +8,7 @@ RSpec.describe "WatchProgresses", type: :request do
   describe "POST /playing/:slug/progress" do
     it "saves the resume position and feeds the home Last watched rail" do
       video = create(:video, :with_file, :with_thumbnail, visibility: :public)
-      post player_progress_path(video.slug), params: { position: 120, duration: 600 }
+      post progress_player_path(video.slug), params: { position: 120, duration: 600 }
       expect(response).to have_http_status(:no_content)
       expect(member.watch_progresses.find_by(video:).position_seconds).to eq(120)
 
@@ -18,7 +18,7 @@ RSpec.describe "WatchProgresses", type: :request do
 
     it "returns 404 for a private video of another user" do
       video = create(:video, :with_file, visibility: :private, uploader: create(:user))
-      post player_progress_path(video.slug), params: { position: 10 }
+      post progress_player_path(video.slug), params: { position: 10 }
       expect(response).to have_http_status(:not_found)
     end
   end
@@ -29,7 +29,7 @@ RSpec.describe "WatchProgresses", type: :request do
       WatchProgress.record!(member, video, position: 77, duration: 600)
 
       get player_path(video.slug)
-      expect(response.body).to include('data-player-resume-value="77"')
+      expect(response.body).to include('data-player-source-resume-value="77"')
     end
 
     it "restarts from zero when the video was completed" do
@@ -37,7 +37,7 @@ RSpec.describe "WatchProgresses", type: :request do
       WatchProgress.record!(member, video, position: 590, duration: 600)
 
       get player_path(video.slug)
-      expect(response.body).to include('data-player-resume-value="0"')
+      expect(response.body).to include('data-player-source-resume-value="0"')
     end
   end
 end

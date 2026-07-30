@@ -14,7 +14,7 @@
           </div>
         <% end %>
         <% if movie.video && policy(movie.video).watch? %>
-          <%= link_to slide, player_path(movie.video.slug), class: "hero__link" %>
+          <%= link_to slide, player_path(movie.video.slug), class: "hero__link", data: { turbo_stream: true } %>
         <% else %>
           <%= slide %>
         <% end %>

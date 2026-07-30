@@ -6,7 +6,7 @@
     <% @related.each do |video| %>
       <%# Break out of the #related frame — a full player visit, not a frame swap. %>
       <%= link_to player_path(video.slug, sequence_params), class: "related__item",
-            data: { turbo_frame: "_top" } do %>
+            data: { turbo_frame: "_top", turbo_stream: true } do %>
         <%= poster_image_tag video.thumbnail, nil, alt: video.title,
               class: "related__img", limit: [ 400, 240 ] %>
         <div class="related__title"><%= video.title %></div>

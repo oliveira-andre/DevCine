@@ -31,6 +31,26 @@
   box-shadow: 0 0 0 4px var(--accent-blue-glow);
 }
 
+/* Textareas share the input's skin but must size to their content: the 48px
+   fixed height above would otherwise crop them to a single line. */
+textarea.field-input {
+  height: auto;
+  min-height: 48px;
+  padding: var(--space-3) var(--space-4);
+  line-height: 1.5;
+  resize: vertical;
+}
+/* Auto-growing ones (textarea-autogrow) drive their own height. Cap it so a long
+   description can't push a modal's Save button out of reach — past the cap the
+   textarea scrolls itself, keeping the caret in view. */
+textarea.field-input[data-controller~="textarea-autogrow"] {
+  resize: none;
+  max-height: 40vh;
+  /* Keep that scrollbar dark — the UA default renders light on this surface. */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
 .field-error {
   min-height: 1em;
   font-size: var(--text-caption);
@@ -47,6 +67,70 @@
 }
 .form-flash-alert { background: rgba(227, 52, 47, 0.15); color: #ff9c98; }
 .form-flash-notice { background: rgba(31, 157, 85, 0.15); color: #7fe0aa; }
+
+/* Toast notifications. The stack is a body-level sibling of #page-content and
+   floats over the page: in the flow it occupied a full-bleed strip of page
+   background between the header and the content, which read as part of the
+   header. Never blocks the page — only the banners themselves take clicks. */
+.flash-stack {
+  position: fixed;
+  top: calc(56px + var(--space-3)); /* clears the sticky header */
+  left: var(--space-4);
+  right: var(--space-4);
+  z-index: 400; /* over header (100), mini-player (200), drawer (300) */
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  pointer-events: none;
+}
+@media (min-width: 768px) {
+  .flash-stack {
+    top: calc(70px + var(--space-3)); /* header grows at this breakpoint */
+    left: auto;
+    max-width: 420px;
+  }
+}
+.flash-stack .form-flash {
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  pointer-events: auto;
+  border: 1px solid var(--border-subtle);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  animation: flash-enter var(--dur-fast) ease-out;
+}
+/* Floating over content, so the tints must be opaque rather than translucent. */
+.flash-stack .form-flash-notice { background: color-mix(in srgb, var(--success) 22%, var(--surface-2)); }
+.flash-stack .form-flash-alert { background: color-mix(in srgb, var(--danger) 22%, var(--surface-2)); }
+.flash-stack .form-flash.is-leaving {
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+@keyframes flash-enter {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flash-stack .form-flash { animation: none; }
+  .flash-stack .form-flash.is-leaving { transition: none; }
+}
+
+.form-flash__close {
+  flex: 0 0 auto;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  opacity: 0.7;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: var(--space-1);
+}
+.form-flash__close:hover { opacity: 1; }
 
 /* Custom file uploader (file-upload controller) — replaces the native file
    input UI everywhere. The real <input> is transparent and overlays the box so

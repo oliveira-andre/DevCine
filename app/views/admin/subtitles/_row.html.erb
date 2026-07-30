@@ -1,0 +1,22 @@
+<%# One subtitle track row (feature 012). %>
+<div id="admin_subtitle_row_<%= subtitle.id %>" class="admin-live">
+  <span class="admin-live__title">
+    <%= subtitle.label %>
+    <% if subtitle.is_default %><span class="admin-badge">Default</span><% end %>
+  </span>
+  <div class="admin-live__actions">
+    <% if subtitle.file.attached? %>
+      <span class="admin-file__name"><%= subtitle.file.filename %></span>
+    <% end %>
+    <%= link_to edit_admin_video_subtitle_path(subtitle.video, subtitle), class: "admin-live__action",
+          data: { turbo_frame: "modal" }, "aria-label": "Edit #{subtitle.label} track" do %>
+      <%= icon(:pencil) %>
+    <% end %>
+    <%= button_to admin_video_subtitle_path(subtitle.video, subtitle), method: :delete,
+          class: "admin-live__action admin-live__action--danger",
+          form: { data: { turbo_confirm: "Remove the #{subtitle.label} track?" } },
+          "aria-label": "Remove #{subtitle.label} track" do %>
+      <%= icon(:trash) %>
+    <% end %>
+  </div>
+</div>

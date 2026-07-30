@@ -15,7 +15,8 @@ RSpec.describe "Player", type: :request do
       expect(response).to have_http_status(:ok)
       expect(response.body).to include(%(class="live-embed__frame"))
       expect(response.body).to include(%(src="#{live.live_embed_url}"))
-      expect(response.body).not_to include("<video") # not the file player
+      # A live is not fed to the persistent file player (feature 010).
+      expect(response.body).not_to include('data-controller="player-source"')
     end
 
     it "shows the unavailable state for a live with no embed URL (no iframe)" do

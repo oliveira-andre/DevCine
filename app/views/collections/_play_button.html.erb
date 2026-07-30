@@ -3,7 +3,7 @@
     the collection has nothing playable (FR-017). Locals: play_target,
     current_video. %>
 <% if local_assigns[:play_target] %>
-  <%= link_to player_path(local_assigns[:play_target].slug, local_assigns[:link_params] || {}), class: "collection__play btn btn-primary" do %>
+  <%= link_to player_path(local_assigns[:play_target].slug, local_assigns[:link_params] || {}), class: "collection__play btn btn-primary", data: { turbo_stream: true } do %>
     <%= icon(:play) %>
     <span><%= local_assigns[:current_video] ? "Continue" : "Play" %></span>
   <% end %>

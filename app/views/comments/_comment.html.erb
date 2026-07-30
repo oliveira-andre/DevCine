@@ -19,13 +19,9 @@
   </div>
 
   <% unless comment.reply? %>
-    <%# Reply form sits BELOW the like/dislike row and spans the full width. %>
-    <details class="comment__reply">
-      <summary class="comment__reply-toggle">Reply</summary>
-      <%= render "comments/form", video: comment.video,
-            comment: Comment.new(parent_id: comment.id), form_id: "reply_form_#{comment.id}",
-            placeholder: "Add a reply…", submit_label: "Reply" %>
-    </details>
+    <%# Reply form sits BELOW the like/dislike row and spans the full width.
+        Collapsed until "Reply" is clicked; re-collapses after posting a reply. %>
+    <%= render "comments/reply", video: comment.video, parent_id: comment.id %>
 
     <div class="comment__replies" id="replies_<%= comment.id %>">
       <%# sort_by (not .order) so eager-loaded replies don't re-query %>

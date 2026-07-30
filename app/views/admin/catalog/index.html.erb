@@ -1,0 +1,69 @@
+<% content_for :title, "Catalog" %>
+<% content_for :page_styles do %>
+  <%= stylesheet_link_tag "admin", "data-turbo-track": "dynamic" %>
+<% end %>
+
+<main class="admin admin--shell">
+  <%= render "admin/shared/sidebar" %>
+
+  <section class="admin__content">
+    <header class="admin__head">
+      <h1 class="admin__title">Catalog</h1>
+      <%= link_to new_admin_catalog_path, class: "btn btn-primary admin__add",
+            "aria-label": "Add title", data: { turbo_frame: "modal" } do %>
+        <%= icon(:plus) %><span>Add</span>
+      <% end %>
+    </header>
+
+    <%# Search + filters (genre / maturity / kind / visibility), live-submitted. %>
+    <%= form_with url: admin_catalog_index_path, method: :get, class: "admin__searchrow",
+          data: { controller: "search-submit", turbo_frame: "admin_catalog_list", turbo_action: "advance" } do %>
+      <div class="admin-search">
+        <span class="admin-search__icon"><%= icon(:search) %></span>
+        <%= text_field_tag :q, @query, placeholder: "Search by title",
+              class: "field-input admin-search__input", autocomplete: "off",
+              data: { action: "input->search-submit#submit" } %>
+      </div>
+      <%= select_tag :genre,
+            options_from_collection_for_select(@genres, :id, :name, params[:genre]),
+            include_blank: "All genres", class: "field-input",
+            data: { action: "change->search-submit#submit" } %>
+      <%= select_tag :maturity,
+            options_for_select(Movie.maturity_ratings.keys, params[:maturity]),
+            include_blank: "All ratings", class: "field-input",
+            data: { action: "change->search-submit#submit" } %>
+      <%= select_tag :kind,
+            options_for_select([ [ "Movies", "movie" ], [ "Series", "serie" ] ], params[:kind]),
+            include_blank: "All kinds", class: "field-input",
+            data: { action: "change->search-submit#submit" } %>
+      <%= select_tag :visibility,
+            options_for_select(Video.visibilities.keys.map { |v| [ v.titleize, v ] }, params[:visibility]),
+            include_blank: "All visibilities", class: "field-input",
+            data: { action: "change->search-submit#submit" } %>
+    <% end %>
+
+    <%= turbo_frame_tag "admin_catalog_list" do %>
+      <% unless params[:kind] == "serie" %>
+        <h2 class="admin__subtitle">Movies</h2>
+        <div class="admin-lives">
+          <% if @movies.any? %>
+            <%= render partial: "admin/catalog/item", collection: @movies, as: :item %>
+          <% else %>
+            <p class="admin-lives__empty">No movies match.</p>
+          <% end %>
+        </div>
+      <% end %>
+
+      <% unless params[:kind] == "movie" %>
+        <h2 class="admin__subtitle">Series</h2>
+        <div class="admin-lives">
+          <% if @series.any? %>
+            <%= render partial: "admin/catalog/item", collection: @series, as: :item %>
+          <% else %>
+            <p class="admin-lives__empty">No series match.</p>
+          <% end %>
+        </div>
+      <% end %>
+    <% end %>
+  </section>
+</main>

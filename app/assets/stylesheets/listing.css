@@ -43,4 +43,7 @@
   padding: var(--space-6);
   font-size: var(--text-h2);
   color: var(--text-tertiary);
+  /* Solid dark surface so the page's blue glow doesn't show behind the spinner
+     while a lazy section is loading. */
+  background: var(--surface-0);
 }

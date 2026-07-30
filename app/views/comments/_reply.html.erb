@@ -1,0 +1,9 @@
+<%# Collapsible reply control for a top-level comment. Starts closed (native
+    <details>); the whole element is replaced after a reply is posted so the form
+    hides again until the user clicks "Reply" again. Locals: video, parent_id. %>
+<details class="comment__reply" id="reply_wrap_<%= parent_id %>">
+  <summary class="comment__reply-toggle">Reply</summary>
+  <%= render "comments/form", video: video,
+        comment: Comment.new(parent_id: parent_id), form_id: "reply_form_#{parent_id}",
+        placeholder: "Add a reply…", submit_label: "Reply" %>
+</details>

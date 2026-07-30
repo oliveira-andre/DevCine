@@ -1,0 +1,4 @@
+// stimulus-color-picker@1.1.0 downloaded from https://ga.jspm.io/npm:stimulus-color-picker@1.1.0/dist/stimulus-color-picker.mjs
+
+import{Controller as t}from"@hotwired/stimulus";import i from"@simonwep/pickr";class e extends t{initialize(){this.onSave=this.onSave.bind(this)}connect(){this.picker=i.create({el:this.buttonTarget,theme:this.themeValue,default:this.inputTarget.value,swatches:this.swatches,components:this.componentOptions}),this.picker.on("save",this.onSave)}disconnect(){this.picker.destroy()}onSave(t){this.inputTarget.value=null,t&&(this.inputTarget.value=t.toHEXA().toString()),this.picker.hide()}get componentOptions(){return{preview:!0,hue:!0,interaction:{input:!0,clear:!0,save:!0}}}get swatches(){return["#A0AEC0","#F56565","#ED8936","#ECC94B","#48BB78","#38B2AC","#4299E1","#667EEA","#9F7AEA","#ED64A6"]}}e.targets=["button","input"];e.values={theme:{type:String,default:"classic"}};export{e as default};
+

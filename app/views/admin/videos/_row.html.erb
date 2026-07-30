@@ -1,0 +1,10 @@
+<%# One video row (feature 012): title left, link to its subtitle manager. %>
+<div class="admin-live">
+  <span class="admin-live__title"><%= item.title %></span>
+  <div class="admin-live__actions">
+    <%= link_to new_admin_video_subtitle_path(item), class: "admin-live__action",
+          data: { turbo_frame: "modal" }, "aria-label": "Manage subtitles for #{item.title}" do %>
+      <%= icon(:captions) %>
+    <% end %>
+  </div>
+</div>

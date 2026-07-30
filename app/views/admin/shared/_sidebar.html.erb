@@ -11,5 +11,15 @@
           "aria-current": (lives ? "page" : nil) do %>
       <%= icon(:live) %><span>Lives</span>
     <% end %>
+    <% catalog = request.path.start_with?("/admin/catalog") %>
+    <%= link_to admin_catalog_index_path, class: "admin__navlink#{' is-active' if catalog}",
+          "aria-current": (catalog ? "page" : nil) do %>
+      <%= icon(:movie) %><span>Catalog</span>
+    <% end %>
+    <% subs = current_page?(admin_videos_path) %>
+    <%= link_to admin_videos_path, class: "admin__navlink#{' is-active' if subs}",
+          "aria-current": (subs ? "page" : nil) do %>
+      <%= icon(:captions) %><span>Subtitles</span>
+    <% end %>
   </nav>
 </aside>

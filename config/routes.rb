@@ -6,22 +6,28 @@ Rails.application.routes.draw do
   get "search", to: "search#index"
   resources :videos, only: %i[index new create]
   resources :movies, only: :index
-  get "series", to: "series#index", as: :series
-  get "series/:slug", to: "series#show", as: :serie
-  get "series/:slug/seasons/:position", to: "series#season", as: :serie_season
+  resources :series, only: %i[index show], param: :slug do
+    member do
+      get "seasons/:position", action: :season, as: :season
+    end
+  end
   resources :playlists, only: %i[show new create destroy]
   get "lives", to: "lives#index"
   get "genres/:slug", to: "catalog/browse#show", as: :genre_browse
   get "kinds/:kind", to: "catalog/browse#show", as: :kind_browse
 
-  get "account/edit", to: "profiles#edit", as: :edit_account
-  get "account/name/edit", to: "profiles#edit_name", as: :edit_name_account
-  patch "account/name", to: "profiles#update_name", as: :name_account
-  get "account", to: "accounts#show", as: :account
-  patch "account", to: "profiles#update", as: :update_account
+  # The viewer's own account: show is AccountsController, editing is Profiles.
+  resource :account, only: :show, controller: "accounts" do
+    get   :edit,        to: "profiles#edit"
+    patch "/",          to: "profiles#update",      as: :update
+    get   "name/edit",  to: "profiles#edit_name",   as: :edit_name
+    patch "name",       to: "profiles#update_name", as: :name
+  end
   get "account/:slug", to: "accounts#show", as: :public_account
   namespace :settings do
     resource :password, only: %i[edit update]
+    resource :autoplay, only: :update
+    resource :subtitle, only: :update
     resource :pin, only: %i[show create] do
       post :unlock
     end
@@ -29,19 +35,46 @@ Rails.application.routes.draw do
 
   namespace :admin do
     get "dashboard", to: "dashboard#show"
-    resources :lives # manage embed-based live videos (009)
+    resources :lives, param: :slug
+    resources :videos, only: %i[index show], param: :slug do
+      resources :subtitles, only: %i[new create edit update destroy]
+    end
+
+    # Catalog creation wizard (movies / series / anime; vanilla or API-assisted).
+    resources :catalog, only: %i[index new create], controller: "catalog" do
+      collection do
+        get  :start
+        get  :vanilla
+        get  :search
+        post :import
+      end
+    end
+    # A created catalog item is addressed by content type + id (movie uuid /
+    # serie slug), so the type rides in the path.
+    resources :catalog_items, path: "catalog/:type", controller: "catalog",
+              only: %i[show edit update destroy], constraints: { type: /movie|serie/ } do
+      member do
+        post   :upload
+        delete :upload, action: :remove_upload
+      end
+    end
   end
 
-  get  "playing/:slug",          to: "player#show",        as: :player
-  get  "playing/:slug/related",  to: "player#related",     as: :player_related
-  post "playing/:slug/views",    to: "video_views#create", as: :player_views
-  post "playing/:slug/progress", to: "watch_progresses#create", as: :player_progress
-  get  "playing/:slug/comments", to: "comments#index",     as: :player_comments
-  post "playing/:slug/comments", to: "comments#create"
+  # The player and everything hanging off the playing video.
+  resources :playing, only: :show, controller: "player", param: :slug, as: :player do
+    member do
+      get  :related
+      get  "up-next", action: :up_next, as: :up_next
+      get  "subtitles/:id", to: "player/subtitles#show", as: :subtitle, defaults: { format: "vtt" }
+      post :views,    to: "video_views#create"
+      post :progress, to: "watch_progresses#create"
+      get  :comments, to: "comments#index"
+      post :comments, to: "comments#create", as: nil
+      get  "add-to-playlist", to: "playlist_additions#new", as: :add_to_playlist
+    end
+  end
 
   post "reactions/:type/:id", to: "reactions#create", as: :reactions
-
-  get  "playing/:slug/add-to-playlist", to: "playlist_additions#new", as: :add_to_playlist
   post "playlists/:playlist_id/toggle/:slug", to: "playlist_additions#create", as: :toggle_playlist_video
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 

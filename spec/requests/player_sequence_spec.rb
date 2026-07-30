@@ -8,7 +8,7 @@ RSpec.describe "Player sequence navigation", type: :request do
 
   # Serie: S1 = [e1, e2, e3], S2 = [e4]. Canonical order e1..e4.
   let(:serie) { create(:serie) }
-  let(:videos) { create_list(:video, 4, :with_thumbnail, visibility: :public) }
+  let(:videos) { create_list(:video, 4, :with_thumbnail, :with_file, visibility: :public) }
   let(:e1) { videos[0] }
   let(:e2) { videos[1] }
   let(:e3) { videos[2] }
@@ -23,8 +23,9 @@ RSpec.describe "Player sequence navigation", type: :request do
     create(:episode, season: s2, video: e4, position: 1)
   end
 
-  def prev_url(body) = body[/data-player-prev-url-value="([^"]*)"/, 1]
-  def next_url(body) = body[/data-player-next-url-value="([^"]*)"/, 1]
+  # feature 010: prev/next moved onto the player-source descriptor element.
+  def prev_url(body) = body[/data-player-source-prev-url-value="([^"]*)"/, 1]
+  def next_url(body) = body[/data-player-source-next-url-value="([^"]*)"/, 1]
 
   # A series is auto-derived from the episode, so neighbor links carry NO param.
   describe "prev/next neighbors (series auto-derived, no param)" do
@@ -54,7 +55,7 @@ RSpec.describe "Player sequence navigation", type: :request do
 
   describe "ordered related sidebar" do
     it "lists the sequence in order under 'Episodes'" do
-      get player_related_path(e1.slug)
+      get related_player_path(e1.slug)
       expect(response.body).to include("Episodes")
       body = response.body
       expect(body.index(e2.title)).to be < body.index(e3.title)
@@ -62,19 +63,19 @@ RSpec.describe "Player sequence navigation", type: :request do
     end
 
     it "sidebar links break out of the frame to _top (not a frame swap)" do
-      get player_related_path(e1.slug)
+      get related_player_path(e1.slug)
       expect(response.body).to match(/related__item[^>]*data-turbo-frame="_top"/)
     end
   end
 
   describe "standalone video (no sequence)" do
     it "has no prev/next and falls back to same-kind related" do
-      solo = create(:video, :with_thumbnail, visibility: :public, kind: :standalone)
+      solo = create(:video, :with_thumbnail, :with_file, visibility: :public, kind: :standalone)
       get player_path(solo.slug)
       expect(prev_url(response.body)).to eq("")
       expect(next_url(response.body)).to eq("")
 
-      get player_related_path(solo.slug)
+      get related_player_path(solo.slug)
       expect(response.body).to include("More like this")
     end
   end
@@ -82,8 +83,8 @@ RSpec.describe "Player sequence navigation", type: :request do
   describe "playlist context (?list=)" do
     it "wires neighbors by playlist position" do
       playlist = create(:playlist, user: member, visibility: :public)
-      a = create(:video, :with_thumbnail, visibility: :public)
-      b = create(:video, :with_thumbnail, visibility: :public)
+      a = create(:video, :with_thumbnail, :with_file, visibility: :public)
+      b = create(:video, :with_thumbnail, :with_file, visibility: :public)
       create(:playlist_item, playlist: playlist, video: a, position: 1)
       create(:playlist_item, playlist: playlist, video: b, position: 2)
 

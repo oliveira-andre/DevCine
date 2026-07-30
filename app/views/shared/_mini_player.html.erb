@@ -1,0 +1,66 @@
+<%# Persistent player host (feature 010). Rendered once in the layout, outside
+    #page-content. Starts hidden; the player page's `player-source` controller
+    (or an autoplay advance) dispatches `mini-player:load` to activate it.
+    Two control sets: the rich set (prev/skip/play/skip/next + fullscreen) shows
+    when EXPANDED on the player page; the minimal set (play/pause + close) shows
+    when DOCKED. %>
+<div id="mini-player" class="mini-player" data-turbo-permanent data-controller="mini-player"
+     data-mini-player-autoplay-value="<%= Current.user.autoplay %>"
+     data-action="click->mini-player#openVideo pointermove->mini-player#activity"
+     hidden>
+  <video class="mini-player__video" data-mini-player-target="video"
+         playsinline webkit-playsinline preload="metadata"></video>
+
+  <%# Custom caption overlay (feature 012). Styled from CSS vars set by the
+      subtitle prefs; text written from the active track's cues. %>
+  <div class="mini-player__captions" data-mini-player-target="captions" hidden></div>
+
+  <%# Seekable timeline + time readout (expanded only). %>
+  <div class="mini-player__timeline" data-mini-player-target="timeline"
+       data-action="pointerdown->mini-player#scrubStart"
+       role="slider" aria-label="Seek">
+    <div class="mini-player__timeline-fill" data-mini-player-target="timelineFill"></div>
+    <div class="mini-player__timeline-knob"></div>
+  </div>
+  <div class="mini-player__time">
+    <span data-mini-player-target="currentTime">0:00</span>
+    <span class="mini-player__time-sep">/</span>
+    <span data-mini-player-target="duration">0:00</span>
+  </div>
+
+  <%# Docked-only: close (X) pinned top-right. %>
+  <button type="button" class="mini-player__btn mini-player__close"
+          data-action="mini-player#close" aria-label="Close player">
+    <%= icon(:close) %>
+  </button>
+
+  <%# Center controls. Prev/Back mirror the forward/next glyphs. Prev/Next are
+      hidden unless a sequence neighbor exists (toggled by the controller). %>
+  <div class="mini-player__controls" data-mini-player-target="controls">
+    <button type="button" class="mini-player__btn mini-player__btn--mirror mini-player__rich"
+            data-action="mini-player#prev" data-mini-player-target="prevBtn"
+            aria-label="Previous video" hidden><%= icon(:next_video) %></button>
+
+    <button type="button" class="mini-player__btn mini-player__btn--mirror mini-player__rich"
+            data-action="mini-player#skipBack" aria-label="Back 5 seconds"><%= icon(:forward_5) %></button>
+
+    <button type="button" class="mini-player__btn mini-player__play"
+            data-action="mini-player#toggle" aria-label="Play or pause">
+      <span class="mini-player__icon-play"><%= icon(:play) %></span>
+      <span class="mini-player__icon-pause"><%= icon(:pause) %></span>
+    </button>
+
+    <button type="button" class="mini-player__btn mini-player__rich"
+            data-action="mini-player#skipForward" aria-label="Forward 5 seconds"><%= icon(:forward_5) %></button>
+
+    <button type="button" class="mini-player__btn mini-player__rich"
+            data-action="mini-player#next" data-mini-player-target="nextBtn"
+            aria-label="Next video" hidden><%= icon(:next_video) %></button>
+  </div>
+
+  <%# Expanded-only: fullscreen. %>
+  <button type="button" class="mini-player__btn mini-player__fullscreen mini-player__rich"
+          data-action="mini-player#toggleFullscreen" aria-label="Toggle fullscreen">
+    <%= icon(:fullscreen) %>
+  </button>
+</div>

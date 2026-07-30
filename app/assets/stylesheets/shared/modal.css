@@ -20,6 +20,10 @@
   border-radius: var(--radius-card);
   padding: var(--space-6);
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+  /* A growing textarea (or a long form) must never push the footer buttons off
+     screen — the body can't scroll while a modal is open. */
+  max-height: calc(100dvh - 2 * var(--space-6));
+  overflow-y: auto;
 }
 
 .modal__head {

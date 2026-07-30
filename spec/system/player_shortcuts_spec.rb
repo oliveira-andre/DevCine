@@ -27,8 +27,9 @@ RSpec.describe "Player keyboard shortcuts", type: :system do
     field.send_keys("a", :space, "f", "n")
 
     expect(field.value).to eq("a fn")
-    # Neither shortcut fired: video never started and fullscreen never engaged.
-    expect(page).to have_no_css(".player.is-playing")
+    # Neither shortcut fired: player never started and fullscreen never engaged.
+    # (State now lives on the persistent host, #mini-player — feature 010.)
+    expect(page).to have_no_css("#mini-player.is-playing")
     expect(page.evaluate_script("!!document.fullscreenElement")).to be(false)
   end
 end

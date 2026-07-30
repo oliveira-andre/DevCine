@@ -1,0 +1,10 @@
+<% if @videos.any? %>
+  <%= render "shared/paginated_frame",
+        key: "admin_videos",
+        pagy: @pagy,
+        items: @videos,
+        card: "admin/videos/row",
+        next_url: (@pagy&.next ? admin_videos_path(q: @query, page: @pagy.next) : nil) %>
+<% else %>
+  <p class="admin-lives__empty"><%= @query.present? ? "No videos match “#{@query}”." : "No videos yet." %></p>
+<% end %>

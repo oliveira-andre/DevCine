@@ -1,4 +1,6 @@
 class SearchController < ApplicationController
+  include CatalogListing
+
   VIDEO_LIMIT = 24
   CATALOG_LIMIT = 12
 
@@ -15,11 +17,12 @@ class SearchController < ApplicationController
     term = "%#{Video.sanitize_sql_like(@query)}%"
     # Policy-scoped (006): restricted titles are searchable by name only while
     # the session is PIN-unlocked (FR-008).
-    @videos = policy_scope(Video).where("videos.title ILIKE ?", term).recent
-                                 .with_attached_thumbnail.with_attached_preview.limit(VIDEO_LIMIT)
-    @movies = policy_scope(Movie).where("movies.title ILIKE ?", term).recent.with_attached_poster
-                                 .includes(video: :preview_attachment).limit(CATALOG_LIMIT)
-    @series = policy_scope(Serie).where("series.title ILIKE ?", term).recent
-                                 .with_attached_poster.limit(CATALOG_LIMIT)
+    # Sorted per feature 011 (the ordering pill applies to all three sections).
+    @videos = ordered(policy_scope(Video).where("videos.title ILIKE ?", term))
+                .with_attached_thumbnail.with_attached_preview.limit(VIDEO_LIMIT)
+    @movies = ordered(policy_scope(Movie).where("movies.title ILIKE ?", term)).with_attached_poster
+                .includes(video: :preview_attachment).limit(CATALOG_LIMIT)
+    @series = ordered(policy_scope(Serie).where("series.title ILIKE ?", term))
+                .with_attached_poster.limit(CATALOG_LIMIT)
   end
 end

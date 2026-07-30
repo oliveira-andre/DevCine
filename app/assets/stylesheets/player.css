@@ -6,13 +6,18 @@
   width: 100%;
   background: #000;
 }
+/* Constrain to a centered column on desktop so a full-width 16:9 video doesn't
+   dominate the viewport and push the title/actions off-screen. */
+@media (min-width: 1024px) {
+  .player { max-width: 1120px; margin-inline: auto; }
+}
 
-/* Full-bleed video surface: fills width and height of the stage (FR-002/FR-023). */
+/* The stage reserves the 16:9 area the persistent player overlays (feature 010).
+   It must NOT be full-viewport height, or the title/actions get pushed a whole
+   screen down. #player-stage inside provides the 16:9 height. */
 .player__stage {
   position: relative;
   width: 100%;
-  height: 100svh;
-  max-height: 100svh;
   background: #000;
 }
 .player__video {
@@ -114,6 +119,9 @@
   justify-content: center;
   padding: var(--space-6);
   color: var(--text-secondary);
+  /* Solid dark surface so no page glow shows behind the spinner while a lazy
+     section (comments/related) is loading. */
+  background: var(--surface-0);
 }
 .player__loader .icon { width: 28px; height: 28px; }
 
@@ -201,6 +209,27 @@
 .reaction-btn.is-active { background: var(--accent-blue); border-color: var(--accent-blue); color: #fff; }
 .reaction-btn .icon { width: 18px; height: 18px; }
 .reaction-btn__count { line-height: 1; }
+
+/* Autoplay preference toggle (feature 010). Muted when off, accent when on. */
+.player__autoplay {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) ease, color var(--dur-fast) ease;
+}
+.player__autoplay:hover { border-color: var(--accent-blue); color: var(--text-primary); }
+.player__autoplay.is-on { color: var(--accent-blue); border-color: var(--accent-blue); }
+.player__autoplay .icon { width: 20px; height: 20px; fill: currentColor; }
+/* button_to wraps the control in a form — keep it inline with the action row. */
+.player__autoplay { margin: 0; }
 
 /* Dropdown menu (share / add to playlist). */
 .menu { position: relative; }
@@ -349,9 +378,12 @@
 .playlist-add__error { color: var(--danger, #ff6b6b); font-size: var(--text-meta); margin-bottom: var(--space-2); }
 
 /* Live embed (feature 009): responsive 16:9 within the player stage. */
+/* In flow with its own 16:9 box — the stage no longer has an intrinsic height
+   (it used to be 100svh; see the layout fix). */
 .live-embed {
-  position: absolute;
-  inset: 0;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
   display: flex;
   align-items: center;
   justify-content: center;

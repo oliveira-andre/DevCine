@@ -12,6 +12,7 @@ class RegistrationsController < ApplicationController
 
     if @user.save
       start_new_session_for @user
+      flash[:_full_render] = true
       redirect_to after_authentication_url
     else
       render :new, status: :unprocessable_entity

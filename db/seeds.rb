@@ -91,7 +91,7 @@ if Video.standalone.count < 60
     else :public
     end
     video = Video.create!(
-      title: "Standalone Clip #{i + 1}",
+      title: "Standalone Clip #{i + 1} #{"actual playable video" if i == 1}",
       description: "A seeded standalone video.",
       duration_seconds: rand(60..1800),
       kind: :standalone,
@@ -102,7 +102,7 @@ if Video.standalone.count < 60
       created_at: (i + 1).minutes.ago
     )
     attach_file(video.thumbnail, MEDIA[:poster], filename: "thumb.webp")
-    attach_file(video.file, MEDIA[:video]) if ENV["SEED_VIDEO_FILE"] == "1" && i.zero?
+    attach_file(video.file, MEDIA[:video]) if i == 1
   end
 end
 
@@ -160,10 +160,59 @@ if Episode.none?
 end
 
 # ---------------------------------------------------------------------------
-# Genres + taggings (drive /search categories and genre browse)
+# Genres + taggings (drive /search categories and genre browse). This list is
+# authoritative — any genre not in it is pruned (with its taggings) on seed.
 # ---------------------------------------------------------------------------
-genres = %w[Gaming Drama Action Suspense Terror].map do |name|
-  Genre.find_or_create_by!(name: name)
+genre_names = [
+  "Featured", "Animation", "Action/Adventure", "IMAX Enhanced", "Science Fiction",
+  "Fantasy", "Horror", "Thrillers", "Kids", "Comedy", "Romantic Comedies",
+  "Documentary", "Crime", "Drama", "Music", "Shorts", "Sports"
+]
+genres = genre_names.map { |name| Genre.find_or_create_by!(name: name) }
+Genre.where.not(name: genre_names).destroy_all
+
+# ---------------------------------------------------------------------------
+# Orderings (feature 011): configurable sort options. "most recent" is the
+# built-in system default (not a record); none of these is marked default, so
+# listings still open "most recent".
+# ---------------------------------------------------------------------------
+[
+  { label: "Most older", field: "created_at", direction: "asc",  position: 1 },
+  { label: "A-Z",        field: "title",      direction: "asc",  position: 2 },
+  { label: "Z-A",        field: "title",      direction: "desc", position: 3 }
+].each do |attrs|
+  Ordering.find_or_create_by!(label: attrs[:label]) do |o|
+    o.field = attrs[:field]
+    o.direction = attrs[:direction]
+    o.position = attrs[:position]
+  end
+end
+
+# ---------------------------------------------------------------------------
+# Subtitles (feature 012): attach two SRT tracks (English default + Spanish) to
+# the one playable standalone clip so the caption toggle + language menu work.
+# ---------------------------------------------------------------------------
+playable = Video.joins(:file_attachment).where.not(kind: :live).first
+if playable && playable.subtitles.none?
+  english_srt = Rails.root.join("tmp/movies/Beavis and Butthead - Do America-eng.srt")
+
+  english = playable.subtitles.new(language: :english, is_default: true)
+  if File.exist?(english_srt)
+    english.file.attach(io: File.open(english_srt), filename: "english.srt", content_type: "application/x-subrip")
+  else
+    english.file.attach(io: StringIO.new("1\n00:00:01,000 --> 00:00:04,000\nWelcome to DevCine.\n"),
+                        filename: "english.srt", content_type: "application/x-subrip")
+  end
+  english.save!
+
+  # A second (Spanish, UTF-8) track exercises the language menu + non-ASCII path.
+  spanish = playable.subtitles.new(language: :spanish)
+  spanish.file.attach(
+    io: StringIO.new("1\n00:00:01,000 --> 00:00:04,000\nBienvenido a DevCine.\n\n" \
+                     "2\n00:00:05,000 --> 00:00:09,000\nDisfruta la función.\n"),
+    filename: "spanish.srt", content_type: "application/x-subrip"
+  )
+  spanish.save!
 end
 
 if Tagging.none?

@@ -31,6 +31,7 @@ module Authentication
 
     def request_authentication
       session[:return_to_after_authenticating] = request.url
+      flash[:_full_render] = true
       redirect_to new_session_path
     end
 

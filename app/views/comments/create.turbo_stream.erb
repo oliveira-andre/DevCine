@@ -2,9 +2,9 @@
   <%= turbo_stream.append "replies_#{@comment.parent_id}" do %>
     <%= render "comments/comment", comment: @comment %>
   <% end %>
-  <%= turbo_stream.replace "reply_form_#{@comment.parent_id}" do %>
-    <%= render "comments/form", video: @video, comment: Comment.new(parent_id: @comment.parent_id),
-          form_id: "reply_form_#{@comment.parent_id}", placeholder: "Add a reply…", submit_label: "Reply" %>
+  <%# Replace the whole collapsible so it resets AND re-collapses (hides the form). %>
+  <%= turbo_stream.replace "reply_wrap_#{@comment.parent_id}" do %>
+    <%= render "comments/reply", video: @video, parent_id: @comment.parent_id %>
   <% end %>
 <% else %>
   <%= turbo_stream.remove "comments_empty" %>

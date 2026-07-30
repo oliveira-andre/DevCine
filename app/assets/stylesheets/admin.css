@@ -108,3 +108,211 @@
 .admin-live__action:hover { color: var(--text-primary); border-color: var(--accent-blue); }
 .admin-live__action--danger:hover { color: var(--danger); border-color: var(--danger); }
 .admin-live__action .icon { width: 16px; height: 16px; }
+
+/* Default-track badge in the subtitle manager (feature 012). */
+.admin-badge {
+  margin-left: var(--space-2);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--accent-blue);
+  color: #fff;
+  font-size: var(--text-caption, 0.72rem);
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+/* --- Catalog wizard (admin catalog creation) --- */
+.admin__subtitle { font-size: var(--text-h3); margin: var(--space-6) 0 var(--space-3); }
+
+.admin-catalog__searchrow { display: flex; gap: var(--space-2); }
+.admin-catalog__searchrow .field-input { flex: 1 1 auto; }
+
+.admin-catalog__results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-height: 55vh;
+  overflow-y: auto;
+  margin-top: var(--space-3);
+}
+.admin-catalog__result {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--surface-3);
+  border-radius: var(--radius-card);
+}
+.admin-catalog__poster {
+  width: 72px;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: var(--radius-tile);
+  flex: 0 0 auto;
+  background: var(--surface-0);
+}
+.admin-catalog__poster--empty { display: block; }
+.admin-catalog__meta { min-width: 0; }
+.admin-catalog__year { color: var(--text-tertiary); margin-left: var(--space-2); font-size: var(--text-meta); }
+.admin-catalog__overview { color: var(--text-secondary); font-size: var(--text-meta); margin: var(--space-1) 0 var(--space-2); }
+
+.admin-catalog__item { display: flex; gap: var(--space-4); margin-bottom: var(--space-4); }
+.admin-catalog__itemposter { width: 96px; border-radius: var(--radius-tile); }
+.admin-catalog__desc { color: var(--text-secondary); font-size: var(--text-meta); max-width: 60ch; }
+
+.admin-catalog__upload { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+.admin-catalog__file { font-size: var(--text-meta); color: var(--text-secondary); max-width: 240px; }
+.admin-catalog__addepisode { background: var(--surface-1); }
+
+/* --- Admin page header redesign (lives / catalog / subtitles) ---
+   Row 1: title left + Add right. Row 2: full-width search (+ filters). */
+.admin__head { justify-content: space-between; flex-wrap: nowrap; margin-bottom: var(--space-4); }
+
+/* Add: a round icon-only button on mobile; a labeled pill on desktop. */
+.admin__add {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+}
+/* Hide only the text label on mobile — the icon is ALSO a <span class="icon">,
+   so it must be excluded or the round button renders empty. */
+.admin__add span:not(.icon) { display: none; }
+.admin__add .icon { width: 20px; height: 20px; }
+@media (min-width: 768px) {
+  .admin__add { width: auto; height: auto; padding: var(--space-2) var(--space-4); }
+  .admin__add span:not(.icon) { display: inline; }
+}
+
+/* Search + filters row under the title. */
+.admin__searchrow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+}
+.admin__searchrow .admin-search { flex: 1 1 240px; }
+.admin__searchrow .admin-search__input { width: 100%; min-width: 0; }
+.admin__searchrow select.field-input {
+  flex: 0 1 auto;
+  width: auto;
+  padding-top: var(--space-2);
+  padding-bottom: var(--space-2);
+}
+
+/* Expandable catalog rows: <details> grows, actions stay on the row's right. */
+.admin-item { align-items: flex-start; }
+.admin-item__details { flex: 1 1 auto; min-width: 0; }
+.admin-item__summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 36px;
+  overflow: hidden;
+}
+.admin-item__summary::-webkit-details-marker { display: none; }
+.admin-item__summary::before { content: "▸"; color: var(--text-tertiary); flex: 0 0 auto; }
+.admin-item__details[open] .admin-item__summary::before { content: "▾"; }
+.admin-item__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.admin-item__body {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3) 0 var(--space-1) var(--space-4);
+}
+.admin-item__poster {
+  width: 72px;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: var(--radius-tile);
+  flex: 0 0 auto;
+  background: var(--surface-0);
+}
+.admin-item__info { min-width: 0; font-size: var(--text-meta); color: var(--text-secondary); }
+.admin-item__info p { margin-bottom: var(--space-2); }
+.admin-item__meta { display: flex; flex-wrap: wrap; gap: var(--space-2); color: var(--text-tertiary); }
+
+/* Kind badge next to the title (movie/serie). */
+.admin-chip {
+  flex: 0 0 auto;
+  padding: 1px var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--surface-3);
+  color: var(--text-tertiary);
+  font-size: var(--text-caption, 0.72rem);
+  font-weight: 600;
+}
+
+/* Solid dark surface behind the swappable list frames so the page's blue glow
+   never shows through while a filter/search reloads them (same fix as the
+   pagination loader). */
+/* The lives/videos frames carry .admin-lives (flex + gap) — never override
+   their display. The catalog frame just needs to be a block. */
+turbo-frame#admin_catalog_list { display: block; }
+
+/* Only WHILE reloading (Turbo marks the frame busy): a solid surface so the
+   page's blue glow doesn't flash through. Steady state stays transparent. */
+turbo-frame#admin_lives[busy],
+turbo-frame#admin_videos[busy],
+turbo-frame#admin_catalog_list[busy] {
+  background: var(--surface-1);
+  border-radius: var(--radius-card);
+}
+
+/* --- Drag & drop upload zone (catalog uploads; single file) --- */
+.dropzone-form { margin: 0; flex: 1 1 auto; min-width: 0; }
+.dropzone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 56px;
+  padding: var(--space-2) var(--space-3);
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--radius-card);
+  background: var(--surface-1);
+  color: var(--text-tertiary);
+  font-size: var(--text-meta);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) ease, background var(--dur-fast) ease, color var(--dur-fast) ease;
+}
+.dropzone:hover, .dropzone.is-over {
+  border-color: var(--accent-blue);
+  color: var(--text-primary);
+  background: var(--surface-2);
+}
+.dropzone.is-uploading { border-style: solid; border-color: var(--accent-blue); color: var(--accent-blue); }
+.dropzone__input { display: none; }
+.dropzone__icon { display: inline-flex; }
+.dropzone__icon .icon { width: 20px; height: 20px; fill: currentColor; }
+.dropzone--big { min-height: 120px; font-size: var(--text-body, 1rem); }
+.dropzone--big .dropzone__icon .icon { width: 28px; height: 28px; }
+
+/* Uploaded slot: filename + download action. */
+.admin-file {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  color: var(--text-tertiary);
+  font-size: var(--text-meta);
+}
+.admin-file__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 220px; }
+
+/* Non-auto-submit dropzone (SRT picker): filled state + clear (trash) button. */
+.dropzone.is-filled { border-style: solid; border-color: var(--accent-blue); color: var(--text-primary); }
+.dropzone__clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: var(--danger);
+  cursor: pointer;
+  padding: var(--space-1);
+}
+.dropzone__clear .icon { width: 16px; height: 16px; fill: currentColor; }
+.admin-subtitles__list { margin-bottom: var(--space-4); }

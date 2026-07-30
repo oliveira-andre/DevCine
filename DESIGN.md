@@ -243,6 +243,47 @@ Pill buttons (radius `999px`) are used for CTA stacks on detail pages. Rectangul
 - Each avatar pulses subtly on hover: scale 1.08, white ring appears, 200ms.
 - Title above: "Who's watching?" in `--text-display`.
 
+### 5.10 Persistent Mini-Player (feature 010)
+
+- One `<video>` lives in a `data-turbo-permanent` host (`#mini-player`) so it
+  survives navigation and keeps playing (Constitution V). Styles: `shared/mini_player.css`.
+- **Expanded** (on the player page): overlays `#player-stage`, 16:9, pinned below
+  the header; shows the full controls (prev/skip/play/skip/next + fullscreen),
+  auto-hidden after 3s idle.
+- **Docked** (every other page): bottom-right, `220px` (mobile) / `300px` (desktop),
+  `--radius-card`, `0 12px 32px rgba(0,0,0,.55)` shadow, above the header
+  (`z-index: 200`), below the drawer and the top-layer modal.
+- **Docked controls**: revealed on tap (mobile) / hover (desktop) via `is-controls`;
+  centered play/pause plus a close (X) pinned top-right that stops and removes the
+  player. Buttons are 44px circular, `rgba(0,0,0,.55)`.
+- **Autoplay toggle** (player page): pill icon button in the actions row; muted
+  `--text-tertiary` when off, `--accent-blue` when on.
+
+### 5.11 Catalog Controls Row (feature 011)
+
+- A row between a listing title and its grid. Styles: `catalog_controls.css` (loaded per listing page).
+- **Genre pills** (Movies/Series only): a horizontally scrollable strip of `.pill`
+  chips (`All` + one per genre). Active pill = `--accent-blue` fill, white text.
+- **Ordering pill** (all listings): right-aligned `.pill--sort` with a `▾` caret;
+  opens a `.catalog-controls__menu` dropdown (reuses the `menu` Stimulus controller)
+  listing every option — active option in `--accent-blue`.
+- Pills are Turbo Drive links carrying `?genre=`/`?sort=`; the active state is read
+  from the URL. `.pill`: `--surface-2` bg, `--border-subtle`, `--radius-pill`,
+  `--text-meta` weight 600; hover → `--accent-blue` border/text.
+
+### 5.12 Subtitles (feature 012)
+
+- **Caption overlay** (`.mini-player__captions`, in `shared/mini_player.css`):
+  bottom-centered over the video, `--radius-tile`, text-shadow for legibility.
+  Color/background/size/weight come from CSS vars (`--subtitle-color/-bg/-size/-weight`)
+  the player sets from the viewer's saved preferences; defaults are white on black.
+- **Icon**: the `:captions` speech-bubble glyph in the player actions row, reusing
+  `.reaction-btn`; `--accent-blue` when subtitles are on (`.subtitles__toggle.is-on`).
+- **Settings popup** (`subtitles.css`): `--surface-2` card above the icon with rows for
+  text color, background (native color input + a Transparent checkbox), font size (range),
+  font weight (select), an optional language select (multi-track), and a `--danger`
+  "Turn off subtitles" button. Opens on the second icon tap; closes on outside click.
+
 ---
 
 ## 6. Iconography

@@ -9,7 +9,7 @@
 
     <% if @pagy.next %>
       <%= turbo_frame_tag "comments_page_#{@pagy.next}",
-            src: player_comments_path(@video.slug, page: @pagy.next),
+            src: comments_player_path(@video.slug, page: @pagy.next),
             loading: :lazy, target: "_top" do %>
         <span class="player__loader"><%= icon(:spinner) %></span>
       <% end %>

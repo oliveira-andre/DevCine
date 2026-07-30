@@ -126,6 +126,27 @@ class Video < ApplicationRecord
   # NOTE (006): the old `listable` scope and `playable_by?` were replaced by
   # VideoPolicy (Scope#resolve / #watch?) — the single visibility authority.
 
+  # Subtitle tracks with a file, default first (feature 012). Cached per video +
+  # a version bumped on any Subtitle write (Constitution VI).
+  def subtitle_track_ids
+    version = Subtitle.cache_version([ "subtitles", id ])
+    Video.cache_read([ "subtitle-tracks", id, version ]) do
+      subtitles.joins(:file_attachment).order(is_default: :desc, created_at: :asc).pluck(:id)
+    end
+  end
+
+  def subtitle_tracks
+    ids = subtitle_track_ids
+    return [] if ids.empty?
+
+    # compact: tolerate a stale cached id whose track was since removed.
+    Subtitle.where(id: ids).index_by(&:id).values_at(*ids).compact
+  end
+
+  def default_subtitle
+    subtitle_tracks.first
+  end
+
   # Same-kind related videos for the player sidebar (FR-026): recent, visible to
   # this viewer, excluding self. Cached per (kind, unlock-state, version) so a
   # locked session never sees an unlocked session's list — Constitution VI.

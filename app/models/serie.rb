@@ -24,11 +24,11 @@ class Serie < ApplicationRecord
 
   has_many :credits, as: :creditable, dependent: :destroy
   has_many :reviews, as: :reviewable, dependent: :destroy
-  has_many :watchlist_items, as: :watchlistable, dependent: :destroy
+  has_many :watchlist_items, as: :watchable, dependent: :destroy
   has_many :taggings, as: :taggable, dependent: :destroy
 
   has_many :people, through: :credits, source: :person
-  has_many :genres, through: :taggings, source: :taggable, source_type: "Genre"
+  has_many :genres, through: :taggings, source: :genre
 
   # Media (Active Storage): card poster + optional backdrop (not used by the hero).
   has_one_attached :poster

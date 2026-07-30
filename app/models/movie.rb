@@ -15,15 +15,17 @@ class Movie < ApplicationRecord
 
   has_many :credits, as: :creditable, dependent: :destroy
   has_many :reviews, as: :reviewable, dependent: :destroy
-  has_many :watchlist_items, as: :watchlistable, dependent: :destroy
+  has_many :watchlist_items, as: :watchable, dependent: :destroy
   has_many :taggings, as: :taggable, dependent: :destroy
 
   has_many :people, through: :credits, source: :person
-  has_many :genres, through: :taggings, source: :taggable, source_type: "Genre"
+  has_many :genres, through: :taggings, source: :genre
 
   # Media (Active Storage): card poster + hero backdrop.
   has_one_attached :poster
   has_one_attached :backdrop
+
+  validates :title, presence: true
 
   # Recency for the "Recently added movies" rail.
   scope :recent, -> { order(created_at: :desc) }

@@ -11,7 +11,7 @@ RSpec.describe "Player related", type: :request do
       same = create(:video, :with_thumbnail, kind: :standalone, visibility: :public, title: "Same Kind Clip")
       other = create(:video, kind: :feature, visibility: :public, title: "Other Kind Film")
 
-      get player_related_path(current.slug)
+      get related_player_path(current.slug)
       expect(response).to have_http_status(:ok)
       expect(response.body).to include("related") # turbo frame id
       expect(response.body).to include(same.title)
@@ -21,7 +21,7 @@ RSpec.describe "Player related", type: :request do
 
     it "shows an empty state when there are no same-kind videos" do
       current = create(:video, :with_file, kind: :tutorial, visibility: :public)
-      get player_related_path(current.slug)
+      get related_player_path(current.slug)
       expect(response.body).to include("No related videos yet")
     end
   end

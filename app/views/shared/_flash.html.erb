@@ -1,0 +1,13 @@
+<%# Flash banners only — the toast stack holding them (#flash) is a body-level
+    container in the layout, so streams can retarget it wholesale. %>
+<% { notice: flash[:notice], alert: flash[:alert] }.each do |kind, message| %>
+  <% next if message.blank? %>
+  <%# Clicking anywhere on the toast dismisses it — it floats over the page, so
+      it may briefly sit on top of something the user wants to click. %>
+  <div class="form-flash form-flash-<%= kind %>" data-controller="flash"
+       data-action="click->flash#dismiss">
+    <span><%= message %></span>
+    <button type="button" class="form-flash__close" data-action="flash#dismiss"
+            aria-label="Dismiss">✕</button>
+  </div>
+<% end %>

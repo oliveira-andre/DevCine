@@ -1,10 +1,11 @@
 <% content_for :title, "Movies" %>
 <% content_for :page_styles do %>
-  <%= stylesheet_link_tag "home", "listing", "data-turbo-track": "dynamic" %>
+  <%= stylesheet_link_tag "home", "listing", "catalog_controls", "data-turbo-track": "dynamic" %>
 <% end %>
 
 <main class="page listing">
   <h1 class="listing__title">Movies</h1>
+  <%= render "shared/catalog_controls", genres: catalog_genres %>
   <div class="listing__grid">
     <%= render "movies/page" %>
   </div>

@@ -1,0 +1,50 @@
+<%# One catalog row: the summary toggles the detail panel (poster, description,
+    meta) before the admin commits to edit; edit + confirmed delete on the right. %>
+<% type = item.is_a?(Movie) ? "movie" : "serie" %>
+<div class="admin-live admin-item" id="<%= dom_id(item, :admin) %>">
+  <details class="admin-item__details">
+    <summary class="admin-item__summary">
+      <span class="admin-item__name"><%= item.title %></span>
+      <span class="admin-chip"><%= type == "movie" ? "Movie" : "Serie" %></span>
+    </summary>
+    <div class="admin-item__body">
+      <% if item.poster.attached? %>
+        <%= image_tag url_for(item.poster), class: "admin-item__poster", alt: item.title %>
+      <% end %>
+      <div class="admin-item__info">
+        <% if item.description.present? %><p><%= truncate(item.description, length: 260) %></p><% end %>
+        <div class="admin-item__meta">
+          <% if item.release_date.present? %><span><%= item.release_date.year %></span><% end %>
+          <span><%= item.maturity_rating %></span>
+          <% if type == "serie" %>
+            <span><%= pluralize(item.seasons.size, "season") %></span>
+            <span><%= item.status %></span>
+          <% elsif item.video&.file&.attached? %>
+            <span>Uploaded</span>
+          <% else %>
+            <span>Awaiting upload</span>
+          <% end %>
+          <% if item.genres.any? %><span><%= item.genres.map(&:name).join(", ") %></span><% end %>
+        </div>
+      </div>
+    </div>
+  </details>
+
+  <div class="admin-live__actions">
+    <%= link_to admin_catalog_item_path(type, item), class: "admin-live__action",
+          data: { turbo_frame: "_top" }, "aria-label": "View #{item.title}" do %>
+      <%= icon(:eye) %>
+    <% end %>
+    <%= link_to edit_admin_catalog_item_path(type, item), class: "admin-live__action",
+          data: { turbo_frame: "modal" }, "aria-label": "Edit #{item.title}" do %>
+      <%= icon(:pencil) %>
+    <% end %>
+    <%= button_to admin_catalog_item_path(type, item), method: :delete,
+          class: "admin-live__action admin-live__action--danger",
+          form: { class: "admin-live__delete-form",
+                  data: { turbo_confirm: "Delete “#{item.title}” and its videos? This cannot be undone." } },
+          "aria-label": "Delete #{item.title}" do %>
+      <%= icon(:trash) %>
+    <% end %>
+  </div>
+</div>

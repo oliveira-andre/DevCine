@@ -1,5 +1,5 @@
 <header class="site-header">
-  <%= link_to root_path, class: "site-header__brand", "aria-label": "DevCine home" do %>
+  <%= link_to root_path, class: "site-header__brand", "aria-label": "DevCine home", data: { turbo_stream: true } do %>
     <%= image_tag "/logo_with_word.png", alt: "DevCine", class: "site-header__logo site-header__logo--desktop" %>
     <%= image_tag "/logo.png", alt: "DevCine", class: "site-header__logo site-header__logo--mobile" %>
   <% end %>
@@ -7,7 +7,7 @@
   <div class="site-header__actions">
     <%# Search is a control that navigates to the dedicated /search page. %>
     <%# A plain link — navigating on focus broke keyboard tabbing. %>
-    <%= link_to search_path, class: "search-box", role: "search" do %>
+    <%= link_to search_path, class: "search-box", role: "search", data: { turbo_stream: true } do %>
       <span class="search-box__placeholder">Search</span>
     <% end %>
 
