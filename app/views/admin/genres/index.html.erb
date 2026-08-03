@@ -1,0 +1,37 @@
+<% content_for :title, "Genres" %>
+<% content_for :page_styles do %>
+  <%= stylesheet_link_tag "admin", "data-turbo-track": "dynamic" %>
+<% end %>
+
+<main class="admin">
+  <section class="admin__content">
+    <header class="admin__head">
+      <h1 class="admin__title">Genres</h1>
+      <%= link_to new_admin_genre_path, class: "btn btn-primary admin__add",
+            "aria-label": "Add genre", data: { turbo_frame: "modal" } do %>
+        <%= icon(:plus) %><span>Add</span>
+      <% end %>
+    </header>
+
+    <div class="admin__searchrow">
+      <%= form_with url: admin_genres_path, method: :get, class: "admin-search",
+            data: { controller: "search-submit", turbo_frame: "admin_genres_frame", turbo_action: "advance" } do %>
+        <span class="admin-search__icon"><%= icon(:search) %></span>
+        <%= text_field_tag :q, @query, placeholder: "Search genres",
+              class: "field-input admin-search__input", autocomplete: "off",
+              data: { action: "input->search-submit#submit", "search-submit-target": "input" } %>
+      <% end %>
+    </div>
+
+    <%# target _top so a row's View/Edit links navigate the page, not the frame
+        (the search reloads the frame; the row actions leave it). %>
+    <%= turbo_frame_tag "admin_genres_frame", target: "_top" do %>
+      <div id="admin_genres" class="admin-lives">
+        <%= render partial: "admin/genres/row", collection: @genres, as: :item %>
+        <p id="admin_genres_empty" class="admin-lives__empty"<%= " hidden" if @genres.any? %>>
+          <%= @query.present? ? "No genres match “#{@query}”." : "No genres yet — tap Add." %>
+        </p>
+      </div>
+    <% end %>
+  </section>
+</main>

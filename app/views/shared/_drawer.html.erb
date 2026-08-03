@@ -14,7 +14,9 @@
       <li><%= link_to playlists_path, class: "drawer__link", data: { turbo_stream: true, action: "drawer#close" } do %><%= icon(:playlist) %><span>Playlists</span><% end %></li>
       <li><%= link_to account_path, class: "drawer__link", data: { turbo_stream: true, action: "drawer#close" } do %><%= icon(:account) %><span>Account</span><% end %></li>
       <% if Current.user&.admin? %>
-        <li><%= link_to admin_dashboard_path, class: "drawer__link", data: { turbo_stream: true, action: "drawer#close" } do %><%= icon(:dashboard) %><span>Dashboard</span><% end %></li>
+        <%# Full Drive visit (no turbo_stream): the admin chrome differs from the
+            app's, so the whole body must re-render, not just #page-content. %>
+        <li><%= link_to admin_dashboard_path, class: "drawer__link", data: { action: "drawer#close" } do %><%= icon(:dashboard) %><span>Dashboard</span><% end %></li>
       <% end %>
     </ul>
 

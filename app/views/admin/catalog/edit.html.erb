@@ -1,20 +1,110 @@
-<%# Edit a catalog item's title + description in the shared modal. %>
+<%# Full catalog edit (feature 013): title, original title (movies), description,
+    release date, maturity, status (series), visibility (movies), genres, poster
+    and backdrop — all in the shared modal. Flat params, matching #update. %>
 <% type = @item.is_a?(Movie) ? "movie" : "serie" %>
 <%= modal title: "Edit — #{@item.title}", size: :wide do %>
-  <%= form_with url: admin_catalog_item_path(type, @item), method: :patch, class: "modal__form" do %>
+  <%= form_with url: admin_catalog_item_path(type, @item), method: :patch, class: "modal__form upload-form" do %>
     <% if @item.errors.any? %>
-      <div class="form-flash form-flash-alert"><%= @item.errors.full_messages.to_sentence %></div>
+      <div class="form-flash form-flash-alert upload-form__flash"><%= @item.errors.full_messages.to_sentence %></div>
     <% end %>
 
-    <div class="field">
-      <%= label_tag :title, "Name", class: "field-label" %>
-      <%= text_field_tag :title, @item.title, required: true, autofocus: true, class: "field-input" %>
-    </div>
+    <div class="upload-form__grid">
+      <div class="upload-form__col">
+        <div class="field">
+          <%= label_tag :title, "Name", class: "field-label" %>
+          <%= text_field_tag :title, @item.title, required: true, autofocus: true, class: "field-input" %>
+        </div>
 
-    <div class="field">
-      <%= label_tag :description, "Description", class: "field-label" %>
-      <%= text_area_tag :description, @item.description, rows: 5, class: "field-input",
-            data: { controller: "textarea-autogrow" } %>
+        <% if @item.is_a?(Movie) %>
+          <div class="field">
+            <%= label_tag :original_title, "Original title", class: "field-label" %>
+            <%= text_field_tag :original_title, @item.original_title, class: "field-input" %>
+          </div>
+        <% end %>
+
+        <div class="field">
+          <%= label_tag :description, "Description", class: "field-label" %>
+          <%= text_area_tag :description, @item.description, rows: 4, class: "field-input",
+                data: { controller: "textarea-autogrow" } %>
+        </div>
+
+        <div class="field">
+          <%= label_tag :release_date, "Release date", class: "field-label" %>
+          <%= date_field_tag :release_date, @item.release_date, class: "field-input" %>
+        </div>
+
+        <div class="field">
+          <%= label_tag :maturity_rating, "Maturity", class: "field-label" %>
+          <%= select_tag :maturity_rating,
+                options_for_select(@item.class.maturity_ratings.keys, @item.maturity_rating),
+                class: "field-input" %>
+        </div>
+
+        <% if @item.is_a?(Serie) %>
+          <div class="field">
+            <%= label_tag :status, class: "field-label" %>
+            <%= select_tag :status,
+                  options_for_select(Serie.statuses.keys.map { |s| [ s.titleize, s ] }, @item.status),
+                  class: "field-input" %>
+          </div>
+        <% else %>
+          <div class="field">
+            <%= label_tag :visibility, class: "field-label" %>
+            <%= select_tag :visibility,
+                  options_for_select(
+                    Video.visibilities.keys.map { |v| [ (v == "restricted" ? "Restricted (PIN) — A18" : v.titleize), v ] },
+                    @item.video&.visibility),
+                  class: "field-input" %>
+          </div>
+        <% end %>
+      </div>
+
+      <div class="upload-form__col">
+        <div class="field">
+          <span class="field-label">Genres</span>
+          <div class="admin-genrepick">
+            <%# Sentinel so genre_ids is always submitted — otherwise unchecking
+                every box would omit the param and #update couldn't tell "clear
+                all" from "not editing genres". %>
+            <%= hidden_field_tag "genre_ids[]", "" %>
+            <% @genres.each do |genre| %>
+              <label class="admin-genrepick__opt">
+                <%= check_box_tag "genre_ids[]", genre.id, @item.genre_ids.include?(genre.id),
+                      id: "genre_#{genre.id}" %>
+                <span><%= genre.name %></span>
+              </label>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="field">
+          <%= label_tag :poster, "Poster", class: "field-label" %>
+          <div class="uploader uploader--image" data-controller="file-upload">
+            <%= file_field_tag :poster, accept: "image/*", class: "uploader__input",
+                  data: { "file-upload-target": "input", action: "change->file-upload#change" } %>
+            <%= image_tag(@item.poster.attached? ? url_for(@item.poster) : "",
+                  class: "image-preview#{' is-visible' if @item.poster.attached?}", alt: "Poster preview",
+                  data: { "file-upload-target": "preview" }) %>
+            <div class="uploader__prompt">
+              <%= icon(:image) %><span>Replace poster</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <%= label_tag :backdrop, "Backdrop", class: "field-label" %>
+          <div class="uploader uploader--image" data-controller="file-upload">
+            <%= file_field_tag :backdrop, accept: "image/*", class: "uploader__input",
+                  data: { "file-upload-target": "input", action: "change->file-upload#change" } %>
+            <%= image_tag(@item.backdrop.attached? ? url_for(@item.backdrop) : "",
+                  class: "image-preview#{' is-visible' if @item.backdrop.attached?}", alt: "Backdrop preview",
+                  data: { "file-upload-target": "preview" }) %>
+            <div class="uploader__prompt">
+              <%= icon(:image) %><span>Replace backdrop</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="modal__footer">

@@ -1,0 +1,49 @@
+<%# Video identity card on the admin detail page; replaced by Turbo after edit. %>
+<div id="admin_video_detail" class="admin-user">
+  <span class="admin-user__avatar admin-video__thumb">
+    <% if video.thumbnail.attached? %>
+      <%= image_tag video.thumbnail.variant(resize_to_limit: [ 240, 135 ]),
+            alt: video.title, class: "admin-user__avatar-img" %>
+    <% else %>
+      <%= icon(:videos) %>
+    <% end %>
+  </span>
+
+  <div class="admin-user__ident">
+    <h2 class="admin-user__name">
+      <%= admin_video_title(video) %>
+      <%= video_visibility_badge(video) %>
+    </h2>
+    <dl class="admin-user__facts">
+      <div><dt>Kind</dt><dd><%= video.kind.to_s.titleize %></dd></div>
+      <div><dt>Status</dt><dd><%= video.status.to_s.titleize %></dd></div>
+      <div><dt>Maturity</dt><dd><%= video.maturity_rating.to_s.upcase %></dd></div>
+      <div><dt>Uploader</dt><dd>
+        <% if video.uploader %>
+          <%= link_to video.uploader.email_address, admin_user_path(video.uploader), class: "admin-user__link" %>
+        <% else %>—<% end %>
+      </dd></div>
+      <div><dt>Likes</dt><dd><%= video.likes_count %></dd></div>
+      <div><dt>Comments</dt><dd>
+        <%= link_to @comments_count, admin_comments_path(video_id: video.id), class: "admin-user__link" %>
+      </dd></div>
+      <div><dt>Views</dt><dd><%= number_with_delimiter(video.view_count) %></dd></div>
+      <div><dt>Added</dt><dd><%= l(video.created_at.to_date, format: :long) %></dd></div>
+    </dl>
+    <% if video.description.present? %>
+      <p class="admin-video__desc"><%= truncate(video.description, length: 300) %></p>
+    <% end %>
+  </div>
+
+  <div class="admin-user__actions">
+    <% if admin_may_see?(video) %>
+      <%= link_to player_path(video.slug), class: "btn btn-outline admin__add", data: { turbo_frame: "_top" } do %>
+        <%= icon(:play) %><span>Play</span>
+      <% end %>
+    <% end %>
+    <%= link_to edit_admin_video_path(video), class: "btn btn-primary admin__add",
+          data: { turbo_frame: "modal" } do %>
+      <%= icon(:pencil) %><span>Edit</span>
+    <% end %>
+  </div>
+</div>

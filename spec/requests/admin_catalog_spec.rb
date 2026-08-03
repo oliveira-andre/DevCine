@@ -190,6 +190,110 @@ RSpec.describe "Admin::Catalog", type: :request do
     end
   end
 
+  describe "full edit (feature 013)" do
+    let(:movie) do
+      create(:movie, title: "Full Edit Movie",
+                     video: create(:video, :with_file, kind: :feature, visibility: :public))
+    end
+    let(:action) { create(:genre, name: "Action") }
+    let(:drama) { create(:genre, name: "Drama") }
+
+    def patch_movie(params)
+      patch admin_catalog_item_path("movie", movie),
+            params: params, headers: { "Accept" => "text/vnd.turbo-stream.html" }
+    end
+
+    it "renders every field on the movie edit modal" do
+      action
+      get edit_admin_catalog_item_path("movie", movie), headers: { "Turbo-Frame" => "modal" }
+
+      expect(response.body).to include('name="original_title"')
+      expect(response.body).to include('name="release_date"')
+      expect(response.body).to include('name="maturity_rating"')
+      expect(response.body).to include('name="visibility"')
+      expect(response.body).to include('name="genre_ids[]"')
+      expect(response.body).to include('name="poster"')
+      expect(response.body).to include('name="backdrop"')
+    end
+
+    it "updates maturity, original title and release date" do
+      patch_movie(title: "Full Edit Movie", original_title: "Le Film",
+                  maturity_rating: "A16", release_date: "1999-03-31")
+
+      movie.reload
+      expect(movie.maturity_rating).to eq("A16")
+      expect(movie.original_title).to eq("Le Film")
+      expect(movie.release_date).to eq(Date.new(1999, 3, 31))
+    end
+
+    it "sets the movie's genre taggings from the checkboxes" do
+      patch_movie(title: "Full Edit Movie", genre_ids: [ "", action.id, drama.id ])
+
+      expect(movie.reload.genres).to contain_exactly(action, drama)
+    end
+
+    it "clears taggings when only the sentinel is submitted" do
+      create(:tagging, genre: action, taggable: movie)
+
+      patch_movie(title: "Full Edit Movie", genre_ids: [ "" ])
+
+      expect(movie.reload.genres).to be_empty
+    end
+
+    it "leaves taggings alone on a title-only update (no genre_ids param)" do
+      create(:tagging, genre: action, taggable: movie)
+
+      patch_movie(title: "Renamed", description: "d")
+
+      expect(movie.reload.genres).to contain_exactly(action)
+    end
+
+    it "applies visibility to the movie's video" do
+      patch_movie(title: "Full Edit Movie", visibility: "unlisted")
+
+      expect(movie.reload.video.visibility).to eq("unlisted")
+    end
+
+    it "pairs restricted visibility with an A18 video rating" do
+      patch_movie(title: "Full Edit Movie", visibility: "restricted")
+
+      movie.reload
+      expect(movie.video.visibility).to eq("restricted")
+      expect(movie.video.maturity_rating).to eq("A18")
+    end
+
+    it "attaches a new poster" do
+      patch_movie(title: "Full Edit Movie",
+                  poster: fixture_file_upload("spec/fixtures/files/sample_image.jpg", "image/jpeg"))
+
+      expect(movie.reload.poster).to be_attached
+    end
+
+    describe "series" do
+      let(:serie) { create(:serie, title: "Full Edit Show", status: :ongoing) }
+
+      it "shows status (not visibility) and updates it" do
+        get edit_admin_catalog_item_path("serie", serie), headers: { "Turbo-Frame" => "modal" }
+        expect(response.body).to include('name="status"')
+        expect(response.body).not_to include('name="visibility"')
+
+        patch admin_catalog_item_path("serie", serie),
+              params: { title: "Full Edit Show", status: "ended" },
+              headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+        expect(serie.reload.status).to eq("ended")
+      end
+
+      it "sets serie genre taggings" do
+        patch admin_catalog_item_path("serie", serie),
+              params: { title: "Full Edit Show", genre_ids: [ "", action.id ] },
+              headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+        expect(serie.reload.genres).to contain_exactly(action)
+      end
+    end
+  end
+
   describe "destroy" do
     it "deletes a movie together with its video" do
       v = create(:video, :with_file, kind: :feature, visibility: :public)

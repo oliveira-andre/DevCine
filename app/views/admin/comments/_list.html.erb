@@ -1,0 +1,10 @@
+<% if @comments.any? %>
+  <%= render "shared/paginated_frame",
+        key: "admin_comments",
+        pagy: @pagy,
+        items: @comments,
+        card: "admin/comments/row",
+        next_url: (@pagy&.next ? admin_comments_path(request.query_parameters.merge(page: @pagy.next)) : nil) %>
+<% else %>
+  <p class="admin-lives__empty"><%= @query.present? ? "No comments match “#{@query}”." : "No comments yet." %></p>
+<% end %>

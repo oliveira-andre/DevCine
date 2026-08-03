@@ -1,40 +1,180 @@
-/* Page-scoped styles for the admin area (dashboard + lives). */
+/* Page-scoped styles for the admin area. The admin chrome is an app shell:
+   a top header, a left nav (drawer on mobile, fixed column on desktop), and
+   the page content offset to clear both. */
+
+/* --- Nav breakpoint --------------------------------------------------------
+   Below this the nav is an off-canvas drawer opened from the header; at/above
+   it the nav is a fixed left column and the header's menu button is hidden. */
 
 .admin {
   min-height: 100vh;
   background: var(--home-gradient);
-  padding: var(--space-8) var(--space-6);
+  padding: var(--space-6) var(--space-5);
 }
+.admin__content { min-width: 0; }
 
-/* Sidebar shell (feature 009): sidebar + content. Mobile-first = stacked, with
-   the sidebar as a horizontal nav; desktop = a fixed-width left column. */
-.admin--shell {
+/* --- Admin header (top bar) --- */
+.admin-header {
+  position: sticky;
+  top: 0;
+  z-index: 120;
   display: flex;
-  flex-direction: column;
-  gap: var(--space-6);
+  align-items: center;
+  gap: var(--space-3);
+  height: 56px;
+  padding: 0 var(--space-4);
+  background: var(--surface-1);
+  border-bottom: 1px solid var(--border-subtle);
 }
-.admin__content { min-width: 0; flex: 1 1 auto; }
-.admin__sidebar { flex: 0 0 auto; }
-.admin__nav { display: flex; gap: var(--space-2); flex-wrap: wrap; }
-.admin__navlink {
+.admin-header__menu {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  background: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: var(--radius-tile);
+}
+.admin-header__menu:hover { background: var(--surface-3); color: var(--text-primary); }
+/* Hamburger drawn in CSS to avoid a new icon. */
+.admin-header__menu-bars,
+.admin-header__menu-bars::before,
+.admin-header__menu-bars::after {
+  content: "";
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: currentColor;
+  border-radius: 2px;
+}
+.admin-header__menu-bars { position: relative; }
+.admin-header__menu-bars::before { position: absolute; top: -6px; }
+.admin-header__menu-bars::after { position: absolute; top: 6px; }
+
+.admin-header__brand {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-pill);
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
+  font: 700 var(--text-h3) / 1 var(--font-display);
+  color: var(--text-primary);
+  margin-right: auto;
 }
-.admin__navlink .icon { width: 18px; height: 18px; }
-.admin__navlink.is-active { background: var(--accent-blue); border-color: var(--accent-blue); color: var(--text-primary); }
-.admin__navlink:hover { color: var(--text-primary); }
+.admin-header__brand .icon { width: 22px; height: 22px; color: var(--accent-blue); }
+.admin-header__exit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  color: var(--text-secondary);
+  border-radius: var(--radius-tile);
+}
+.admin-header__exit:hover { background: var(--surface-3); color: var(--text-primary); }
+.admin-header__exit .icon { width: 20px; height: 20px; }
 
+/* --- Admin nav: drawer on mobile, fixed left column on desktop --- */
+.admin-nav {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  visibility: hidden;
+}
+.admin-nav.is-open { visibility: visible; }
+.admin-nav__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  transition: opacity var(--dur-med) ease;
+}
+.admin-nav.is-open .admin-nav__backdrop { opacity: 1; }
+
+.admin-nav__panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 264px;
+  max-width: 82vw;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-4);
+  background: var(--surface-1);
+  border-right: 1px solid var(--border-subtle);
+  transform: translateX(-100%);
+  transition: transform var(--dur-med) var(--ease-standard);
+  overflow-y: auto;
+}
+.admin-nav.is-open .admin-nav__panel { transform: translateX(0); }
+
+.admin-nav__close {
+  align-self: flex-end;
+  background: none;
+  border: 0;
+  color: var(--text-secondary);
+  font-size: var(--text-h2);
+  cursor: pointer;
+  line-height: 1;
+}
+
+.admin-nav__links {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: var(--space-3);
+  flex: 1;
+}
+.admin-nav__link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-tile);
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+.admin-nav__link .icon { width: 20px; height: 20px; flex: 0 0 auto; }
+.admin-nav__link:hover,
+.admin-nav__link:focus-visible { background: var(--surface-3); color: var(--text-primary); }
+.admin-nav__link.is-active { background: var(--accent-blue); color: #fff; }
+
+.admin-nav__footer {
+  border-top: 1px solid var(--border-subtle);
+  padding-top: var(--space-3);
+  margin-top: var(--space-3);
+}
+.admin-nav__back .icon { color: var(--text-tertiary); }
+
+/* Desktop: the header's menu button disappears, the nav becomes a permanent
+   left column, and the content is inset to clear the header and the column. */
 @media (min-width: 900px) {
-  .admin--shell { flex-direction: row; align-items: flex-start; }
-  .admin__sidebar { position: sticky; top: var(--space-6); width: 220px; }
-  .admin__nav { flex-direction: column; }
-  .admin__navlink { justify-content: flex-start; }
+  .admin-header__menu { display: none; }
+
+  .admin-nav {
+    position: fixed;
+    top: 56px; /* below the sticky header */
+    bottom: 0;
+    left: 0;
+    right: auto;
+    width: 240px;
+    visibility: visible;
+    z-index: 90;
+  }
+  .admin-nav__backdrop { display: none; }
+  .admin-nav__close { display: none; }
+  .admin-nav__panel {
+    position: static;
+    width: 100%;
+    height: 100%;
+    transform: none;
+    border-right: 1px solid var(--border-subtle);
+  }
+  .admin-nav__links { margin-top: 0; }
+
+  body.admin-shell #page-content { margin-left: 240px; }
 }
 
 .admin__head {
@@ -476,3 +616,58 @@ turbo-frame#admin_catalog_list[busy] {
 .admin-table tbody tr:hover { background: var(--surface-3); }
 /* The first column carries the name — let it take the slack. */
 .admin-table td:first-child { max-width: 320px; overflow: hidden; text-overflow: ellipsis; }
+
+/* --- Comment moderation --- */
+.admin-comment {
+  padding: var(--space-4);
+  margin-bottom: var(--space-6);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+}
+.admin-comment__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+  margin-bottom: var(--space-3);
+}
+.admin-comment__body {
+  color: var(--text-primary);
+  line-height: 1.5;
+  margin-bottom: var(--space-4);
+  overflow-wrap: anywhere;
+}
+
+/* Genre multi-select (catalog edit): a scrollable checkbox grid. */
+.admin-genrepick {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: var(--space-1) var(--space-3);
+  max-height: 220px;
+  overflow-y: auto;
+  padding: var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-tile);
+  background: var(--surface-3);
+}
+.admin-genrepick__opt {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-meta);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.admin-genrepick__opt input { flex: 0 0 auto; }
+
+/* Video detail thumbnail (rectangular, unlike the circular user avatar). */
+.admin-video__thumb {
+  width: 96px;
+  height: 54px;
+  border-radius: var(--radius-tile);
+}
+.admin-video__thumb .icon { width: 28px; height: 28px; color: var(--text-tertiary); }
+.admin-video__desc { color: var(--text-secondary); font-size: var(--text-meta); margin-top: var(--space-3); max-width: 70ch; }

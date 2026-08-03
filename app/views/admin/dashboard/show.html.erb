@@ -3,9 +3,7 @@
   <%= stylesheet_link_tag "admin", "data-turbo-track": "dynamic" %>
 <% end %>
 
-<main class="admin admin--shell">
-  <%= render "admin/shared/sidebar" %>
-
+<main class="admin">
   <section class="admin__content">
     <header class="admin__head">
       <%= icon(:dashboard, class: "admin__icon") %>
@@ -28,6 +26,10 @@
       <div class="admin-stat">
         <span class="admin-stat__value"><%= @playlists_count %></span>
         <span class="admin-stat__label">Playlists</span>
+      </div>
+      <div class="admin-stat">
+        <span class="admin-stat__value"><%= @comments_count %></span>
+        <span class="admin-stat__label">Comments</span>
       </div>
     </section>
 
@@ -70,6 +72,7 @@
 
     <%= render "admin/dashboard/table",
           key: "playlists", title: "Recent playlists",
+          more_url: admin_playlists_path, more_label: "All playlists",
           headers: [ "Title", "Owner", "Videos", "Visibility", "Created" ],
           empty: "No playlists yet.",
           rows: @recent_playlists.map { |p| [
@@ -78,6 +81,18 @@
             p.videos_count,
             tag.span(p.visibility.to_s.titleize, class: "admin-chip"),
             l(p.created_at.to_date, format: :long)
+          ] } %>
+
+    <%= render "admin/dashboard/table",
+          key: "comments", title: "Recent comments",
+          more_url: admin_comments_path, more_label: "All comments",
+          headers: [ "Comment", "By", "On", "When" ],
+          empty: "No comments yet.",
+          rows: @recent_comments.map { |c| [
+            link_to(truncate(c.body.to_s.squish, length: 60), admin_comment_path(c), class: "admin-user__link"),
+            link_to(c.user.display_label, admin_user_path(c.user), class: "admin-user__link"),
+            (admin_may_see?(c.video) ? c.video.title : "Hidden title"),
+            l(c.created_at.to_date, format: :long)
           ] } %>
   </section>
 </main>

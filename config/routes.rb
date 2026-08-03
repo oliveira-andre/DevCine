@@ -50,11 +50,15 @@ Rails.application.routes.draw do
   namespace :admin do
     get "dashboard", to: "dashboard#show"
     resources :lives, param: :slug
-    resources :videos, only: %i[index show], param: :slug do
+    # Standalone + catalog video management: search/filter, detail, metadata
+    # edit, delete, and the per-video subtitle manager.
+    resources :videos, only: %i[index show edit update destroy], param: :slug do
       resources :subtitles, only: %i[new create edit update destroy]
     end
 
-    resources :playlists, only: %i[index destroy]
+    resources :genres
+    resources :comments, only: %i[index show destroy]
+    resources :playlists, only: %i[index show destroy]
 
     # User management. The four member actions are the "see all" pages behind
     # each recent-activity section on the detail page.

@@ -25,7 +25,7 @@ RSpec.describe "Admin dashboard", type: :request do
       get admin_dashboard_path
 
       expect(response).to have_http_status(:ok)
-      %w[Members Videos Movies Playlists].each { |label| expect(response.body).to include(label) }
+      %w[Members Videos Movies Playlists Comments].each { |label| expect(response.body).to include(label) }
     end
 
     it "lists a recent slice of members, videos, movies and playlists" do

@@ -17,7 +17,9 @@ RSpec.describe "Admin lives management", type: :system do
 
   it "reaches Lives from the sidebar and adds a live via the modal (US1)" do
     visit admin_dashboard_path
-    within(".admin__sidebar") { click_link "Lives" }
+    # Mobile viewport: the nav is a drawer opened from the header menu button.
+    find(".admin-header__menu").click
+    within(".admin-nav") { click_link "Lives" }
     expect(page).to have_current_path(admin_lives_path)
 
     click_link "Add"

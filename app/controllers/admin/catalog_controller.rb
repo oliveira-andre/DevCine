@@ -109,11 +109,15 @@ module Admin
     # the item page's Edit button).
     def edit
       set_item
+      @genres = Genre.order(:name)
     end
 
     def update
       set_item
-      if @item.update(title: params[:title].to_s.strip, description: params[:description])
+      assign_item_attributes
+
+      if @item.save
+        apply_movie_visibility
         flash.now[:notice] = "“#{@item.title}” was saved successfully."
         render turbo_stream: [
           turbo_stream.update("modal", ""),
@@ -125,6 +129,7 @@ module Admin
           turbo_stream.update("flash", partial: "shared/flash")
         ]
       else
+        @genres = Genre.order(:name)
         render :edit, status: :unprocessable_entity
       end
     end
@@ -170,6 +175,42 @@ module Admin
     private
 
     def type_of(item) = item.is_a?(Movie) ? "movie" : "serie"
+
+    # Full-edit field assignment (feature 013). Shared columns plus the ones
+    # that only one type has (original_title on Movie, status on Serie), the
+    # genre taggings, and the images. Blank strings are treated as "leave alone"
+    # for the date so clearing the field doesn't wipe a release date by accident.
+    def assign_item_attributes
+      # key? not present?: a blank title must still be assigned so validation
+      # catches it rather than silently keeping the old one.
+      @item.title = params[:title].to_s.strip if params.key?(:title)
+      @item.description = params[:description] if params.key?(:description)
+      @item.release_date = params[:release_date] if params.key?(:release_date)
+      @item.maturity_rating = params[:maturity_rating] if params[:maturity_rating].present?
+      @item.original_title = params[:original_title] if @item.respond_to?(:original_title=) && params.key?(:original_title)
+      @item.status = params[:status] if @item.respond_to?(:status=) && params[:status].present?
+
+      # genre_ids= replaces the taggings wholesale. Only sync when the form
+      # actually submitted them — the edit form carries a hidden "" sentinel so
+      # the key is always present, even with every box unchecked; a title-only
+      # update (no genre_ids at all) must leave existing taggings untouched.
+      @item.genre_ids = Array(params[:genre_ids]).reject(&:blank?) if params.key?(:genre_ids)
+
+      @item.poster.attach(params[:poster]) if params[:poster].present?
+      @item.backdrop.attach(params[:backdrop]) if params[:backdrop].present?
+    end
+
+    # A movie's visibility lives on its single video. A serie's visibility is
+    # per-episode, so it is left to the Video admin. Restricted implies A18 (the
+    # video model enforces it), so pair them.
+    def apply_movie_visibility
+      return unless @item.is_a?(Movie) && params[:visibility].present?
+      return unless @item.video
+
+      attrs = { visibility: params[:visibility] }
+      attrs[:maturity_rating] = :A18 if params[:visibility] == "restricted"
+      @item.video.update(attrs)
+    end
 
     # Movies are addressed by uuid, series by friendly slug (see routes).
     def set_item

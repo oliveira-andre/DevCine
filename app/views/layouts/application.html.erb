@@ -41,8 +41,14 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body id="body" class="<%= content_for(:body_class) %>" data-controller="drawer pin-lock back-navigation">
-    <% if authenticated? %>
+  <body id="body" class="<%= class_names(content_for(:body_class), "admin-shell" => admin_context?) %>"
+        data-controller="drawer pin-lock back-navigation">
+    <% if authenticated? && admin_context? %>
+      <%# Admin chrome: its own header + a left drawer nav. Distinct from the app
+          chrome, which is why crossing between them is a full Drive visit. %>
+      <%= render "admin/shared/header" %>
+      <%= render "admin/shared/sidebar" %>
+    <% elsif authenticated? %>
       <%= render "shared/header" %>
       <%= render "shared/drawer" %>
     <% end %>

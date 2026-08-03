@@ -1,0 +1,36 @@
+<% content_for :title, "Comments" %>
+<% content_for :page_styles do %>
+  <%= stylesheet_link_tag "admin", "data-turbo-track": "dynamic" %>
+<% end %>
+
+<main class="admin">
+  <section class="admin__content">
+    <header class="admin__head">
+      <h1 class="admin__title">Comments</h1>
+    </header>
+
+    <%# Search (body / commenter) + filters (type / sort), live-submitted. %>
+    <%= form_with url: admin_comments_path, method: :get, class: "admin__searchrow",
+          data: { controller: "search-submit", turbo_frame: "admin_comments", turbo_action: "advance" } do %>
+      <div class="admin-search">
+        <span class="admin-search__icon"><%= icon(:search) %></span>
+        <%= text_field_tag :q, @query, placeholder: "Search comment or commenter",
+              class: "field-input admin-search__input", autocomplete: "off",
+              data: { action: "input->search-submit#submit" } %>
+      </div>
+      <%= select_tag :type,
+            options_for_select([ [ "Threads", "threads" ], [ "Replies", "replies" ] ], params[:type]),
+            include_blank: "All comments", class: "field-input",
+            data: { action: "change->search-submit#submit" } %>
+      <%= select_tag :sort,
+            options_for_select([ [ "Newest", "newest" ], [ "Oldest", "oldest" ] ], params[:sort]),
+            include_blank: "Newest", class: "field-input",
+            data: { action: "change->search-submit#submit" } %>
+      <%= hidden_field_tag :video_id, params[:video_id] if params[:video_id].present? %>
+    <% end %>
+
+    <%= turbo_frame_tag "admin_comments", class: "admin-lives" do %>
+      <%= render "admin/comments/list" %>
+    <% end %>
+  </section>
+</main>

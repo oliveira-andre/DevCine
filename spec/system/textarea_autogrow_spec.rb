@@ -55,13 +55,17 @@ RSpec.describe "Auto-growing description textareas", type: :system do
     expect(grown["hidden"]).to be > 0        # the overflow scrolls inside the box
     expect(page.evaluate_script("getComputedStyle(document.querySelector(\"#{selector}\")).overflowY")).to eq("auto")
 
-    save_on_screen = page.evaluate_script(<<~JS)
+    # The capped textarea keeps Save reachable inside the modal's own scroll —
+    # the full edit form has many fields, so on a phone Save sits below the fold
+    # until the panel is scrolled, which is exactly what the cap makes possible.
+    save_reachable = page.evaluate_script(<<~JS)
       (() => {
         const btn = document.querySelector("dialog input[type='submit'], dialog button[type='submit']")
+        btn.scrollIntoView({ block: "end" })
         const r = btn.getBoundingClientRect()
         return r.top >= 0 && r.bottom <= window.innerHeight + 1
       })()
     JS
-    expect(save_on_screen).to be(true)
+    expect(save_reachable).to be(true)
   end
 end

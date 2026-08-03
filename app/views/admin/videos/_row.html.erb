@@ -1,10 +1,20 @@
-<%# One video row (feature 012): title left, link to its subtitle manager. %>
-<div class="admin-live">
-  <span class="admin-live__title"><%= item.title %></span>
+<%# One video row: title + kind/visibility badges, view / edit / delete. Titles
+    the admin isn't cleared for are masked (PIN rule) — including in the labels
+    and the delete confirmation, so nothing leaks the hidden title. %>
+<% shown = admin_video_title(item) %>
+<div id="admin_video_row_<%= item.id %>" class="admin-live">
+  <span class="admin-live__title"><%= shown %></span>
   <div class="admin-live__actions">
-    <%= link_to new_admin_video_subtitle_path(item), class: "admin-live__action",
-          data: { turbo_frame: "modal" }, "aria-label": "Manage subtitles for #{item.title}" do %>
-      <%= icon(:captions) %>
-    <% end %>
+    <span class="admin-chip"><%= item.kind.to_s.titleize %></span>
+    <%= video_visibility_badge(item) %>
+    <%= link_to admin_video_path(item), class: "admin-live__action",
+          "aria-label": "View #{shown}" do %><%= icon(:eye) %><% end %>
+    <%= link_to edit_admin_video_path(item), class: "admin-live__action", data: { turbo_frame: "modal" },
+          "aria-label": "Edit #{shown}" do %><%= icon(:pencil) %><% end %>
+    <%= button_to admin_video_path(item), method: :delete,
+          class: "admin-live__action admin-live__action--danger",
+          form: { class: "admin-live__delete-form",
+                  data: { turbo_confirm: "Delete “#{shown}”? This cannot be undone." } },
+          "aria-label": "Delete #{shown}" do %><%= icon(:trash) %><% end %>
   </div>
 </div>

@@ -1,0 +1,68 @@
+<% content_for :title, "Comment" %>
+<% content_for :page_styles do %>
+  <%= stylesheet_link_tag "admin", "data-turbo-track": "dynamic" %>
+<% end %>
+
+<main class="admin">
+  <section class="admin__content">
+    <header class="admin__head">
+      <h1 class="admin__title">Comment</h1>
+      <div class="admin__toolbar">
+        <%= link_to admin_comments_path, class: "btn btn-outline" do %>← Back<% end %>
+        <%= button_to admin_comment_path(@comment), method: :delete, class: "btn btn-danger",
+              params: { back_to_index: true },
+              form: { data: { turbo_confirm: "Delete this comment#{' and its replies' unless @comment.reply?}?" } } do %>
+          Delete
+        <% end %>
+      </div>
+    </header>
+
+    <article class="admin-comment">
+      <div class="admin-comment__meta">
+        <%= link_to @comment.user.display_label, admin_user_path(@comment.user), class: "admin-user__link" %>
+        <span class="admin-chip"><%= @comment.reply? ? "Reply" : "Thread" %></span>
+        <span><%= l(@comment.created_at, format: :long) %></span>
+      </div>
+
+      <div class="admin-comment__body"><%= simple_format(@comment.body) %></div>
+
+      <dl class="admin-user__facts">
+        <div>
+          <dt>On video</dt>
+          <dd>
+            <% if admin_may_see?(@comment.video) %>
+              <%= link_to @comment.video.title, player_path(@comment.video.slug), class: "admin-user__link" %>
+            <% else %>
+              Hidden title
+            <% end %>
+          </dd>
+        </div>
+        <div><dt>Likes</dt><dd><%= @comment.likes_count %></dd></div>
+        <div><dt>Dislikes</dt><dd><%= @comment.dislikes_count %></dd></div>
+        <% if @comment.reply? && @comment.parent %>
+          <div>
+            <dt>In reply to</dt>
+            <dd><%= link_to truncate(@comment.parent.body.to_s.squish, length: 60), admin_comment_path(@comment.parent), class: "admin-user__link" %></dd>
+          </div>
+        <% end %>
+      </dl>
+    </article>
+
+    <% unless @comment.reply? %>
+      <section class="admin-usersection">
+        <header class="admin-usersection__head">
+          <h2 class="admin__subtitle">Replies (<%= @comment.replies.size %>)</h2>
+        </header>
+        <div class="admin-lives">
+          <% if @comment.replies.any? %>
+            <% @comment.replies.order(:created_at).each do |reply| %>
+              <%= render "admin/comments/row", item: reply %>
+            <% end %>
+          <% else %>
+            <p class="admin-lives__empty">No replies.</p>
+          <% end %>
+        </div>
+      </section>
+    <% end %>
+  </section>
+</main>

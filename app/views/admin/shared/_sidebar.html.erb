@@ -1,35 +1,30 @@
-<%# Admin sidebar (feature 009): persistent nav shared by admin pages. %>
-<aside class="admin__sidebar">
-  <nav class="admin__nav" aria-label="Admin">
-    <% dash = current_page?(admin_dashboard_path) %>
-    <%= link_to admin_dashboard_path, class: "admin__navlink#{' is-active' if dash}",
-          "aria-current": (dash ? "page" : nil) do %>
-      <%= icon(:dashboard) %><span>Dashboard</span>
-    <% end %>
-    <% lives = current_page?(admin_lives_path) %>
-    <%= link_to admin_lives_path, class: "admin__navlink#{' is-active' if lives}",
-          "aria-current": (lives ? "page" : nil) do %>
-      <%= icon(:live) %><span>Lives</span>
-    <% end %>
-    <% catalog = request.path.start_with?("/admin/catalog") %>
-    <%= link_to admin_catalog_index_path, class: "admin__navlink#{' is-active' if catalog}",
-          "aria-current": (catalog ? "page" : nil) do %>
-      <%= icon(:movie) %><span>Catalog</span>
-    <% end %>
-    <% subs = current_page?(admin_videos_path) %>
-    <%= link_to admin_videos_path, class: "admin__navlink#{' is-active' if subs}",
-          "aria-current": (subs ? "page" : nil) do %>
-      <%= icon(:captions) %><span>Subtitles</span>
-    <% end %>
-    <% lists = request.path.start_with?("/admin/playlists") %>
-    <%= link_to admin_playlists_path, class: "admin__navlink#{' is-active' if lists}",
-          "aria-current": (lists ? "page" : nil) do %>
-      <%= icon(:playlist) %><span>Playlists</span>
-    <% end %>
-    <% users = request.path.start_with?("/admin/users") %>
-    <%= link_to admin_users_path, class: "admin__navlink#{' is-active' if users}",
-          "aria-current": (users ? "page" : nil) do %>
-      <%= icon(:account) %><span>Users</span>
-    <% end %>
+<%# Admin navigation. One element for both layouts: a fixed left column on
+    desktop, an off-canvas left drawer on mobile toggled from the header's menu
+    button (reuses the body-level `drawer` controller). "Back to app" sits at
+    the end and returns to the app with a full Drive visit so the app chrome
+    comes back. %>
+<div class="admin-nav" data-drawer-target="root" data-action="keydown@window->drawer#keydown">
+  <div class="admin-nav__backdrop" data-drawer-target="backdrop" data-action="click->drawer#close"></div>
+
+  <nav class="admin-nav__panel" data-drawer-target="panel" aria-label="Admin">
+    <button type="button" class="admin-nav__close" data-action="drawer#close"
+            aria-label="Close menu">✕</button>
+
+    <div class="admin-nav__links">
+      <%= admin_nav_link "Dashboard", :dashboard, admin_dashboard_path %>
+      <%= admin_nav_link "Catalog", :movie, admin_catalog_index_path, match: "/admin/catalog" %>
+      <%= admin_nav_link "Videos", :videos, admin_videos_path %>
+      <%= admin_nav_link "Lives", :live, admin_lives_path %>
+      <%= admin_nav_link "Genres", :serie, admin_genres_path %>
+      <%= admin_nav_link "Playlists", :playlist, admin_playlists_path %>
+      <%= admin_nav_link "Comments", :captions, admin_comments_path %>
+      <%= admin_nav_link "Users", :account, admin_users_path %>
+    </div>
+
+    <div class="admin-nav__footer">
+      <%= link_to root_path, class: "admin-nav__link admin-nav__back", data: { action: "drawer#close" } do %>
+        <%= icon(:sign_out) %><span>Back to app</span>
+      <% end %>
+    </div>
   </nav>
-</aside>
+</div>

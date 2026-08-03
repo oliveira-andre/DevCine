@@ -66,10 +66,12 @@ RSpec.describe "Subtitles", type: :system do
   describe "admin manager (US4)" do
     let(:admin) { create(:user, :admin, password: "password123") }
 
-    it "opens the subtitle manager modal from the videos list with tracks + dropzone" do
+    it "opens the subtitle manager modal from the video's detail page with tracks + dropzone" do
       page.driver.browser.manage.delete_all_cookies # drop the regular-user session
       sign_in_as(admin)
-      visit admin_videos_path
+      # The videos list links to each video's detail page; the subtitle manager
+      # lives there (feature 013 reorganised the admin videos section).
+      visit admin_video_path(video)
       find("a[href*='#{video.slug}/subtitles/new']").click
 
       within("turbo-frame#modal") do

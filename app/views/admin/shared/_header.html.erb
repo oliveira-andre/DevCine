@@ -1,0 +1,19 @@
+<%# Admin header — distinct from the app's site-header, which is why crossing
+    between the two is a full Turbo Drive visit (the whole chrome swaps). The
+    menu button opens the nav drawer on mobile; on desktop the nav is always
+    visible and the button is hidden. %>
+<header class="admin-header">
+  <button type="button" class="admin-header__menu" data-action="drawer#open"
+          aria-label="Open admin menu">
+    <span class="admin-header__menu-bars" aria-hidden="true"></span>
+  </button>
+
+  <%= link_to admin_dashboard_path, class: "admin-header__brand", "aria-label": "Admin dashboard" do %>
+    <%= icon(:dashboard) %><span>DevCine Admin</span>
+  <% end %>
+
+  <%# Straight back to the app — a plain Drive visit so the app chrome returns. %>
+  <%= link_to root_path, class: "admin-header__exit", "aria-label": "Back to app" do %>
+    <%= icon(:sign_out) %>
+  <% end %>
+</header>

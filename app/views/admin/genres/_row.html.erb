@@ -1,0 +1,20 @@
+<%# One genre: name + how many titles carry it, with view / edit / delete. %>
+<div id="admin_genre_row_<%= item.id %>" class="admin-live">
+  <span class="admin-live__title">
+    <%= item.name %>
+    <%# titles_count is annotated by the index query; the row is also re-rendered
+        after create/update where the attribute is absent, so fall back. %>
+    <span class="admin-user__count"><%= pluralize(item.try(:titles_count) || item.taggings.size, "title") %></span>
+  </span>
+  <div class="admin-live__actions">
+    <%= link_to admin_genre_path(item), class: "admin-live__action",
+          "aria-label": "View #{item.name}" do %><%= icon(:eye) %><% end %>
+    <%= link_to edit_admin_genre_path(item), class: "admin-live__action", data: { turbo_frame: "modal" },
+          "aria-label": "Edit #{item.name}" do %><%= icon(:pencil) %><% end %>
+    <%= button_to admin_genre_path(item), method: :delete,
+          class: "admin-live__action admin-live__action--danger",
+          form: { class: "admin-live__delete-form",
+                  data: { turbo_confirm: "Delete “#{item.name}”? Titles keep their other genres." } },
+          "aria-label": "Delete #{item.name}" do %><%= icon(:trash) %><% end %>
+  </div>
+</div>

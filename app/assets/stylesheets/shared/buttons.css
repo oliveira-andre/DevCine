@@ -39,3 +39,13 @@
   border-radius: var(--radius-tile);
 }
 .btn-outline:hover { border-color: var(--text-primary); }
+
+/* Destructive action (delete). */
+.btn-danger {
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  padding: 13px 31px;
+  border-radius: var(--radius-tile);
+}
+.btn-danger:hover { background: var(--danger); color: #fff; }

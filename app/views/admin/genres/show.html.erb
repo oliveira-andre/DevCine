@@ -1,0 +1,43 @@
+<% content_for :title, "#{@genre.name} — Genre" %>
+<% content_for :page_styles do %>
+  <%= stylesheet_link_tag "admin", "home", "listing", "data-turbo-track": "dynamic" %>
+<% end %>
+
+<main class="admin">
+  <section class="admin__content">
+    <header class="admin__head">
+      <h1 class="admin__title"><%= @genre.name %></h1>
+      <div class="admin__toolbar">
+        <%= link_to admin_genres_path, class: "btn btn-outline" do %>← Back<% end %>
+        <%= link_to edit_admin_genre_path(@genre), class: "btn btn-primary admin__add",
+              data: { turbo_frame: "modal" } do %><%= icon(:pencil) %><span>Edit</span><% end %>
+      </div>
+    </header>
+
+    <p class="admin-user__subject">
+      <%= link_to "Browse this genre in the app", genre_browse_path(slug: @genre.slug), class: "admin-user__link" %>
+    </p>
+
+    <section class="admin-usersection">
+      <header class="admin-usersection__head">
+        <h2 class="admin__subtitle">Movies (<%= @genre.movies.size %>)</h2>
+      </header>
+      <% if @movies.any? %>
+        <div class="listing__grid"><%= render partial: "home/poster_card", collection: @movies, as: :item %></div>
+      <% else %>
+        <p class="admin-lives__empty">No movies in this genre.</p>
+      <% end %>
+    </section>
+
+    <section class="admin-usersection">
+      <header class="admin-usersection__head">
+        <h2 class="admin__subtitle">Series (<%= @genre.series.size %>)</h2>
+      </header>
+      <% if @series.any? %>
+        <div class="listing__grid"><%= render partial: "home/poster_card", collection: @series, as: :item %></div>
+      <% else %>
+        <p class="admin-lives__empty">No series in this genre.</p>
+      <% end %>
+    </section>
+  </section>
+</main>

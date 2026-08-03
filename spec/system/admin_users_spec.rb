@@ -20,7 +20,9 @@ RSpec.describe "Admin user management", type: :system do
   it "reaches users from the admin sidebar" do
     visit admin_dashboard_path
 
-    click_link "Users"
+    # Mobile viewport: the nav is a drawer opened from the header menu button.
+    find(".admin-header__menu").click
+    within(".admin-nav") { click_link "Users" }
 
     expect(page).to have_current_path(admin_users_path)
     expect(page).to have_content("member@example.com")

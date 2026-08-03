@@ -1,6 +1,6 @@
 FactoryBot.define do
   factory :tagging do
-    genre { nil }
-    taggable { nil }
+    association :genre
+    association :taggable, factory: :movie
   end
 end

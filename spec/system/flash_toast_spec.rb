@@ -30,7 +30,8 @@ RSpec.describe "Flash toasts", type: :system do
       (() => {
         const stack = document.getElementById("flash")
         const toast = stack.querySelector(".form-flash")
-        const header = document.querySelector(".site-header").getBoundingClientRect()
+        // Admin pages carry the admin header, not the app's site-header.
+        const header = document.querySelector(".admin-header, .site-header").getBoundingClientRect()
         const r = toast.getBoundingClientRect()
         return {
           parent: stack.parentElement.tagName,

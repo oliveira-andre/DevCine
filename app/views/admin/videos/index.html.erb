@@ -1,27 +1,38 @@
-<% content_for :title, "Subtitles" %>
+<% content_for :title, "Videos" %>
 <% content_for :page_styles do %>
   <%= stylesheet_link_tag "admin", "data-turbo-track": "dynamic" %>
 <% end %>
 
-<main class="admin admin--shell">
-  <%= render "admin/shared/sidebar" %>
-
+<main class="admin">
   <section class="admin__content">
     <header class="admin__head">
-      <h1 class="admin__title">Subtitles</h1>
+      <h1 class="admin__title">Videos</h1>
     </header>
 
-    <div class="admin__searchrow">
-      <%= form_with url: admin_videos_path, method: :get, class: "admin-search",
-            data: { controller: "search-submit", turbo_frame: "admin_videos", turbo_action: "advance" } do %>
+    <%# Search + filters (kind / visibility / status), live-submitted. %>
+    <%= form_with url: admin_videos_path, method: :get, class: "admin__searchrow",
+          data: { controller: "search-submit", turbo_frame: "admin_videos", turbo_action: "advance" } do %>
+      <div class="admin-search">
         <span class="admin-search__icon"><%= icon(:search) %></span>
         <%= text_field_tag :q, @query, placeholder: "Search videos by title",
               class: "field-input admin-search__input", autocomplete: "off",
               data: { action: "input->search-submit#submit", "search-submit-target": "input" } %>
-      <% end %>
-    </div>
+      </div>
+      <%= select_tag :kind,
+            options_for_select(Video.kinds.keys.reject { |k| k == "live" }.map { |k| [ k.titleize, k ] }, params[:kind]),
+            include_blank: "All kinds", class: "field-input",
+            data: { action: "change->search-submit#submit" } %>
+      <%= select_tag :visibility,
+            options_for_select(Video.visibilities.keys.map { |v| [ v.titleize, v ] }, params[:visibility]),
+            include_blank: "All visibilities", class: "field-input",
+            data: { action: "change->search-submit#submit" } %>
+      <%= select_tag :status,
+            options_for_select(Video.statuses.keys.map { |s| [ s.titleize, s ] }, params[:status]),
+            include_blank: "All statuses", class: "field-input",
+            data: { action: "change->search-submit#submit" } %>
+    <% end %>
 
-    <%= turbo_frame_tag "admin_videos", class: "admin-lives" do %>
+    <%= turbo_frame_tag "admin_videos", class: "admin-lives", target: "_top" do %>
       <%= render "admin/videos/list" %>
     <% end %>
   </section>

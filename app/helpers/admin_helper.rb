@@ -1,4 +1,23 @@
 module AdminHelper
+  # True on any /admin page. Drives the layout's chrome choice (admin header +
+  # left drawer nav) and is why crossing between the app and admin must be a
+  # full Turbo Drive visit, not a #page-content stream swap — the whole chrome
+  # differs between the two.
+  def admin_context?
+    request.path.start_with?("/admin")
+  end
+
+  # One admin nav entry. `match` is a path prefix so a section stays active on
+  # its sub-pages (a user's detail page keeps "Users" lit).
+  def admin_nav_link(label, icon_name, path, match: path)
+    active = request.path == match || request.path.start_with?("#{match}/")
+    link_to path, class: "admin-nav__link#{' is-active' if active}",
+                  "aria-current": (active ? "page" : nil),
+                  data: { action: "drawer#close" } do
+      safe_join([ icon(icon_name), tag.span(label) ])
+    end
+  end
+
   # Role pill on the admin user list/detail. Blocked and admin are colour-coded
   # because those are the two states worth spotting at a glance in a long list.
   def user_role_badge(user)

@@ -1,29 +1,38 @@
-<% content_for :title, "#{@video.title} — Subtitles" %>
+<% content_for :title, "#{@video.title} — Video" %>
 <% content_for :page_styles do %>
   <%= stylesheet_link_tag "admin", "data-turbo-track": "dynamic" %>
 <% end %>
 
-<main class="admin admin--shell">
-  <%= render "admin/shared/sidebar" %>
-
+<main class="admin">
   <section class="admin__content">
     <header class="admin__head">
-      <h1 class="admin__title"><%= @video.title %> — Subtitles</h1>
+      <h1 class="admin__title">Video</h1>
       <div class="admin__toolbar">
         <%= link_to admin_videos_path, class: "btn btn-outline" do %>← Back<% end %>
-        <%= link_to new_admin_video_subtitle_path(@video), class: "btn btn-primary admin__add",
-              data: { turbo_frame: "modal" } do %>
-          <%= icon(:plus) %><span>Add subtitle</span>
+        <%= button_to admin_video_path(@video), method: :delete, class: "btn btn-danger",
+              params: { back_to_index: true },
+              form: { data: { turbo_confirm: "Delete “#{@video.title}”? This cannot be undone." } } do %>
+          Delete
         <% end %>
       </div>
     </header>
 
-    <div id="admin_subtitles" class="admin-lives">
-      <% if @subtitles.any? %>
-        <%= render partial: "admin/subtitles/row", collection: @subtitles, as: :subtitle %>
-      <% else %>
-        <p class="admin-lives__empty" id="admin_subtitles_empty">No subtitle tracks yet — tap Add subtitle.</p>
-      <% end %>
-    </div>
+    <%= render "admin/videos/detail", video: @video %>
+
+    <section class="admin-usersection">
+      <header class="admin-usersection__head">
+        <h2 class="admin__subtitle">Subtitles</h2>
+        <%= link_to new_admin_video_subtitle_path(@video), class: "admin-usersection__seeall",
+              data: { turbo_frame: "modal" } do %>+ Add subtitle<% end %>
+      </header>
+
+      <div id="admin_subtitles" class="admin-lives">
+        <% if @subtitles.any? %>
+          <%= render partial: "admin/subtitles/row", collection: @subtitles, as: :subtitle %>
+        <% else %>
+          <p class="admin-lives__empty" id="admin_subtitles_empty">No subtitle tracks yet — tap Add subtitle.</p>
+        <% end %>
+      </div>
+    </section>
   </section>
 </main>

@@ -1,0 +1,22 @@
+<%# One comment in the moderation list: excerpt, who and where, view + delete.
+    The video title is masked when the admin isn't cleared for it (PIN rule). %>
+<div id="admin_comment_row_<%= item.id %>" class="admin-live admin-live--stacked">
+  <div class="admin-live__title admin-live__title--wrap">
+    <%= truncate(item.body.to_s.squish, length: 160) %>
+    <span class="admin-user__meta">
+      <%= link_to item.user.display_label, admin_user_path(item.user), class: "admin-user__link" %>
+      · <%= admin_may_see?(item.video) ? item.video.title : "Hidden title" %>
+      · <%= l(item.created_at.to_date, format: :long) %>
+      <%= "· reply" if item.reply? %>
+    </span>
+  </div>
+  <div class="admin-live__actions">
+    <%= link_to admin_comment_path(item), class: "admin-live__action",
+          "aria-label": "View comment" do %><%= icon(:eye) %><% end %>
+    <%= button_to admin_comment_path(item), method: :delete,
+          class: "admin-live__action admin-live__action--danger",
+          form: { class: "admin-live__delete-form",
+                  data: { turbo_confirm: "Delete this comment#{' and its replies' unless item.reply?}?" } },
+          "aria-label": "Delete comment" do %><%= icon(:trash) %><% end %>
+  </div>
+</div>
