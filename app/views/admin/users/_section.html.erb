@@ -1,0 +1,18 @@
+<%# One "recent activity + See all" block on the admin user detail page.
+    Locals: key, title, items, card, total, see_all_url, empty. %>
+<section class="admin-usersection" id="admin_user_section_<%= key %>">
+  <header class="admin-usersection__head">
+    <h2 class="admin__subtitle"><%= title %></h2>
+    <% if total.positive? %>
+      <%= link_to "See all (#{total})", see_all_url, class: "admin-usersection__seeall" %>
+    <% end %>
+  </header>
+
+  <div class="admin-lives">
+    <% if items.any? %>
+      <%= render partial: card, collection: items, as: :item %>
+    <% else %>
+      <p class="admin-lives__empty"><%= empty %></p>
+    <% end %>
+  </div>
+</section>

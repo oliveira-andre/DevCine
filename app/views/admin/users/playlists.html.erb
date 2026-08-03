@@ -1,0 +1,5 @@
+<%= render "admin/users/activity",
+      title: "Playlists", items: @playlists, pagy: @pagy,
+      key: "admin_user_playlists", card: "admin/users/playlist_row",
+      next_url: (@pagy&.next ? playlists_admin_user_path(@user, page: @pagy.next) : nil),
+      empty: "No playlists yet." %>

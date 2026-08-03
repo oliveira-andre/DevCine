@@ -2,12 +2,29 @@ class PlaylistsController < ApplicationController
   include Paginatable
   include Playable
   include ModalLayout
+  include CatalogListing
+
+  # GET /playlists — browse public playlists, with an optional ?q= title filter.
+  # `discoverable` is public-only: unlisted playlists stay reachable by link but
+  # are never listed.
+  def index
+    @query = params[:q].to_s.strip
+    scope = Playlist.discoverable.includes(:user, :playlist_items)
+    if @query.present?
+      scope = scope.where("playlists.title ILIKE ?", "%#{Playlist.sanitize_sql_like(@query)}%")
+    end
+    @pagy, @playlists = paginate(ordered(scope), limit: 20)
+  end
 
   # GET /playlists/:id — the playlist show page (feature 007). Flat ordered list;
   # no seasons. private → owner only (else 404 via Pundit).
   def show
     @playlist = Playlist.find(params[:id])
     authorize @playlist, :show?
+    # Drives the save button: owners have nothing to save, and a second save
+    # would just return the copy they already have.
+    @owned = @playlist.user_id == Current.user&.id
+    @saved_copy = @playlist.clone_for(Current.user)
     @current_video = @playlist.current_video(Current.user, pundit_user)
     @hero_video = @current_video || @playlist.first_video(pundit_user)
     @play_target = @playlist.play_target(Current.user, pundit_user)

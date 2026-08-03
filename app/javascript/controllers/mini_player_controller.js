@@ -40,6 +40,7 @@ export default class extends Controller {
     this.setAutoplay = this.setAutoplay.bind(this)
     this.onBeforeRender = this.onBeforeRender.bind(this)
     this.onRender = this.onRender.bind(this)
+    this.onFullscreenChange = this.onFullscreenChange.bind(this)
 
     this.onSubtitlesToggle = this.onSubtitlesToggle.bind(this)
     this.onSubtitlesStyle = this.onSubtitlesStyle.bind(this)
@@ -52,6 +53,8 @@ export default class extends Controller {
     document.addEventListener("mini-player:subtitles-style", this.onSubtitlesStyle)
     document.addEventListener("mini-player:subtitles-language", this.onSubtitlesLanguage)
     document.addEventListener("keydown", this.onKey)
+    document.addEventListener("fullscreenchange", this.onFullscreenChange)
+    document.addEventListener("webkitfullscreenchange", this.onFullscreenChange)
     window.addEventListener("resize", this.onResize)
     // Turbo moves this permanent element into the new <body> on every Drive
     // visit, which pauses the <video> (browsers pause media on reparent). Capture
@@ -81,6 +84,8 @@ export default class extends Controller {
     document.removeEventListener("mini-player:subtitles-style", this.onSubtitlesStyle)
     document.removeEventListener("mini-player:subtitles-language", this.onSubtitlesLanguage)
     document.removeEventListener("keydown", this.onKey)
+    document.removeEventListener("fullscreenchange", this.onFullscreenChange)
+    document.removeEventListener("webkitfullscreenchange", this.onFullscreenChange)
     window.removeEventListener("resize", this.onResize)
     document.removeEventListener("turbo:before-render", this.onBeforeRender)
     document.removeEventListener("turbo:render", this.onRender)
@@ -346,8 +351,25 @@ export default class extends Controller {
     if (document.fullscreenElement || document.webkitFullscreenElement) {
       (document.exitFullscreen || document.webkitExitFullscreen)?.call(document)
     } else {
-      (el.requestFullscreen || el.webkitRequestFullscreen)?.call(el)
+      const request = el.requestFullscreen || el.webkitRequestFullscreen
+      // Landscape is the only usable orientation for video on a handheld. The
+      // Screen Orientation API only permits a lock while fullscreen, so this
+      // has to wait for the request to resolve. No device sniffing: lock()
+      // rejects wherever it isn't supported (desktop, iOS Safari), which is the
+      // intended no-op. "landscape" rather than "landscape-primary" so the
+      // viewer can still flip the phone 180°.
+      Promise.resolve(request?.call(el))
+        .then(() => screen.orientation?.lock?.("landscape"))
+        .catch(() => {})
     }
+  }
+
+  // Leaving fullscreen should hand rotation back to the viewer. Browsers are
+  // specified to release the lock on exit, but a lock that outlived fullscreen
+  // would pin the whole site to landscape — too costly a failure to rely on it.
+  onFullscreenChange() {
+    if (document.fullscreenElement || document.webkitFullscreenElement) return
+    try { screen.orientation?.unlock?.() } catch { /* unsupported */ }
   }
 
   // --- playback state --------------------------------------------------------

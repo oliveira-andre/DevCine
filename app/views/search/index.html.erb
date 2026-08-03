@@ -13,7 +13,7 @@
 
   <% if @query.present? %>
     <section class="search-page__results">
-      <% if @videos.any? || @movies.any? || @series.any? %>
+      <% if @videos.any? || @movies.any? || @series.any? || @playlists.any? %>
         <%= render "shared/catalog_controls" %>
         <% if @videos.any? %>
           <h2 class="search-page__heading">Videos</h2>
@@ -35,6 +35,13 @@
             <%= render partial: "home/poster_card", collection: @series, as: :item %>
           </div>
         <% end %>
+
+        <% if @playlists.any? %>
+          <h2 class="search-page__heading">Playlists</h2>
+          <div class="listing__grid">
+            <%= render partial: "playlists/card", collection: @playlists, as: :item %>
+          </div>
+        <% end %>
       <% else %>
         <p class="search-page__empty">No results for “<%= @query %>”</p>
       <% end %>
@@ -44,7 +51,7 @@
       <h2 class="search-page__heading">Genres</h2>
       <div class="chips">
         <% @genres.each do |genre| %>
-          <%= link_to genre.name, genre_browse_path(slug: genre.slug), class: "chip" %>
+          <%= link_to breakable_label(genre.name), genre_browse_path(slug: genre.slug), class: "chip" %>
         <% end %>
       </div>
 

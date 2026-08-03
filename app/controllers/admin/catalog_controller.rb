@@ -143,8 +143,16 @@ module Admin
         elsif params[:season_id].present?
           add_episode(Season.find(params[:season_id])).video
         end
-      redirect_to admin_catalog_item_path(params[:type], params[:id]),
-                  notice: "Video “#{saved&.title}” was saved successfully."
+
+      item_path = admin_catalog_item_path(params[:type], params[:id])
+
+      # Offer frames from the upload as thumbnail suggestions. Best-effort: if
+      # ffmpeg can't produce any, the upload finishes exactly as it used to.
+      if saved&.suggest_thumbnails!
+        redirect_to thumbnail_suggestions_video_path(saved, return_to: item_path)
+      else
+        redirect_to item_path, notice: "Video “#{saved&.title}” was saved successfully."
+      end
     rescue ActiveRecord::RecordInvalid => e
       redirect_to admin_catalog_item_path(params[:type], params[:id]), alert: e.message
     end

@@ -1,0 +1,39 @@
+<% content_for :title, "#{@user.display_label} — User" %>
+<% content_for :page_styles do %>
+  <%= stylesheet_link_tag "admin", "data-turbo-track": "dynamic" %>
+<% end %>
+
+<main class="admin admin--shell">
+  <%= render "admin/shared/sidebar" %>
+
+  <section class="admin__content">
+    <header class="admin__head">
+      <h1 class="admin__title">User</h1>
+      <div class="admin__toolbar">
+        <%= link_to admin_users_path, class: "btn btn-outline" do %>← Back<% end %>
+      </div>
+    </header>
+
+    <%= render "admin/users/detail", user: @user %>
+
+    <%= render "admin/users/section",
+          key: "comments", title: "Recent comments", items: @recent_comments, card: "admin/users/comment_row",
+          total: @counts[:comments], see_all_url: comments_admin_user_path(@user),
+          empty: "No comments yet." %>
+
+    <%= render "admin/users/section",
+          key: "playlists", title: "Recent playlists", items: @recent_playlists, card: "admin/users/playlist_row",
+          total: @counts[:playlists], see_all_url: playlists_admin_user_path(@user),
+          empty: "No playlists yet." %>
+
+    <%= render "admin/users/section",
+          key: "likes", title: "Recent likes", items: @recent_likes, card: "admin/users/video_row",
+          total: @counts[:likes], see_all_url: likes_admin_user_path(@user),
+          empty: "No liked videos yet." %>
+
+    <%= render "admin/users/section",
+          key: "uploads", title: "Recent uploads", items: @recent_uploads, card: "admin/users/video_row",
+          total: @counts[:uploads], see_all_url: uploads_admin_user_path(@user),
+          empty: "No uploads yet." %>
+  </section>
+</main>

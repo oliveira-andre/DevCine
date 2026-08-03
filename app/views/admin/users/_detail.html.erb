@@ -1,0 +1,34 @@
+<%# User identity card on the admin detail page. Replaced by Turbo after an
+    edit, so it owns a stable id. Avatar markup is local rather than reusing
+    accounts/_avatar, which hard-codes an id and depends on account.css. %>
+<div id="admin_user_detail" class="admin-user">
+  <span class="admin-user__avatar">
+    <% if user.avatar.attached? %>
+      <%= image_tag user.avatar.variant(resize_to_fill: [ 160, 160 ]),
+            alt: user.display_label, class: "admin-user__avatar-img" %>
+    <% else %>
+      <span class="admin-user__initials"><%= user.initials %></span>
+    <% end %>
+  </span>
+
+  <div class="admin-user__ident">
+    <h2 class="admin-user__name">
+      <%= user.display_name.presence || "—" %>
+      <%= user_role_badge(user) %>
+    </h2>
+    <p class="admin-user__email"><%= user.email_address %></p>
+    <dl class="admin-user__facts">
+      <div><dt>Handle</dt><dd><%= user.handle %></dd></div>
+      <div><dt>Joined</dt><dd><%= l(user.created_at.to_date, format: :long) %></dd></div>
+      <div><dt>PIN</dt><dd><%= user.pin? ? "Set" : "Not set" %></dd></div>
+      <div><dt>Autoplay</dt><dd><%= user.autoplay? ? "On" : "Off" %></dd></div>
+    </dl>
+  </div>
+
+  <div class="admin-user__actions">
+    <%= link_to edit_admin_user_path(user), class: "btn btn-primary admin__add",
+          data: { turbo_frame: "modal" } do %>
+      <%= icon(:pencil) %><span>Edit user</span>
+    <% end %>
+  </div>
+</div>

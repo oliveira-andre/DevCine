@@ -1,0 +1,50 @@
+<%# Shared shell for the four "see all" activity pages hanging off a user.
+    Locals: title, items, pagy, key, card, next_url, empty. %>
+<% content_for :title, "#{@user.display_label} — #{title}" %>
+<% content_for :page_styles do %>
+  <%= stylesheet_link_tag "admin", "data-turbo-track": "dynamic" %>
+<% end %>
+
+<main class="admin admin--shell">
+  <%= render "admin/shared/sidebar" %>
+
+  <section class="admin__content">
+    <header class="admin__head">
+      <h1 class="admin__title"><%= title %></h1>
+      <div class="admin__toolbar">
+        <%= link_to admin_user_path(@user), class: "btn btn-outline" do %>← Back<% end %>
+      </div>
+    </header>
+
+    <p class="admin-user__subject"><%= @user.email_address %></p>
+
+    <% if @locked %>
+      <%# Set by pin_gated: private/unlisted/restricted titles are filtered out
+          until this admin unlocks with their own PIN. The same modal offers
+          creating a PIN when there isn't one. %>
+      <p class="admin-locked">
+        <%= icon(:lock) %>
+        <span>
+          <% if @pin_set %>
+            Private and restricted titles are hidden.
+            <%= link_to "Unlock", settings_pin_path, data: { turbo_frame: "modal" },
+                  class: "admin-locked__action" %> to include them.
+          <% else %>
+            Private and restricted titles are hidden.
+            <%= link_to "Set a PIN", settings_pin_path, data: { turbo_frame: "modal" },
+                  class: "admin-locked__action" %> to be able to see them.
+          <% end %>
+        </span>
+      </p>
+    <% end %>
+
+    <div class="admin-lives">
+      <% if items.any? %>
+        <%= render "shared/paginated_frame",
+              key: key, pagy: pagy, items: items, card: card, next_url: next_url %>
+      <% else %>
+        <p class="admin-lives__empty"><%= empty %></p>
+      <% end %>
+    </div>
+  </section>
+</main>

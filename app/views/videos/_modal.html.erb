@@ -1,0 +1,5 @@
+<%# The upload modal. Same shell for both steps so the swap after the draft
+    saves is seamless — only the form inside changes mode. %>
+<%= modal title: (video.persisted? ? "Finish your upload" : "Upload video"), size: :wide do %>
+  <%= render "videos/form", video: video %>
+<% end %>

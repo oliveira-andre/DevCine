@@ -4,14 +4,28 @@ Rails.application.routes.draw do
   resources :passwords, param: :token
 
   get "search", to: "search#index"
-  resources :videos, only: %i[index new create]
+  # `update` finalises a draft: the form saves itself as soon as it has a title
+  # and a file, so ffmpeg can work on the real upload before the viewer commits.
+  resources :videos, only: %i[index new create update] do
+    # Pick one of the ffmpeg-suggested frames as the thumbnail (or decline).
+    member do
+      get   "thumbnail-suggestions", to: "thumbnail_suggestions#show",   as: :thumbnail_suggestions
+      patch "thumbnail-suggestions", to: "thumbnail_suggestions#update"
+      delete "thumbnail-suggestions", to: "thumbnail_suggestions#destroy"
+    end
+  end
   resources :movies, only: :index
   resources :series, only: %i[index show], param: :slug do
     member do
       get "seasons/:position", action: :season, as: :season
     end
   end
-  resources :playlists, only: %i[show new create destroy]
+  resources :playlists, only: %i[index show new create destroy] do
+    # "Save"/"grab"/"clone" are the same action: take a copy of a public
+    # playlist under your own account. Its own controller so PlaylistsController
+    # keeps its create-vs-clone concerns apart.
+    post :save, to: "playlist_clones#create", on: :member
+  end
   get "lives", to: "lives#index"
   get "genres/:slug", to: "catalog/browse#show", as: :genre_browse
   get "kinds/:kind", to: "catalog/browse#show", as: :kind_browse
@@ -38,6 +52,19 @@ Rails.application.routes.draw do
     resources :lives, param: :slug
     resources :videos, only: %i[index show], param: :slug do
       resources :subtitles, only: %i[new create edit update destroy]
+    end
+
+    resources :playlists, only: %i[index destroy]
+
+    # User management. The four member actions are the "see all" pages behind
+    # each recent-activity section on the detail page.
+    resources :users, only: %i[index show edit update] do
+      member do
+        get :comments
+        get :playlists
+        get :likes
+        get :uploads
+      end
     end
 
     # Catalog creation wizard (movies / series / anime; vanilla or API-assisted).

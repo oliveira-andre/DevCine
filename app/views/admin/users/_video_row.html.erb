@@ -1,0 +1,45 @@
+<%# One video, used by both the likes and uploads lists. The summary toggles a
+    detail panel (poster, dates, counts) — same pattern as the catalog rows.
+    Admin listings are unscoped, so the visibility badge is what tells a
+    private title apart. %>
+<div class="admin-live admin-item" id="<%= dom_id(item, :admin_user_video) %>">
+  <details class="admin-item__details">
+    <summary class="admin-item__summary">
+      <span class="admin-item__name"><%= item.title %></span>
+      <span class="admin-chip"><%= item.kind.to_s.titleize %></span>
+      <%= video_visibility_badge(item) %>
+    </summary>
+
+    <div class="admin-item__body">
+      <% if item.thumbnail.attached? %>
+        <%= image_tag item.thumbnail.variant(resize_to_limit: [ 320, 180 ]),
+              class: "admin-item__poster", alt: item.title, loading: "lazy" %>
+      <% end %>
+      <div class="admin-item__info">
+        <% if item.description.present? %>
+          <p><%= truncate(item.description, length: 260) %></p>
+        <% end %>
+        <div class="admin-item__meta">
+          <span><%= pluralize(item.likes.size, "like") %></span>
+          <span><%= pluralize(item.comments.size, "comment") %></span>
+          <span><%= number_with_delimiter(item.view_count) %> views</span>
+          <% if item.duration_seconds.present? %>
+            <span><%= admin_duration(item.duration_seconds) %></span>
+          <% end %>
+          <span><%= item.maturity_rating.to_s.upcase %></span>
+          <span>Added <%= l(item.created_at.to_date, format: :long) %></span>
+          <% if item.published_at.present? %>
+            <span>Published <%= l(item.published_at.to_date, format: :long) %></span>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </details>
+
+  <div class="admin-live__actions">
+    <%= link_to player_path(item.slug), class: "admin-live__action",
+          data: { turbo_frame: "_top" }, "aria-label": "Play #{item.title}" do %>
+      <%= icon(:play) %>
+    <% end %>
+  </div>
+</div>

@@ -64,8 +64,16 @@
   background: var(--surface-2);
   border: 1px solid var(--border-subtle);
   color: var(--text-primary);
-  font-size: var(--text-h3);
+  /* h3 (20px) leaves only ~10 characters per line at the 140px track, so
+     "Documentary" outgrew its tile; body size clears the longest genre by
+     ~19px at every breakpoint. */
+  font-size: var(--text-body);
   font-weight: 600;
+  /* Safety net for any future name with no break opportunity: without this a
+     long token paints over the tile edge. Must be `anywhere`, not
+     `break-word` — only `anywhere` feeds the break into the min-content size,
+     which is what lets this flex item shrink below the word. */
+  overflow-wrap: anywhere;
   transition: border-color var(--dur-fast) ease, background var(--dur-fast) ease;
 }
 .chip:hover,

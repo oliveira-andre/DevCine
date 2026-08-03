@@ -69,6 +69,12 @@
   flex-direction: column;
   gap: 2px;
 }
+/* The menu controller opens/closes this with the `hidden` attribute, but the
+   UA's `[hidden] { display: none }` is an author-vs-UA loss against the
+   `display: flex` above — any explicit display defeats `hidden`. Restate it
+   here, as the other popovers in this codebase do. */
+.catalog-controls__menu[hidden] { display: none; }
+
 .catalog-controls__menu a {
   display: block;
   padding: var(--space-2) var(--space-3);

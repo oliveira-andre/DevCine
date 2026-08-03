@@ -21,5 +21,15 @@
           "aria-current": (subs ? "page" : nil) do %>
       <%= icon(:captions) %><span>Subtitles</span>
     <% end %>
+    <% lists = request.path.start_with?("/admin/playlists") %>
+    <%= link_to admin_playlists_path, class: "admin__navlink#{' is-active' if lists}",
+          "aria-current": (lists ? "page" : nil) do %>
+      <%= icon(:playlist) %><span>Playlists</span>
+    <% end %>
+    <% users = request.path.start_with?("/admin/users") %>
+    <%= link_to admin_users_path, class: "admin__navlink#{' is-active' if users}",
+          "aria-current": (users ? "page" : nil) do %>
+      <%= icon(:account) %><span>Users</span>
+    <% end %>
   </nav>
 </aside>

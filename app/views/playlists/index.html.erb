@@ -1,0 +1,28 @@
+<% content_for :title, "Playlists" %>
+<% content_for :page_styles do %>
+  <%= stylesheet_link_tag "home", "listing", "account", "data-turbo-track": "dynamic" %>
+<% end %>
+
+<main class="page listing">
+  <h1 class="listing__title">Playlists</h1>
+
+  <%= form_with url: playlists_path, method: :get, class: "listing__search",
+        data: { controller: "search-submit", turbo_frame: "playlists_page_1",
+                turbo_action: "advance" } do %>
+    <span class="listing__search-icon"><%= icon(:search) %></span>
+    <%= text_field_tag :q, @query, placeholder: "Search playlists",
+          class: "field-input listing__search-input", autocomplete: "off",
+          "aria-label": "Search playlists",
+          data: { action: "input->search-submit#submit", "search-submit-target": "input" } %>
+  <% end %>
+
+  <% if @playlists.any? %>
+    <div class="listing__grid">
+      <%= render "playlists/page" %>
+    </div>
+  <% else %>
+    <p class="listing__empty">
+      <%= @query.present? ? "No playlists match “#{@query}”." : "No public playlists yet." %>
+    </p>
+  <% end %>
+</main>

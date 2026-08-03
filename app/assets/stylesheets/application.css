@@ -8,3 +8,33 @@
  *
  * Consider organizing styles into separate files for maintainability.
  */
+
+/* --- Spacing utilities: margin-top ---------------------------------------
+ *
+ * Tailwind-style names over DevCine's own token values. The number is the
+ * SPACING TOKEN, not Tailwind's 0.25rem step. They agree up to mt-4
+ * (4/8/12/16px) and diverge above it — mt-5 is 24px here where Tailwind is
+ * 20px, and this scale skips 7, 9, 11, 13–15 exactly as the tokens do.
+ *
+ * Values are read from shared/variables.css rather than hard-coded, so a
+ * utility can never introduce off-scale spacing (DESIGN.md stays the single
+ * source of truth for the scale).
+ *
+ * This file is linked LAST in the layout so a utility wins over page-scoped
+ * CSS of equal specificity. It will still lose to a more specific selector —
+ * `.admin-user__facts dd` (0,2,0) beats `.mt-4` (0,1,0) — which is the normal
+ * cascade, not a bug.
+ */
+
+.mt-0    { margin-top: 0; }
+.mt-1    { margin-top: var(--space-1); }   /* 4px */
+.mt-2    { margin-top: var(--space-2); }   /* 8px */
+.mt-3    { margin-top: var(--space-3); }   /* 12px */
+.mt-4    { margin-top: var(--space-4); }   /* 16px */
+.mt-5    { margin-top: var(--space-5); }   /* 24px */
+.mt-6    { margin-top: var(--space-6); }   /* 32px */
+.mt-8    { margin-top: var(--space-8); }   /* 48px */
+.mt-10   { margin-top: var(--space-10); }  /* 64px */
+.mt-12   { margin-top: var(--space-12); }  /* 80px */
+.mt-16   { margin-top: var(--space-16); }  /* 128px */
+.mt-auto { margin-top: auto; }

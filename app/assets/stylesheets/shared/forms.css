@@ -57,6 +57,12 @@ textarea.field-input[data-controller~="textarea-autogrow"] {
   color: var(--danger);
 }
 
+/* Explanatory note under a field ("Leave blank to keep…"). */
+.field-hint {
+  font-size: var(--text-caption);
+  color: var(--text-tertiary);
+}
+
 .field-input[aria-invalid="true"] { border-color: var(--danger); }
 
 .form-flash {

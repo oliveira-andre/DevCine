@@ -52,6 +52,21 @@ RSpec.describe "Catalog controls", type: :system do
     expect(page).to have_current_path(/sort=a-z/)
   end
 
+  # Regression: the menu carries the `hidden` attribute, but the panel's own
+  # `display: flex` beat the UA's `[hidden] { display: none }` (author rules win
+  # over UA rules regardless of specificity), so it sat open on every listing.
+  it "keeps the ordering menu closed until the sort pill is clicked" do
+    visit movies_path
+
+    expect(page).to have_no_css(".catalog-controls__menu", visible: :visible)
+
+    find(".pill--sort").click
+    expect(page).to have_css(".catalog-controls__menu", visible: :visible)
+
+    find(".pill--sort").click
+    expect(page).to have_no_css(".catalog-controls__menu", visible: :visible)
+  end
+
   it "shows the ordering pill but NO genre pills on Videos" do
     create(:video, :with_thumbnail, :with_file, kind: :standalone, visibility: :public, title: "A Clip")
     visit videos_path

@@ -1,0 +1,17 @@
+<%# One comment by this member: body excerpt, plus the video it lives on. The
+    video's title is masked unless this admin is cleared to see it — otherwise a
+    comment on a restricted title would leak that title. %>
+<div class="admin-live admin-live--stacked">
+  <span class="admin-live__title admin-live__title--wrap">
+    <%= truncate(item.body.to_s.squish, length: 140) %>
+    <span class="admin-user__meta">
+      <% if admin_may_see?(item.video) %>
+        <%= link_to item.video.title, player_path(item.video.slug), class: "admin-user__link" %>
+      <% else %>
+        <%= admin_video_title(item.video) %>
+      <% end %>
+      · <%= l(item.created_at.to_date, format: :long) %>
+      <%= "· reply" if item.reply? %>
+    </span>
+  </span>
+</div>

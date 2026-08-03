@@ -34,6 +34,10 @@
                             "data-turbo-track": "dynamic" %>
     <%# Legacy per-view content_for(:page_styles) — harmless duplicates on full loads. %>
     <%= yield :page_styles %>
+    <%# Utility layer (spacing helpers). Must come after :page_styles too — that
+        yield re-links a page's own stylesheet, which would otherwise win every
+        equal-specificity tie against a utility. %>
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
 

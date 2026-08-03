@@ -1,0 +1,6 @@
+<%= render "shared/paginated_frame",
+      key: "playlists",
+      pagy: @pagy,
+      items: @playlists,
+      card: "playlists/card",
+      next_url: next_page_url(@pagy) %>

@@ -1,0 +1,39 @@
+<%# Subtitle tracks. Once the draft exists, already-saved tracks are listed as
+    facts (a file input cannot be re-populated) and the repeatable rows are for
+    adding more. %>
+<div class="upload-form__subs" data-controller="nested-fields" data-nested-fields-max-value="5">
+  <span class="field-label">Subtitles (optional)</span>
+
+  <% saved = video.subtitles.select(&:persisted?) %>
+  <% if saved.any? %>
+    <ul class="upload-form__savedsubs">
+      <% saved.each do |track| %>
+        <li>
+          <%= icon(:check, class: "upload-form__savedicon") %>
+          <span><%= track.label %></span>
+          <span class="upload-form__savedname"><%= track.file.filename if track.file.attached? %></span>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+
+  <%# Exactly one blank row to fill in — persisted tracks are above, and
+      re-rendering them as fields would submit empty files over real ones. %>
+  <% pending = video.subtitles.reject(&:persisted?).first || video.subtitles.build %>
+  <div data-nested-fields-target="list">
+    <%= form.fields_for :subtitles, pending, child_index: 0 do |subtitle_fields| %>
+      <%= render "videos/subtitle_fields", f: subtitle_fields %>
+    <% end %>
+  </div>
+
+  <template data-nested-fields-target="template">
+    <%= form.fields_for :subtitles, Subtitle.new, child_index: "NEW_RECORD" do |subtitle_fields| %>
+      <%= render "videos/subtitle_fields", f: subtitle_fields %>
+    <% end %>
+  </template>
+
+  <button type="button" class="btn btn-outline subtitle-fields__add"
+          data-nested-fields-target="add" data-action="nested-fields#add">
+    <%= icon(:plus) %><span>Add another subtitle</span>
+  </button>
+</div>

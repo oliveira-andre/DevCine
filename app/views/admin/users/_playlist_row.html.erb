@@ -1,0 +1,48 @@
+<%# One playlist. The summary toggles a detail panel listing the first few
+    member videos. Not linked out — playlists#show authorises the owner, so an
+    admin link would dead-end on a private list. %>
+<div class="admin-live admin-item" id="<%= dom_id(item, :admin_user_playlist) %>">
+  <details class="admin-item__details">
+    <summary class="admin-item__summary">
+      <span class="admin-item__name"><%= item.title %></span>
+      <% if item.system? %><span class="admin-chip">System</span><% end %>
+      <span class="admin-chip"><%= item.visibility.to_s.titleize %></span>
+    </summary>
+
+    <div class="admin-item__body">
+      <div class="admin-item__info">
+        <div class="admin-item__meta">
+          <span><%= pluralize(item.videos_count, "video") %></span>
+          <span>Created <%= l(item.created_at.to_date, format: :long) %></span>
+          <span>Updated <%= l(item.updated_at.to_date, format: :long) %></span>
+        </div>
+        <%# playlist_items (with their videos) are preloaded by the controller,
+            so ordering and slicing here costs no extra query. Members this
+            admin is not cleared to see are withheld rather than listed —
+            "Videos you liked" would otherwise expose every private title a
+            member ever liked. %>
+        <% members = item.playlist_items.sort_by(&:position).filter_map(&:video) %>
+        <% visible = members.select { |v| admin_may_see?(v) } %>
+        <% preview = visible.first(5) %>
+        <% if preview.any? %>
+          <ul class="admin-item__list">
+            <% preview.each do |video| %>
+              <li><%= video.title %> <span class="admin-chip"><%= video.visibility.to_s.titleize %></span></li>
+            <% end %>
+          </ul>
+          <% if visible.size > preview.size %>
+            <p class="admin-item__more">+ <%= visible.size - preview.size %> more</p>
+          <% end %>
+        <% end %>
+        <% withheld = members.size - visible.size %>
+        <% if withheld.positive? %>
+          <p class="admin-item__more"><%= pluralize(withheld, "title") %> hidden until you unlock.</p>
+        <% end %>
+      </div>
+    </div>
+  </details>
+
+  <div class="admin-live__actions">
+    <span class="admin-user__count"><%= pluralize(item.videos_count, "video") %></span>
+  </div>
+</div>

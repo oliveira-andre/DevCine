@@ -1,0 +1,5 @@
+<%= render "admin/users/activity",
+      title: "Comments", items: @comments, pagy: @pagy,
+      key: "admin_user_comments", card: "admin/users/comment_row",
+      next_url: (@pagy&.next ? comments_admin_user_path(@user, page: @pagy.next) : nil),
+      empty: "No comments yet." %>

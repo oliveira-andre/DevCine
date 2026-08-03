@@ -45,6 +45,12 @@ class Video < ApplicationRecord
   has_many :episodes, dependent: :destroy
   has_many :movies, dependent: :destroy
   has_many :subtitles, dependent: :destroy
+  # Subtitle tracks attached during the upload form (the uploader's only chance
+  # to add them — there is no member-facing subtitle manager). A row with no
+  # file is an untouched slot, not an error, so it is dropped rather than
+  # validated; a row WITH a file still has to name its language.
+  accepts_nested_attributes_for :subtitles,
+                                reject_if: ->(attrs) { attrs[:file].blank? }
   has_many :video_views, dependent: :destroy
   has_many :watch_progresses, dependent: :destroy
   has_many :comments, dependent: :destroy
@@ -61,6 +67,10 @@ class Video < ApplicationRecord
   has_one_attached :file
   has_one_attached :thumbnail
   has_one_attached :preview
+  # Frames ffmpeg pulled out of the upload, offered to the uploader as thumbnail
+  # suggestions. Transient: choosing one promotes it to `thumbnail` and clears
+  # the rest, and declining clears them all.
+  has_many_attached :thumbnail_candidates
 
   # Set by the upload flow so the video file is required there (but not for
   # seeded catalog videos which have no uploaded file).
@@ -120,6 +130,62 @@ class Video < ApplicationRecord
 
   # The series this video belongs to as an episode, if any — used to auto-derive
   # the sequence for prev/next navigation when no explicit context is given (007).
+  # --- thumbnail suggestions (ffmpeg frame grabs) ---------------------------
+
+  # Whether this video is waiting on the uploader to pick a suggested frame.
+  def awaiting_thumbnail_choice?
+    !thumbnail.attached? && thumbnail_candidates.attached?
+  end
+
+  # has_many_attached gives no ordering guarantee, so the grid could reshuffle
+  # between renders. Order by filename: attachment ids here are random UUIDs
+  # (so useless for ordering) and all three share a created_at to the second,
+  # which leaves the zero-padded name as the only stable key.
+  def ordered_thumbnail_candidates
+    thumbnail_candidates_attachments.includes(:blob)
+                                    .map(&:blob)
+                                    .sort_by { |blob| blob.filename.to_s }
+  end
+
+  # Ask ffmpeg for candidate frames and keep them. Best-effort: a failure leaves
+  # the video untouched and returns false, because a missing thumbnail must
+  # never fail an upload. Skipped when a thumbnail already exists — the
+  # uploader's own image wins over a suggestion.
+  def suggest_thumbnails!(extractor: VideoFrameExtractor)
+    return false if thumbnail.attached? || !file.attached?
+
+    result = extractor.call(self)
+    return false unless result.any?
+
+    result.frames.each_with_index do |frame, index|
+      # Zero-padded so a plain filename sort keeps the frames in the order they
+      # occur in the video (see #ordered_thumbnail_candidates).
+      thumbnail_candidates.attach(
+        io: frame, filename: format("suggestion-%02d.jpg", index + 1), content_type: "image/jpeg"
+      )
+    end
+    true
+  ensure
+    result&.frames&.each { |frame| frame.close! rescue nil }
+  end
+
+  # Promote one candidate to the real thumbnail and drop the rest. Returns false
+  # for a blob that isn't one of this video's candidates, so a forged id cannot
+  # attach an arbitrary blob.
+  def accept_thumbnail_candidate(signed_id)
+    chosen = ordered_thumbnail_candidates.find { |blob| blob.signed_id == signed_id }
+    return false unless chosen
+
+    thumbnail.attach(io: StringIO.new(chosen.download), filename: chosen.filename.to_s,
+                     content_type: chosen.content_type)
+    clear_thumbnail_candidates!
+    true
+  end
+
+  def clear_thumbnail_candidates!
+    thumbnail_candidates.purge
+  end
+
   def parent_series
     Serie.joins(seasons: :episodes).where(episodes: { video_id: id }).first
   end

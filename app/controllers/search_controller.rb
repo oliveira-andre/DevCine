@@ -24,5 +24,9 @@ class SearchController < ApplicationController
                 .includes(video: :preview_attachment).limit(CATALOG_LIMIT)
     @series = ordered(policy_scope(Serie).where("series.title ILIKE ?", term))
                 .with_attached_poster.limit(CATALOG_LIMIT)
+    # Public playlists only (Playlist.discoverable): unlisted ones are reachable
+    # by link but must never surface in a search.
+    @playlists = ordered(Playlist.discoverable.where("playlists.title ILIKE ?", term))
+                   .includes(:user, :playlist_items).limit(CATALOG_LIMIT)
   end
 end

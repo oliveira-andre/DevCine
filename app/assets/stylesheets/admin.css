@@ -316,3 +316,163 @@ turbo-frame#admin_catalog_list[busy] {
 }
 .dropzone__clear .icon { width: 16px; height: 16px; fill: currentColor; }
 .admin-subtitles__list { margin-bottom: var(--space-4); }
+
+/* --- Users (admin user management) --- */
+
+/* Role pill. The base .admin-badge is accent blue; user is muted because it is
+   the default and should not shout, blocked is red because it must. */
+.admin-badge--user { background: var(--surface-3); color: var(--text-secondary); }
+.admin-badge--blocked { background: var(--danger); }
+
+/* Secondary display name trailing the email in a list row. */
+.admin-user__aka { color: var(--text-tertiary); margin-left: var(--space-2); }
+
+/* Identity card at the top of the detail page. */
+.admin-user {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  margin-bottom: var(--space-6);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+}
+.admin-user__avatar {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--surface-3);
+}
+.admin-user__avatar-img { width: 100%; height: 100%; object-fit: cover; }
+.admin-user__initials { font-size: var(--text-h2); font-weight: 700; color: var(--text-secondary); }
+
+.admin-user__ident { flex: 1 1 240px; min-width: 0; }
+.admin-user__name { font-size: var(--text-h2); margin-bottom: var(--space-1); }
+.admin-user__email { color: var(--text-secondary); margin-bottom: var(--space-3); word-break: break-all; }
+
+.admin-user__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-6);
+  font-size: var(--text-meta);
+}
+.admin-user__facts dt {
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: var(--text-caption);
+}
+/* The UA stylesheet indents every <dd> by 40px, which pushed each value away
+   from its label. Values sit flush under their label instead. */
+.admin-user__facts dd {
+  margin: 0;
+  color: var(--text-secondary);
+  word-break: break-word;
+}
+
+.admin-user__actions { flex: 0 0 auto; }
+
+/* Recent-activity block: heading left, "See all" right. */
+.admin-usersection { margin-bottom: var(--space-6); }
+.admin-usersection__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.admin-usersection__head .admin__subtitle { margin: 0 0 var(--space-3); }
+.admin-usersection__seeall { color: var(--accent-blue); font-size: var(--text-meta); font-weight: 600; }
+.admin-usersection__seeall:hover { text-decoration: underline; }
+
+/* Whose activity this "see all" page belongs to. */
+.admin-user__subject { color: var(--text-tertiary); margin-bottom: var(--space-4); }
+
+.admin-user__link { color: inherit; }
+.admin-user__link:hover { color: var(--accent-blue); }
+.admin-user__count { color: var(--text-tertiary); font-size: var(--text-meta); flex: 0 0 auto; }
+
+/* A comment row wraps to as many lines as the excerpt needs, unlike the
+   single-line title rows it sits beside. */
+.admin-live--stacked { align-items: flex-start; }
+.admin-live__title--wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+.admin-user__meta { color: var(--text-tertiary); font-size: var(--text-meta); }
+
+/* Notice on a PIN-gated list explaining what is being withheld. */
+.admin-locked {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-4);
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-tile);
+  color: var(--text-secondary);
+  font-size: var(--text-meta);
+}
+.admin-locked .icon { width: 16px; height: 16px; flex: 0 0 auto; color: var(--text-tertiary); }
+.admin-locked__action { color: var(--accent-blue); font-weight: 600; }
+.admin-locked__action:hover { text-decoration: underline; }
+
+/* Member-video preview inside an expanded playlist row. */
+.admin-item__list {
+  list-style: none;
+  margin-top: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.admin-item__list li { display: flex; align-items: center; gap: var(--space-2); }
+.admin-item__more { color: var(--text-tertiary); margin-top: var(--space-1); }
+
+/* --- Dashboard recent tables --- */
+
+.admin-table__section { margin-bottom: var(--space-6); }
+
+/* Tables are the one thing here that genuinely cannot reflow below ~480px, so
+   they scroll inside their own box rather than widening the page. */
+.admin-table__scroll {
+  overflow-x: auto;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+  background: var(--surface-2);
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-meta);
+  white-space: nowrap;
+}
+.admin-table th,
+.admin-table td {
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  vertical-align: middle;
+}
+.admin-table thead th {
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: var(--text-caption);
+  font-weight: 600;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.admin-table tbody tr + tr td { border-top: 1px solid var(--border-subtle); }
+.admin-table tbody tr:hover { background: var(--surface-3); }
+/* The first column carries the name — let it take the slack. */
+.admin-table td:first-child { max-width: 320px; overflow: hidden; text-overflow: ellipsis; }

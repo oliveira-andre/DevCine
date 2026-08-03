@@ -1,0 +1,36 @@
+<%# One subtitle track on the upload form: its language, then the .srt file.
+    `f` is a fields_for builder, so the row works both for the initial row and
+    for the <template> clone (which carries a NEW_RECORD index).
+    Labels stay short — the enclosing section already says "Subtitles". %>
+<div class="subtitle-fields" data-nested-fields-row>
+  <div class="field subtitle-fields__lang">
+    <%= f.label :language, class: "field-label" %>
+    <%# Blank by default rather than pre-picking English: a wrong default would
+        silently mislabel the track, and the model rejects a file with no
+        language anyway. %>
+    <%= f.select :language, Subtitle.languages.keys.map { |k| [ k.titleize, k ] },
+          { include_blank: "Choose a language" }, class: "field-input" %>
+  </div>
+
+  <button type="button" class="subtitle-fields__remove" data-action="nested-fields#remove"
+          aria-label="Remove this subtitle" title="Remove this subtitle">
+    <%= icon(:trash) %>
+  </button>
+
+  <div class="field subtitle-fields__file">
+    <%= f.label :file, "File (.srt)", class: "field-label" %>
+    <div class="uploader uploader--file" data-controller="file-upload">
+      <%= f.file_field :file, accept: ".srt", class: "uploader__input",
+            data: { "file-upload-target": "input", action: "change->file-upload#change" } %>
+      <div class="uploader__prompt">
+        <%= icon(:captions) %>
+        <span>Choose an .srt file</span>
+      </div>
+      <div class="uploader__status">
+        <%= icon(:captions) %>
+        <span class="uploader__filename" data-file-upload-target="filename"></span>
+        <%= icon(:check, class: "uploader__check") %>
+      </div>
+    </div>
+  </div>
+</div>

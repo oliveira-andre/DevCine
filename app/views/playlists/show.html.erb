@@ -10,6 +10,21 @@
   <div class="collection__head">
     <h1 class="collection__title"><%= @playlist.title %></h1>
     <%= render "collections/play_button", play_target: @play_target, current_video: @current_video, link_params: link_params %>
+
+    <%# Save = grab = clone: take your own copy to add to or trim. Owners have
+        nothing to save; once saved the button becomes a link to your copy. %>
+    <% unless @owned %>
+      <% if @saved_copy %>
+        <%= link_to playlist_path(@saved_copy), class: "btn btn-outline collection__save" do %>
+          <%= icon(:check) %><span>Saved</span>
+        <% end %>
+      <% else %>
+        <%= button_to save_playlist_path(@playlist), class: "btn btn-outline collection__save",
+              form: { class: "collection__save-form" } do %>
+          <%= icon(:plus) %><span>Save playlist</span>
+        <% end %>
+      <% end %>
+    <% end %>
   </div>
 
   <%= render "collections/episodes", pagy: @pagy, videos: @videos, next_url: @next_url, current_id: @current_video&.id, link_params: link_params %>

@@ -228,3 +228,8 @@ turbo-frame#episodes[aria-busy="true"]::after {
   padding: var(--space-8) 0;
   text-align: center;
 }
+
+/* Save ("grab"/"clone") a public playlist into your own account. */
+.collection__save { display: inline-flex; align-items: center; gap: var(--space-2); }
+.collection__save .icon { width: 16px; height: 16px; }
+.collection__save-form { margin: 0; }

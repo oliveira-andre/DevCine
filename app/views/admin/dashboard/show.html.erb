@@ -30,5 +30,54 @@
         <span class="admin-stat__label">Playlists</span>
       </div>
     </section>
+
+    <%= render "admin/dashboard/table",
+          key: "members", title: "Recent members",
+          more_url: admin_users_path, more_label: "All users",
+          headers: [ "Email", "Name", "Role", "Joined" ],
+          empty: "No members yet.",
+          rows: @recent_users.map { |u| [
+            link_to(u.email_address, admin_user_path(u), class: "admin-user__link"),
+            u.display_name.presence || "—",
+            user_role_badge(u),
+            l(u.created_at.to_date, format: :long)
+          ] } %>
+
+    <%= render "admin/dashboard/table",
+          key: "videos", title: "Recent videos",
+          more_url: admin_videos_path, more_label: "All videos",
+          headers: [ "Title", "Kind", "Uploader", "Added" ],
+          empty: "No public videos yet.",
+          rows: @recent_videos.map { |v| [
+            link_to(v.title, player_path(v.slug), class: "admin-user__link"),
+            tag.span(v.kind.to_s.titleize, class: "admin-chip"),
+            (v.uploader ? link_to(v.uploader.email_address, admin_user_path(v.uploader),
+                                  class: "admin-user__link") : "—"),
+            l(v.created_at.to_date, format: :long)
+          ] } %>
+
+    <%= render "admin/dashboard/table",
+          key: "movies", title: "Recent movies",
+          more_url: admin_catalog_index_path, more_label: "Catalog",
+          headers: [ "Title", "Year", "Rating", "Added" ],
+          empty: "No movies yet.",
+          rows: @recent_movies.map { |m| [
+            link_to(m.title, admin_catalog_item_path("movie", m), class: "admin-user__link"),
+            m.release_date&.year || "—",
+            tag.span(m.maturity_rating.to_s.upcase, class: "admin-chip"),
+            l(m.created_at.to_date, format: :long)
+          ] } %>
+
+    <%= render "admin/dashboard/table",
+          key: "playlists", title: "Recent playlists",
+          headers: [ "Title", "Owner", "Videos", "Visibility", "Created" ],
+          empty: "No playlists yet.",
+          rows: @recent_playlists.map { |p| [
+            p.title,
+            link_to(p.user.email_address, admin_user_path(p.user), class: "admin-user__link"),
+            p.videos_count,
+            tag.span(p.visibility.to_s.titleize, class: "admin-chip"),
+            l(p.created_at.to_date, format: :long)
+          ] } %>
   </section>
 </main>

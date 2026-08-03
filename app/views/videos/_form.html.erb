@@ -1,0 +1,122 @@
+<%# The upload form in one of two modes.
+    CREATE: collects everything; as soon as it has a title and a file it submits
+    itself (draft-autosave), so the file is on the server for ffmpeg.
+    UPDATE:  the draft exists — the file is fixed, thumbnail suggestions load in
+    a lazy Turbo Frame, and Save finalises it. %>
+<% draft = video.persisted? %>
+<%= form_with model: video,
+      url: (draft ? video_path(video) : videos_path),
+      method: (draft ? :patch : :post),
+      class: "modal__form upload-form",
+      data: (draft ? {} : { controller: "draft-autosave" }) do |form| %>
+
+  <% if video.errors.any? %>
+    <div class="form-flash form-flash-alert upload-form__flash"><%= video.errors.full_messages.first %></div>
+  <% end %>
+
+  <%# Flipped to "1" by draft-autosave just before it submits. Without
+      JavaScript it stays "0" and the form behaves as a plain one-shot upload. %>
+  <% unless draft %>
+    <%= hidden_field_tag :draft, "0", data: { "draft-autosave-target": "draft" } %>
+  <% end %>
+
+  <div class="upload-form__grid">
+    <%# Left: metadata fields %>
+    <div class="upload-form__col">
+      <div class="field">
+        <%= form.label :title, class: "field-label" %>
+        <%= form.text_field :title, required: true, class: "field-input",
+              data: (draft ? {} : { "draft-autosave-target": "title",
+                                    action: "change->draft-autosave#maybeSave" }) %>
+      </div>
+
+      <div class="field">
+        <%= form.label :description, class: "field-label" %>
+        <%= form.text_area :description, rows: 5, class: "field-input",
+              data: { controller: "textarea-autogrow" } %>
+      </div>
+
+      <div class="field">
+        <%= form.label :maturity_rating, "Maturity", class: "field-label" %>
+        <%= form.select :maturity_rating, Video.maturity_ratings.keys.map { |k| [ k, k ] },
+              {}, class: "field-input" %>
+      </div>
+
+      <div class="field">
+        <%= form.label :visibility, class: "field-label" %>
+        <%= form.select :visibility,
+              Video.visibilities.keys.map { |k| [ (k == "restricted" ? "Restricted (PIN) — A18" : k.titleize), k ] },
+              { selected: (draft ? video.visibility : "public") }, class: "field-input" %>
+      </div>
+    </div>
+
+    <%# Right: the video file, then the thumbnail %>
+    <div class="upload-form__col">
+      <% if draft %>
+        <div class="field">
+          <span class="field-label">Video file</span>
+          <p class="upload-form__saved">
+            <%= icon(:check, class: "upload-form__savedicon") %>
+            <span><%= video.file.filename %></span>
+          </p>
+          <p class="field-hint">Uploaded. Close and start again to use a different file.</p>
+        </div>
+
+        <%# Suggestions are fetched by Turbo, not by JS: the frame loads this
+            route on its own and swaps the spinner for the frames. Eager, not
+            lazy — a lazy frame waits to be scrolled into view, and on a phone
+            this sits below the modal's fold, so extraction would never start. %>
+        <div class="field">
+          <span class="field-label">Thumbnail</span>
+          <%= turbo_frame_tag "thumbnail_suggestions",
+                src: thumbnail_suggestions_video_path(video) do %>
+            <p class="thumb-suggest__loading">
+              <%= icon(:spinner) %><span>Looking for good frames…</span>
+            </p>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="field">
+          <%= form.label :file, "Video file", class: "field-label" %>
+          <div class="uploader uploader--file" data-controller="file-upload">
+            <%= form.file_field :file, required: true, accept: "video/*", class: "uploader__input",
+                  data: { "file-upload-target": "input",
+                          "draft-autosave-target": "file",
+                          action: "change->file-upload#change change->draft-autosave#maybeSave" } %>
+            <div class="uploader__prompt">
+              <%= icon(:movie) %>
+              <span>Choose a video file</span>
+            </div>
+            <div class="uploader__status">
+              <%= icon(:movie) %>
+              <span class="uploader__filename" data-file-upload-target="filename"></span>
+              <%= icon(:check, class: "uploader__check") %>
+            </div>
+          </div>
+          <p class="field-hint" data-draft-autosave-target="status" hidden>
+            <%= icon(:spinner) %><span>Uploading…</span>
+          </p>
+        </div>
+      <% end %>
+
+      <div class="field">
+        <%= form.label :thumbnail, (draft ? "…or upload your own" : "Thumbnail (optional)"), class: "field-label" %>
+        <div class="uploader uploader--image" data-controller="file-upload">
+          <%= form.file_field :thumbnail, accept: "image/*", class: "uploader__input",
+                data: { "file-upload-target": "input", action: "change->file-upload#change" } %>
+          <%= image_tag("", class: "image-preview", alt: "Thumbnail preview",
+                data: { "file-upload-target": "preview" }) %>
+          <div class="uploader__prompt">
+            <%= icon(:image) %>
+            <span>Choose a thumbnail</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <%= render "videos/subtitle_section", form: form, video: video %>
+
+  <%= form.submit (draft ? "Save" : "Upload"),
+        class: "btn btn-primary btn-block upload-form__submit" %>
+<% end %>

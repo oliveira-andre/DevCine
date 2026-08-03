@@ -1,0 +1,5 @@
+<%= render "admin/users/activity",
+      title: "Uploads", items: @uploads, pagy: @pagy,
+      key: "admin_user_uploads", card: "admin/users/video_row",
+      next_url: (@pagy&.next ? uploads_admin_user_path(@user, page: @pagy.next) : nil),
+      empty: "No uploads yet." %>

@@ -1,0 +1,28 @@
+<%# One recent-activity table on the dashboard. Locals: key, title, headers,
+    rows, empty, and optionally more_url/more_label for a link out.
+    `rows` is an array of arrays of already-rendered cells. %>
+<section class="admin-table__section mt-4" id="admin_recent_<%= key %>">
+  <header class="admin-usersection__head">
+    <h2 class="admin__subtitle"><%= title %></h2>
+    <% if defined?(more_url) && more_url.present? %>
+      <%= link_to more_label, more_url, class: "admin-usersection__seeall" %>
+    <% end %>
+  </header>
+
+  <% if rows.any? %>
+    <div class="admin-table__scroll">
+      <table class="admin-table">
+        <thead>
+          <tr><% headers.each do |h| %><th scope="col"><%= h %></th><% end %></tr>
+        </thead>
+        <tbody>
+          <% rows.each do |cells| %>
+            <tr><% cells.each do |cell| %><td><%= cell %></td><% end %></tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="admin-lives__empty"><%= empty %></p>
+  <% end %>
+</section>

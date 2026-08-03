@@ -1,0 +1,10 @@
+<% if @playlists.any? %>
+  <%= render "shared/paginated_frame",
+        key: "admin_playlists",
+        pagy: @pagy,
+        items: @playlists,
+        card: "admin/playlists/row",
+        next_url: (@pagy&.next ? admin_playlists_path(q: @query, page: @pagy.next) : nil) %>
+<% else %>
+  <p class="admin-lives__empty"><%= @query.present? ? "No playlists match “#{@query}”." : "No playlists yet." %></p>
+<% end %>

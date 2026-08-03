@@ -1,0 +1,18 @@
+<%# A public playlist on a browse/search surface: count badge, title, owner.
+    Distinct from accounts/_playlist_card, which is the owner's own card and
+    carries a delete control. %>
+<article class="poster-card playlist-card-wrap" id="playlist_browse_<%= item.id %>">
+  <%= link_to playlist_path(item), class: "poster-card__link" do %>
+    <div class="poster-card__media playlist-card__media">
+      <span class="playlist-card__count"><%= pluralize(item.videos_count, "video") %></span>
+    </div>
+  <% end %>
+  <div class="playlist-card__titlebar">
+    <%= link_to item.title, playlist_path(item),
+          class: "poster-card__title playlist-card__titlelink", title: item.title %>
+  </div>
+  <p class="playlist-card__owner">
+    <%= link_to item.user.display_label, public_account_path(item.user.handle),
+          class: "playlist-card__ownerlink" %>
+  </p>
+</article>

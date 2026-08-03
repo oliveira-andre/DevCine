@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_07_28_192301) do
+ActiveRecord::Schema[8.0].define(version: 2026_08_03_153537) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -154,6 +154,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_28_192301) do
     t.integer "visibility", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.uuid "cloned_from_id"
+    t.index ["cloned_from_id"], name: "index_playlists_on_cloned_from_id"
+    t.index ["user_id", "cloned_from_id"], name: "index_playlists_on_user_and_cloned_from", unique: true, where: "(cloned_from_id IS NOT NULL)"
     t.index ["user_id"], name: "index_playlists_on_user_id"
   end
 
@@ -331,6 +334,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_28_192301) do
   add_foreign_key "movies", "videos", column: "trailer_id"
   add_foreign_key "playlist_items", "playlists"
   add_foreign_key "playlist_items", "videos"
+  add_foreign_key "playlists", "playlists", column: "cloned_from_id", on_delete: :nullify
   add_foreign_key "playlists", "users"
   add_foreign_key "reviews", "users"
   add_foreign_key "seasons", "series", column: "serie_id"

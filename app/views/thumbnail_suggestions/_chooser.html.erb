@@ -1,0 +1,27 @@
+<%# The suggested frames, as a pickable grid. Shared by the account modal step
+    and the admin full page. Locals: video, return_to (optional). %>
+<p class="thumb-suggest__intro">
+  Pick a frame from “<%= video.title %>” to use as its thumbnail.
+</p>
+
+<div class="thumb-suggest__grid">
+  <% video.ordered_thumbnail_candidates.each_with_index do |candidate, index| %>
+    <%= form_with url: thumbnail_suggestions_video_path(video), method: :patch,
+          class: "thumb-suggest__option" do |form| %>
+      <%= hidden_field_tag :signed_id, candidate.signed_id %>
+      <%= hidden_field_tag :return_to, return_to if return_to.present? %>
+      <button type="submit" class="thumb-suggest__pick"
+              aria-label="Use frame <%= index + 1 %> as the thumbnail">
+        <%= image_tag candidate.variant(resize_to_limit: [ 480, 270 ]),
+              class: "thumb-suggest__img", alt: "Suggested frame #{index + 1}" %>
+        <span class="thumb-suggest__use"><%= icon(:check) %><span>Use this</span></span>
+      </button>
+    <% end %>
+  <% end %>
+</div>
+
+<%= button_to thumbnail_suggestions_video_path(video, return_to: return_to), method: :delete,
+      class: "btn btn-outline thumb-suggest__skip",
+      form: { class: "thumb-suggest__skip-form" } do %>
+  Skip — no thumbnail
+<% end %>

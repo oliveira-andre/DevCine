@@ -47,3 +47,34 @@
      while a lazy section is loading. */
   background: var(--surface-0);
 }
+
+/* Title filter on a listing page (playlists browse). Its own classes rather
+   than admin-search's — those belong to the admin layer. */
+.listing__search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  max-width: 480px;
+  margin-bottom: var(--space-6);
+}
+.listing__search-icon {
+  position: absolute;
+  left: var(--space-3);
+  display: inline-flex;
+  color: var(--text-tertiary);
+  pointer-events: none;
+}
+.listing__search-icon .icon { width: 16px; height: 16px; }
+.listing__search-input { width: 100%; padding-left: var(--space-8); }
+
+/* Owner credit under a playlist card on browse/search surfaces. */
+.playlist-card__owner {
+  margin-top: var(--space-1);
+  font-size: var(--text-meta);
+  color: var(--text-tertiary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.playlist-card__ownerlink { color: inherit; }
+.playlist-card__ownerlink:hover { color: var(--text-secondary); }

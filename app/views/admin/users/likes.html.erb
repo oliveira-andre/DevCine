@@ -1,0 +1,5 @@
+<%= render "admin/users/activity",
+      title: "Likes", items: @likes, pagy: @pagy,
+      key: "admin_user_likes", card: "admin/users/video_row",
+      next_url: (@pagy&.next ? likes_admin_user_path(@user, page: @pagy.next) : nil),
+      empty: "No liked videos yet." %>

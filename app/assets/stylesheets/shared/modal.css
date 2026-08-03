@@ -61,6 +61,54 @@
 .upload-form__col { min-width: 0; }
 .upload-form__submit { margin-top: var(--space-5); }
 
+/* Subtitle tracks: full width below the grid, one repeatable row each. */
+.upload-form__subs { margin-top: var(--space-5); }
+
+/* Row 1: language + the remove button on the card's right.
+   Row 2: the file uploader, spanning the full card width. */
+.subtitle-fields {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  margin-top: var(--space-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-card);
+}
+.subtitle-fields .field { margin-bottom: 0; min-width: 0; }
+.subtitle-fields__lang { grid-column: 1; }
+.subtitle-fields__file { grid-column: 1 / -1; }
+/* A subtitle row is a supporting control, so its uploader is shorter than the
+   video/thumbnail boxes above it. */
+.subtitle-fields .uploader { min-height: 72px; }
+
+.subtitle-fields__remove {
+  grid-column: 2;
+  /* Bottom of row 1 — level with the select, not with its label. */
+  align-self: end;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px; /* matches .field-input, so the two line up exactly */
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-tile);
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+}
+.subtitle-fields__remove .icon { width: 18px; height: 18px; }
+.subtitle-fields__remove:hover { color: var(--danger); border-color: var(--danger); }
+
+.subtitle-fields__add {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+.subtitle-fields__add[hidden] { display: none; }
+.subtitle-fields__add .icon { width: 16px; height: 16px; }
+
 body.modal-open { overflow: hidden; }
 
 /* Submit/Cancel row at the bottom of a modal form (feature 008). */
@@ -82,3 +130,112 @@ body.modal-open { overflow: hidden; }
   font-size: var(--text-h3);
   padding-left: 0.5em; /* offset the trailing letter-spacing so digits stay centered */
 }
+
+/* --- Thumbnail suggestions (ffmpeg frame grabs) --- */
+
+.thumb-suggest__intro { color: var(--text-secondary); margin-bottom: var(--space-3); }
+.thumb-suggest__none { color: var(--text-tertiary); font-size: var(--text-meta); }
+
+/* Spinner shown by the lazy Turbo Frame until ffmpeg answers. */
+.thumb-suggest__loading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  color: var(--text-secondary);
+  font-size: var(--text-meta);
+}
+.thumb-suggest__loading .icon { width: 18px; height: 18px; }
+
+.thumb-suggest__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+}
+.thumb-suggest__option { margin: 0; min-width: 0; cursor: pointer; display: block; }
+
+/* The radio carries the choice into the enclosing upload form; only its
+   styling is hidden, so it stays reachable by keyboard and by screen readers. */
+.thumb-suggest__radio {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.thumb-suggest__pick {
+  position: relative;
+  display: block;
+  border: 2px solid transparent;
+  border-radius: var(--radius-tile);
+  background: var(--surface-3);
+  overflow: hidden;
+}
+.thumb-suggest__option:hover .thumb-suggest__pick { border-color: var(--border-strong); }
+.thumb-suggest__radio:checked + .thumb-suggest__pick { border-color: var(--accent-blue); }
+.thumb-suggest__radio:focus-visible + .thumb-suggest__pick {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+
+/* Fixed height rather than a 16/9 ratio: three across the modal's right-hand
+   column works out to roughly 59px tall, too small to judge a frame by. */
+.thumb-suggest__img {
+  display: block;
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+}
+
+/* Label strip: muted until chosen, so the selected frame is unmistakable. */
+.thumb-suggest__use {
+  position: absolute;
+  inset: auto 0 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  padding: 2px;
+  background: rgba(0, 0, 0, 0.55);
+  color: var(--text-tertiary);
+  font-size: var(--text-caption);
+  font-weight: 600;
+}
+.thumb-suggest__radio:checked + .thumb-suggest__pick .thumb-suggest__use {
+  background: var(--accent-blue);
+  color: #fff;
+}
+.thumb-suggest__use .icon { width: 12px; height: 12px; opacity: 0; }
+.thumb-suggest__radio:checked + .thumb-suggest__pick .thumb-suggest__use .icon { opacity: 1; }
+
+/* Already-saved file / subtitle facts on the update step. */
+.upload-form__saved {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-meta);
+  color: var(--text-secondary);
+  word-break: break-all;
+}
+.upload-form__savedicon { width: 16px; height: 16px; color: var(--success); flex: 0 0 auto; }
+.upload-form__savedsubs {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: var(--space-2) 0;
+  font-size: var(--text-meta);
+  color: var(--text-secondary);
+}
+.upload-form__savedsubs li { display: flex; align-items: center; gap: var(--space-2); }
+.upload-form__savedname { color: var(--text-tertiary); overflow: hidden; text-overflow: ellipsis; }
+
+/* Inline "Uploading…" note under the file picker while the draft saves. */
+[data-draft-autosave-target="status"] {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+[data-draft-autosave-target="status"][hidden] { display: none; }
+[data-draft-autosave-target="status"] .icon { width: 14px; height: 14px; }

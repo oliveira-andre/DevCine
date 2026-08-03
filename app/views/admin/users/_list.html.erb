@@ -1,0 +1,10 @@
+<% if @users.any? %>
+  <%= render "shared/paginated_frame",
+        key: "admin_users",
+        pagy: @pagy,
+        items: @users,
+        card: "admin/users/row",
+        next_url: (@pagy&.next ? admin_users_path(q: @query, page: @pagy.next) : nil) %>
+<% else %>
+  <p class="admin-lives__empty"><%= @query.present? ? "No users match “#{@query}”." : "No users yet." %></p>
+<% end %>
