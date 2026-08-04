@@ -2,30 +2,28 @@
 service: devcine
 
 # Name of the container image.
-image: your-user/devcine
+image: oliveiraandre/devcine
 
 # Deploy to these servers.
+# TLS and host routing are handled by Caddy on the host (see Caddyfile snippet
+# below); Kamal just publishes the app container to 127.0.0.1:3070.
 servers:
   web:
-    - 192.168.0.1
+    hosts:
+      - <%= ENV.fetch("DEVCINE_HOST") %>
+    proxy: false
+    options:
+      publish: ["127.0.0.1:3070:80"]
   # job:
   #   hosts:
   #     - 192.168.0.1
   #   cmd: bin/jobs
 
-# Enable SSL auto certification via Let's Encrypt and allow for multiple apps on a single web server.
-# Remove this section when using multiple web servers and ensure you terminate SSL at your load balancer.
-#
-# Note: If using Cloudflare, set encryption mode in SSL/TLS setting to "Full" to enable CF-to-app encryption.
-proxy:
-  ssl: true
-  host: app.example.com
-
-# Credentials for your image host.
 registry:
   # Specify the registry server, if you're not using Docker Hub
   # server: registry.digitalocean.com / ghcr.io / ...
-  username: your-user
+  username:
+    - KAMAL_REGISTRY_USERNAME
 
   # Always use an access token rather than real password when possible.
   password:
@@ -35,6 +33,11 @@ registry:
 env:
   secret:
     - RAILS_MASTER_KEY
+    - DATABASE_URL
+    - CACHE_DATABASE_URL
+    - QUEUE_DATABASE_URL
+    - CABLE_DATABASE_URL
+    - DEVCINE_DOMAIN
   clear:
     # Run the Solid Queue Supervisor inside the web server's Puma process to do jobs.
     # When you start using multiple servers, you should split out job processing to a dedicated machine.
