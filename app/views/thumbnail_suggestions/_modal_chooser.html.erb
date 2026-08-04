@@ -1,0 +1,19 @@
+<%# The thumbnail chooser inside the shared modal — used by the admin catalog
+    upload so picking a frame happens in place instead of navigating to a
+    separate page. Picking or skipping (in _chooser) redirects back to
+    `return_to` with a full render, which reloads the page and clears the modal.
+    Locals: video, return_to. %>
+<%= modal title: "Choose a thumbnail", size: :wide do %>
+  <div class="thumb-suggest">
+    <% if video.thumbnail_candidates.attached? %>
+      <%= render "thumbnail_suggestions/chooser", video: video, return_to: return_to %>
+    <% else %>
+      <p class="thumb-suggest__none">Couldn’t read any frames from this file.</p>
+      <div class="thumb-suggest__skiprow">
+        <%= button_to "Continue", thumbnail_suggestions_video_path(video, return_to: return_to),
+              method: :delete, class: "btn btn-primary",
+              form: { data: { turbo_frame: "_top" } } %>
+      </div>
+    <% end %>
+  </div>
+<% end %>

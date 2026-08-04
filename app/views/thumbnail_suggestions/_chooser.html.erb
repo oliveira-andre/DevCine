@@ -1,5 +1,9 @@
 <%# The suggested frames, as a pickable grid. Shared by the account modal step
-    and the admin full page. Locals: video, return_to (optional). %>
+    and the admin catalog modal. Locals: video, return_to (optional).
+    The forms target _top: in the catalog flow this chooser lives inside the
+    "modal" turbo-frame, and picking/skipping must reload the whole page (so the
+    episode row flips from "Uploading…" to its uploaded state) rather than
+    navigate the frame. %>
 <p class="thumb-suggest__intro">
   Pick a frame from “<%= video.title %>” to use as its thumbnail.
 </p>
@@ -7,7 +11,7 @@
 <div class="thumb-suggest__grid">
   <% video.ordered_thumbnail_candidates.each_with_index do |candidate, index| %>
     <%= form_with url: thumbnail_suggestions_video_path(video), method: :patch,
-          class: "thumb-suggest__option" do |form| %>
+          class: "thumb-suggest__option", data: { turbo_frame: "_top" } do |form| %>
       <%= hidden_field_tag :signed_id, candidate.signed_id %>
       <%= hidden_field_tag :return_to, return_to if return_to.present? %>
       <button type="submit" class="thumb-suggest__pick"
@@ -20,8 +24,10 @@
   <% end %>
 </div>
 
-<%= button_to thumbnail_suggestions_video_path(video, return_to: return_to), method: :delete,
-      class: "btn btn-outline thumb-suggest__skip",
-      form: { class: "thumb-suggest__skip-form" } do %>
-  Skip — no thumbnail
-<% end %>
+<div class="thumb-suggest__skiprow">
+  <%= button_to thumbnail_suggestions_video_path(video, return_to: return_to), method: :delete,
+        class: "btn btn-outline thumb-suggest__skip",
+        form: { class: "thumb-suggest__skip-form", data: { turbo_frame: "_top" } } do %>
+    Skip — no thumbnail
+  <% end %>
+</div>

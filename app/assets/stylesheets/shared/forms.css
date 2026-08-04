@@ -190,7 +190,10 @@ textarea.field-input[data-controller~="textarea-autogrow"] {
 .uploader__prompt .icon { width: 28px; height: 28px; }
 .uploader.is-filled .uploader__prompt { display: none; }
 
-/* Image uploader: preview fills the box once an image is chosen. */
+/* Image uploader: preview fills the box once an image is chosen. It sits over
+   the transparent file input, so it must let clicks through — otherwise, when a
+   preview is already shown (e.g. editing an item that has a poster), the file
+   input beneath is unclickable and you can't pick a replacement. */
 .image-preview {
   display: none;
   position: absolute;
@@ -198,6 +201,7 @@ textarea.field-input[data-controller~="textarea-autogrow"] {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  pointer-events: none;
 }
 .image-preview.is-visible { display: block; }
 

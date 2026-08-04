@@ -12,6 +12,7 @@ servers:
     hosts:
       - <%= ENV.fetch("DEVCINE_HOST") %>
     proxy: false
+    response_timeout: 3600
     options:
       publish: ["127.0.0.1:3070:80"]
   # job:

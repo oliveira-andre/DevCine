@@ -87,6 +87,9 @@ Rails.application.routes.draw do
       member do
         post   :upload
         delete :upload, action: :remove_upload
+        # Rename/reposition an episode of a serie item.
+        get   "episodes/:episode_id/edit", action: :edit_episode, as: :edit_episode
+        patch "episodes/:episode_id",      action: :update_episode, as: :episode
       end
     end
   end

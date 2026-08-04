@@ -291,6 +291,69 @@ RSpec.describe "Admin::Catalog", type: :request do
 
         expect(serie.reload.genres).to contain_exactly(action)
       end
+
+      it "attaches a poster to a serie (multipart upload)" do
+        patch admin_catalog_item_path("serie", serie),
+              params: { title: "Full Edit Show",
+                        poster: fixture_file_upload("spec/fixtures/files/sample_image.jpg", "image/jpeg") }
+
+        expect(serie.reload.poster).to be_attached
+      end
+
+      it "renders the edit form as a multipart <form>" do
+        get edit_admin_catalog_item_path("serie", serie), headers: { "Turbo-Frame" => "modal" }
+
+        expect(response.body).to include('enctype="multipart/form-data"')
+      end
+    end
+  end
+
+  describe "episode rename (feature 013)" do
+    let(:serie) { create(:serie, title: "Renamable Show") }
+    let(:season) { serie.seasons.create!(name: "Season 1", position: 1) }
+    let(:episode) do
+      season.episodes.create!(title: "Old Name", position: 1,
+                              video: create(:video, kind: :episode, visibility: :public))
+    end
+
+    it "renders the episode edit modal with the current title" do
+      get edit_episode_admin_catalog_item_path("serie", serie, episode_id: episode.id),
+          headers: { "Turbo-Frame" => "modal" }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("Old Name")
+      expect(response.body).to include('name="episode[title]"')
+    end
+
+    it "updates the episode title and position" do
+      patch episode_admin_catalog_item_path("serie", serie, episode_id: episode.id),
+            params: { episode: { title: "New Name", position: 2 } },
+            headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+      episode.reload
+      expect(episode.title).to eq("New Name")
+      expect(episode.position).to eq(2)
+      expect(response.body).to include("admin_episode_#{episode.id}")
+    end
+
+    it "rejects a blank title" do
+      patch episode_admin_catalog_item_path("serie", serie, episode_id: episode.id),
+            params: { episode: { title: "" } },
+            headers: { "Accept" => "text/vnd.turbo-stream.html, text/html", "Turbo-Frame" => "modal" }
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(episode.reload.title).to eq("Old Name")
+    end
+
+    # An episode can only be renamed through its own serie — no cross-serie IDOR.
+    it "404s for an episode that belongs to a different serie" do
+      other = create(:serie, title: "Other Show")
+
+      patch episode_admin_catalog_item_path("serie", other, episode_id: episode.id),
+            params: { episode: { title: "Hijacked" } }
+
+      expect(response).to have_http_status(:not_found)
+      expect(episode.reload.title).to eq("Old Name")
     end
   end
 

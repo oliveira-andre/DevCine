@@ -136,6 +136,14 @@ body.modal-open { overflow: hidden; }
 .thumb-suggest__intro { color: var(--text-secondary); margin-bottom: var(--space-3); }
 .thumb-suggest__none { color: var(--text-tertiary); font-size: var(--text-meta); }
 
+/* Skip / continue action sits below the frames, right-aligned. */
+.thumb-suggest__skiprow {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--space-4);
+}
+.thumb-suggest__skip-form { margin: 0; }
+
 /* Spinner shown by the lazy Turbo Frame until ffmpeg answers. */
 .thumb-suggest__loading {
   display: flex;

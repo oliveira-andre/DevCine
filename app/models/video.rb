@@ -169,6 +169,23 @@ class Video < ApplicationRecord
     result&.frames&.each { |frame| frame.close! rescue nil }
   end
 
+  # Backfill: attach the first extracted frame straight as the thumbnail (no
+  # candidate/choice step). Used by the thumbnails:backfill rake task for videos
+  # uploaded before thumbnail suggestions existed. Skips anything that already
+  # has a thumbnail or has no file to read; returns whether it attached one.
+  def attach_generated_thumbnail!(extractor: VideoFrameExtractor)
+    return false if thumbnail.attached? || !file.attached?
+
+    result = extractor.call(self, count: 1)
+    frame = result.frames.first
+    return false unless frame
+
+    thumbnail.attach(io: frame, filename: "thumbnail.jpg", content_type: "image/jpeg")
+    true
+  ensure
+    result&.frames&.each { |f| f.close! rescue nil }
+  end
+
   # Promote one candidate to the real thumbnail and drop the rest. Returns false
   # for a blob that isn't one of this video's candidates, so a forged id cannot
   # attach an arbitrary blob.

@@ -172,19 +172,21 @@ RSpec.describe "Upload thumbnail suggestions", type: :request do
 
     before { sign_in_as(admin) }
 
-    it "shows the options after the file lands, with a way back to the item" do
+    it "opens the thumbnail chooser in the modal, without navigating away" do
       stub_extractor(frames: 3)
       placeholder = movie.video
 
       post upload_admin_catalog_item_path("movie", movie.id),
-           params: { file: video_upload, video_id: placeholder.id }
+           params: { file: video_upload, video_id: placeholder.id },
+           headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
       expect(placeholder.reload.thumbnail_candidates.count).to eq(3)
-      expect(response).to redirect_to(
-        thumbnail_suggestions_video_path(
-          placeholder, return_to: admin_catalog_item_path("movie", movie.id)
-        )
-      )
+      # A Turbo Stream that fills the shared modal — not a redirect.
+      expect(response.media_type).to eq("text/vnd.turbo-stream.html")
+      expect(response.body).to include('target="modal"')
+      expect(response.body).to include("Choose a thumbnail")
+      # The chooser posts the pick back with a way home to the catalog item.
+      expect(response.body).to include(admin_catalog_item_path("movie", movie.id))
     end
 
     it "finishes as before when ffmpeg gives nothing" do

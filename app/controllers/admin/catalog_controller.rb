@@ -151,10 +151,16 @@ module Admin
 
       item_path = admin_catalog_item_path(params[:type], params[:id])
 
-      # Offer frames from the upload as thumbnail suggestions. Best-effort: if
-      # ffmpeg can't produce any, the upload finishes exactly as it used to.
+      # Offer frames from the upload as thumbnail suggestions, shown in the modal
+      # rather than by navigating away — picking/skipping (in the chooser) then
+      # reloads this page and clears the modal. Best-effort: if ffmpeg produces
+      # nothing, the upload finishes exactly as it used to.
       if saved&.suggest_thumbnails!
-        redirect_to thumbnail_suggestions_video_path(saved, return_to: item_path)
+        render turbo_stream: turbo_stream.update(
+          "modal",
+          render_to_string(partial: "thumbnail_suggestions/modal_chooser",
+                           locals: { video: saved, return_to: item_path }, formats: :html)
+        )
       else
         redirect_to item_path, notice: "Video “#{saved&.title}” was saved successfully."
       end
@@ -172,9 +178,39 @@ module Admin
                   notice: "Video “#{video.title}” file was deleted successfully — drop a new one when ready."
     end
 
+    # Rename / reposition an episode (renders the modal form).
+    def edit_episode
+      set_item
+      @episode = find_episode
+    end
+
+    def update_episode
+      set_item
+      @episode = find_episode
+      if @episode.update(episode_params)
+        render turbo_stream: [
+          turbo_stream.replace("admin_episode_#{@episode.id}",
+                               partial: "admin/catalog/episode", locals: { episode: @episode, item: @item }),
+          turbo_stream.update("modal", "")
+        ]
+      else
+        render :edit_episode, status: :unprocessable_entity
+      end
+    end
+
     private
 
     def type_of(item) = item.is_a?(Movie) ? "movie" : "serie"
+
+    # The episode, scoped through the serie's seasons so one serie can't touch
+    # another's episodes.
+    def find_episode
+      Episode.joins(:season).where(seasons: { serie_id: @item.id }).find(params[:episode_id])
+    end
+
+    def episode_params
+      params.require(:episode).permit(:title, :position)
+    end
 
     # Full-edit field assignment (feature 013). Shared columns plus the ones
     # that only one type has (original_title on Movie, status on Serie), the

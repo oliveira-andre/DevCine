@@ -3,7 +3,11 @@
     and backdrop — all in the shared modal. Flat params, matching #update. %>
 <% type = @item.is_a?(Movie) ? "movie" : "serie" %>
 <%= modal title: "Edit — #{@item.title}", size: :wide do %>
-  <%= form_with url: admin_catalog_item_path(type, @item), method: :patch, class: "modal__form upload-form" do %>
+  <%# multipart: the poster/backdrop file inputs use file_field_tag, which
+      form_with can't auto-detect, so the enctype must be set explicitly or no
+      file bytes are sent. %>
+  <%= form_with url: admin_catalog_item_path(type, @item), method: :patch,
+        multipart: true, class: "modal__form upload-form" do %>
     <% if @item.errors.any? %>
       <div class="form-flash form-flash-alert upload-form__flash"><%= @item.errors.full_messages.to_sentence %></div>
     <% end %>
@@ -42,14 +46,14 @@
 
         <% if @item.is_a?(Serie) %>
           <div class="field">
-            <%= label_tag :status, class: "field-label" %>
+            <%= label_tag :status, "Status", class: "field-label" %>
             <%= select_tag :status,
                   options_for_select(Serie.statuses.keys.map { |s| [ s.titleize, s ] }, @item.status),
                   class: "field-input" %>
           </div>
         <% else %>
           <div class="field">
-            <%= label_tag :visibility, class: "field-label" %>
+            <%= label_tag :visibility, "Visibility", class: "field-label" %>
             <%= select_tag :visibility,
                   options_for_select(
                     Video.visibilities.keys.map { |v| [ (v == "restricted" ? "Restricted (PIN) — A18" : v.titleize), v ] },

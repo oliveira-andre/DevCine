@@ -1,0 +1,33 @@
+<%# One episode row on the serie catalog page. Renamable via the pencil (opens
+    the edit modal); uploaded slots also expose download/subtitles/remove, empty
+    slots a dropzone. Wrapped in a stable id so the rename can replace it. %>
+<div class="admin-live" id="admin_episode_<%= episode.id %>">
+  <span class="admin-live__title">
+    E<%= episode.position %> — <%= episode.title %>
+    <% if episode.video.file.attached? %><span class="admin-badge">Uploaded</span><% end %>
+  </span>
+
+  <% if episode.video.file.attached? %>
+    <%= render "admin/catalog/slot_actions", video: episode.video, type: "serie", item: item, episode: episode %>
+  <% else %>
+    <%= form_with url: upload_admin_catalog_item_path("serie", item), method: :post, multipart: true, class: "dropzone-form" do %>
+      <%= hidden_field_tag :video_id, episode.video_id %>
+      <div class="dropzone" data-controller="dropzone"
+           data-action="click->dropzone#browse dragover->dropzone#over dragleave->dropzone#leave drop->dropzone#drop">
+        <%= file_field_tag :file, accept: "video/*", class: "dropzone__input",
+              data: { "dropzone-target": "input", action: "change->dropzone#changed" } %>
+        <span class="dropzone__icon"><%= icon(:upload) %></span>
+        <span data-dropzone-target="label">Drop the episode here, or click</span>
+      </div>
+    <% end %>
+    <div class="admin-live__actions">
+      <%= link_to edit_episode_admin_catalog_item_path("serie", item, episode_id: episode.id),
+            class: "admin-live__action", data: { turbo_frame: "modal" },
+            "aria-label": "Rename episode #{episode.position}" do %><%= icon(:pencil) %><% end %>
+      <%= link_to new_admin_video_subtitle_path(episode.video), class: "admin-live__action",
+            data: { turbo_frame: "modal" }, "aria-label": "Add subtitles for #{episode.title}" do %>
+        <%= icon(:captions) %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

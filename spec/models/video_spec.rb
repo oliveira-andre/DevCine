@@ -143,4 +143,45 @@ RSpec.describe Video, type: :model do
       expect(Video.cache_version([ "videos", "standalone" ])).to be > before
     end
   end
+
+  describe "#attach_generated_thumbnail! (backfill)" do
+    def fake_frame
+      file = Tempfile.new([ "frame", ".jpg" ], binmode: true)
+      file.write("\xFF\xD8".b + "jpeg-bytes")
+      file.rewind
+      file
+    end
+
+    let(:video) { create(:video, :with_file) }
+    let(:extractor) do
+      klass = class_double(VideoFrameExtractor)
+      allow(klass).to receive(:call)
+        .and_return(VideoFrameExtractor::Result.new(frames: [ fake_frame ], error: nil))
+      klass
+    end
+
+    it "attaches the extracted frame as the thumbnail" do
+      expect(video.attach_generated_thumbnail!(extractor: extractor)).to be(true)
+      expect(video.thumbnail).to be_attached
+    end
+
+    it "skips a video that already has a thumbnail" do
+      video = create(:video, :with_file, :with_thumbnail)
+
+      expect(video.attach_generated_thumbnail!(extractor: extractor)).to be(false)
+    end
+
+    it "skips a video with no file" do
+      expect(create(:video).attach_generated_thumbnail!(extractor: extractor)).to be(false)
+    end
+
+    it "returns false when no frame could be extracted" do
+      empty = class_double(VideoFrameExtractor)
+      allow(empty).to receive(:call)
+        .and_return(VideoFrameExtractor::Result.new(frames: [], error: "ffmpeg is unavailable"))
+
+      expect(video.attach_generated_thumbnail!(extractor: empty)).to be(false)
+      expect(video.thumbnail).not_to be_attached
+    end
+  end
 end
