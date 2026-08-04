@@ -1,0 +1,84 @@
+<% content_for :title, "#{@playlist.title} — Playlist" %>
+<% content_for :page_styles do %>
+  <%= stylesheet_link_tag "admin", "data-turbo-track": "dynamic" %>
+<% end %>
+
+<main class="admin">
+  <section class="admin__content">
+    <header class="admin__head">
+      <h1 class="admin__title">Playlist</h1>
+      <div class="admin__toolbar">
+        <%= link_to admin_playlists_path, class: "btn btn-outline" do %>← Back<% end %>
+        <% unless @playlist.system? %>
+          <%= button_to admin_playlist_path(@playlist), method: :delete, class: "btn btn-danger",
+                params: { back_to_index: true },
+                form: { data: { turbo_confirm: "Delete “#{@playlist.title}”? (Videos are kept.)" } } do %>
+            Delete
+          <% end %>
+        <% end %>
+      </div>
+    </header>
+
+    <%# Identity card — mirrors the serie/user detail cards. %>
+    <div class="admin-user">
+      <div class="admin-user__ident">
+        <h2 class="admin-user__name">
+          <%= @playlist.title %>
+          <% if @playlist.system? %><span class="admin-chip">System</span><% end %>
+          <span class="admin-chip"><%= @playlist.visibility.to_s.titleize %></span>
+          <% if @playlist.cloned_from_id.present? %><span class="admin-chip">Saved copy</span><% end %>
+        </h2>
+        <dl class="admin-user__facts">
+          <div><dt>Owner</dt><dd>
+            <%= link_to @playlist.user.email_address, admin_user_path(@playlist.user), class: "admin-user__link" %>
+          </dd></div>
+          <div><dt>Videos</dt><dd><%= pluralize(@playlist.videos_count, "video") %></dd></div>
+          <div><dt>Visibility</dt><dd><%= @playlist.visibility.to_s.titleize %></dd></div>
+          <div><dt>Created</dt><dd><%= l(@playlist.created_at.to_date, format: :long) %></dd></div>
+          <div><dt>Updated</dt><dd><%= l(@playlist.updated_at.to_date, format: :long) %></dd></div>
+        </dl>
+      </div>
+    </div>
+
+    <%# The member videos, in playlist order — the "episodes" of a playlist. %>
+    <section class="admin-usersection">
+      <header class="admin-usersection__head">
+        <h2 class="admin__subtitle">Videos (<%= @items.size %>)</h2>
+      </header>
+
+      <% if @items.any? %>
+        <ol class="admin-playlist-items">
+          <% @items.each_with_index do |item, index| %>
+            <% video = item.video %>
+            <li class="admin-playlist-item">
+              <span class="admin-playlist-item__pos"><%= index + 1 %></span>
+              <span class="admin-playlist-item__thumb">
+                <% if video&.thumbnail&.attached? && admin_may_see?(video) %>
+                  <%= image_tag video.thumbnail.variant(resize_to_limit: [ 160, 90 ]),
+                        alt: video.title, loading: "lazy" %>
+                <% else %>
+                  <%= icon(:videos) %>
+                <% end %>
+              </span>
+              <span class="admin-playlist-item__body">
+                <span class="admin-playlist-item__title"><%= admin_video_title(video) %></span>
+                <span class="admin-playlist-item__meta">
+                  <span class="admin-chip"><%= video.kind.to_s.titleize %></span>
+                  <%= video_visibility_badge(video) %>
+                </span>
+              </span>
+              <span class="admin-playlist-item__actions">
+                <% if admin_may_see?(video) %>
+                  <%= link_to admin_video_path(video), class: "admin-live__action",
+                        "aria-label": "Manage #{video.title}" do %><%= icon(:eye) %><% end %>
+                <% end %>
+              </span>
+            </li>
+          <% end %>
+        </ol>
+      <% else %>
+        <p class="admin-lives__empty">This playlist has no videos.</p>
+      <% end %>
+    </section>
+  </section>
+</main>

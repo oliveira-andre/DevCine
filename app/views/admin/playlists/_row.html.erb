@@ -43,6 +43,8 @@
   </details>
 
   <div class="admin-live__actions">
+    <%= link_to admin_playlist_path(item), class: "admin-live__action",
+          "aria-label": "View #{item.title}" do %><%= icon(:eye) %><% end %>
     <%= button_to admin_playlist_path(item), method: :delete,
           class: "admin-live__action admin-live__action--danger",
           form: { class: "admin-live__delete-form",

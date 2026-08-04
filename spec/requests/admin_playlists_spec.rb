@@ -81,6 +81,44 @@ RSpec.describe "Admin playlists", type: :request do
       expect(response.body).to include("hidden until you unlock")
     end
 
+    describe "GET /admin/playlists/:id" do
+      it "shows the playlist's videos in position order, like a serie's episodes" do
+        playlist = create(:playlist, user: owner, title: "Ordered List", visibility: :public)
+        first = create(:video, title: "First Track", visibility: :public)
+        second = create(:video, title: "Second Track", visibility: :public)
+        create(:playlist_item, playlist: playlist, video: second, position: 2)
+        create(:playlist_item, playlist: playlist, video: first, position: 1)
+
+        get admin_playlist_path(playlist)
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("First Track").and include("Second Track")
+        expect(response.body.index("First Track")).to be < response.body.index("Second Track")
+        expect(response.body).to include(owner.email_address)
+      end
+
+      it "masks a member title the admin is not cleared for" do
+        playlist = create(:playlist, user: owner, visibility: :public)
+        create(:playlist_item, playlist: playlist, position: 1,
+                               video: create(:video, title: "Secret Member", visibility: :private))
+
+        get admin_playlist_path(playlist)
+
+        expect(response.body).not_to include("Secret Member")
+        expect(response.body).to include("Hidden title")
+      end
+
+      it "hides delete on the system playlist" do
+        member = create(:user)
+        system_list = member.liked_playlist
+
+        get admin_playlist_path(system_list)
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).not_to include("back_to_index")
+      end
+    end
+
     it "deletes a playlist without touching its videos" do
       playlist = create(:playlist, user: owner, title: "Doomed List")
       video = create(:video, visibility: :public)
@@ -92,6 +130,15 @@ RSpec.describe "Admin playlists", type: :request do
 
       expect(video.reload).to be_persisted
       expect(response.body).to include("admin_playlist_row_#{playlist.id}")
+    end
+
+    it "redirects to the list when deleted from the detail page" do
+      playlist = create(:playlist, user: owner, title: "Detail Delete List")
+
+      delete admin_playlist_path(playlist, back_to_index: true)
+
+      expect(response).to have_http_status(:see_other)
+      expect(response).to redirect_to(admin_playlists_path)
     end
 
     it "says so when there is nothing to show" do

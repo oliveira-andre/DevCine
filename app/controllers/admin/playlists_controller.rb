@@ -21,10 +21,24 @@ module Admin
       @pagy, @playlists = paginate(scope, limit: PAGE_LIMIT)
     end
 
+    def show
+      @playlist = Playlist.includes(:user).find(params[:id])
+      # Every member in playlist order — like a serie's episodes. Non-public
+      # titles stay masked in the view until the admin unlocks their PIN.
+      @items = @playlist.playlist_items.order(:position)
+                        .includes(video: :thumbnail_attachment)
+    end
+
     def destroy
       @playlist = Playlist.find(params[:id])
       @playlist.destroy
-      render turbo_stream: turbo_stream.remove("admin_playlist_row_#{@playlist.id}")
+
+      if params[:back_to_index]
+        flash[:_full_render] = true
+        redirect_to admin_playlists_path, notice: "Playlist deleted.", status: :see_other
+      else
+        render turbo_stream: turbo_stream.remove("admin_playlist_row_#{@playlist.id}")
+      end
     end
   end
 end
