@@ -5,8 +5,8 @@ RSpec.describe "Sessions", type: :request do
     it "renders the sign-in card" do
       get new_session_path
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include("Login")
-      expect(response.body).to include("Senha")
+      expect(response.body).to include("Email")
+      expect(response.body).to include("Password")
     end
   end
 

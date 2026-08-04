@@ -3,8 +3,8 @@ require 'rails_helper'
 RSpec.describe "Account profile", type: :system do
   def sign_in_as(user)
     visit new_session_path
-    fill_in "Login", with: user.email_address
-    fill_in "Senha", with: "password123"
+    fill_in "Email", with: user.email_address
+    fill_in "Password", with: "password123"
     click_button "Login"
     expect(page).to have_css("main.home")
   end

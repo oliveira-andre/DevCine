@@ -15,23 +15,26 @@
     <%= form_with model: @user, url: registration_path, class: "auth__form",
           data: { controller: "password-confirmation" } do |form| %>
       <div class="field">
-        <%= form.label :email_address, "Login", class: "field-label" %>
+        <%= form.label :email_address, "Email", class: "field-label" %>
         <%= form.email_field :email_address, required: true, autofocus: true,
-              autocomplete: "email", class: "field-input" %>
+              autocomplete: "email", class: "field-input",
+              placeholder: "email@example.com" %>
       </div>
 
       <div class="field">
-        <%= form.label :password, "Senha", class: "field-label" %>
+        <%= form.label :password, "Password", class: "field-label" %>
         <%= form.password_field :password, required: true,
               autocomplete: "new-password", maxlength: 72, class: "field-input",
+              placeholder: "Create a password",
               data: { "password-confirmation-target": "password",
                       action: "input->password-confirmation#check" } %>
       </div>
 
       <div class="field">
-        <%= form.label :password_confirmation, "Confirme a Senha", class: "field-label" %>
+        <%= form.label :password_confirmation, "Confirm password", class: "field-label" %>
         <%= form.password_field :password_confirmation, required: true,
               autocomplete: "new-password", maxlength: 72, class: "field-input",
+              placeholder: "Confirm your password",
               data: { "password-confirmation-target": "confirmation",
                       action: "input->password-confirmation#check" } %>
         <p class="field-error" data-password-confirmation-target="message"></p>

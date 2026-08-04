@@ -10,8 +10,8 @@ RSpec.describe "Player keyboard shortcuts", type: :system do
 
   def sign_in_as(u)
     visit new_session_path
-    fill_in "Login", with: u.email_address
-    fill_in "Senha", with: "password123"
+    fill_in "Email", with: u.email_address
+    fill_in "Password", with: "password123"
     click_button "Login"
     expect(page).to have_css("main.home")
   end

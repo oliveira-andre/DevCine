@@ -13,7 +13,7 @@
 
     <%= form_with url: passwords_path, class: "auth__form" do |form| %>
       <div class="field">
-        <%= form.label :email_address, "Login", class: "field-label" %>
+        <%= form.label :email_address, "Email", class: "field-label" %>
         <%= form.email_field :email_address, required: true, autofocus: true,
               autocomplete: "username", class: "field-input",
               value: params[:email_address] %>

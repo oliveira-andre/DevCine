@@ -21,8 +21,8 @@ RSpec.describe "Catalog controls", type: :system do
     Ordering.where(default: true).update_all(default: false)
     Ordering.bump_version(Ordering::CACHE_SCOPE)
     visit new_session_path
-    fill_in "Login", with: user.email_address
-    fill_in "Senha", with: "password123"
+    fill_in "Email", with: user.email_address
+    fill_in "Password", with: "password123"
     click_button "Login"
     expect(page).to have_css("main.home")
   end

@@ -15,19 +15,21 @@
 
     <%= form_with url: session_path, class: "auth__form" do |form| %>
       <div class="field">
-        <%= form.label :email_address, "Login", class: "field-label" %>
+        <%= form.label :email_address, "Email", class: "field-label" %>
         <%= form.email_field :email_address, required: true, autofocus: true,
               autocomplete: "username", class: "field-input",
+              placeholder: "email@example.com",
               value: params[:email_address] %>
       </div>
 
       <div class="field">
         <div class="field-label-row">
-          <%= form.label :password, "Senha", class: "field-label" %>
+          <%= form.label :password, "Password", class: "field-label" %>
           <%= link_to "Forgot your password?", new_password_path, class: "auth__link auth__link--muted" %>
         </div>
         <%= form.password_field :password, required: true,
-              autocomplete: "current-password", maxlength: 72, class: "field-input" %>
+              autocomplete: "current-password", maxlength: 72, class: "field-input",
+              placeholder: "Your password" %>
       </div>
 
       <%= form.submit "Login", class: "btn btn-primary auth__submit" %>

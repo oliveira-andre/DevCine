@@ -58,7 +58,12 @@ Rails.application.configure do
   # config.action_mailer.raise_delivery_errors = false
 
   # Set host to be used by links generated in mailer templates.
-  config.action_mailer.default_url_options = { host: ENV["DEVCINE_DOMAIN"] }
+  config.action_mailer.default_url_options = { host: ENV.fetch("DEVCINE_DOMAIN") } unless ENV["SECRET_KEY_BASE_DUMMY"]
+
+  # Set host for url_for / *_url helpers used outside an HTTP request (jobs,
+  # Turbo broadcasts, ActiveStorage url_for(blob)). Without this, url helpers
+  # in broadcasts fall back to "www.example.com".
+  Rails.application.routes.default_url_options[:host] = ENV.fetch("DEVCINE_DOMAIN") unless ENV["SECRET_KEY_BASE_DUMMY"]
 
   # Specify outgoing SMTP server. Remember to add smtp/* credentials via rails credentials:edit.
   # config.action_mailer.smtp_settings = {

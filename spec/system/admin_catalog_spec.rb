@@ -6,8 +6,8 @@ RSpec.describe "Admin catalog wizard", type: :system do
 
   before do
     visit new_session_path
-    fill_in "Login", with: admin.email_address
-    fill_in "Senha", with: "password123"
+    fill_in "Email", with: admin.email_address
+    fill_in "Password", with: "password123"
     click_button "Login"
     expect(page).to have_css("main.home")
   end

@@ -25,6 +25,15 @@
   transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
 }
 .field-input::placeholder { color: var(--text-tertiary); }
+
+/* Rails wraps an invalid field in <div class="field_with_errors">. Without
+   this, the wrapped input stops being a direct flex child of .field and
+   collapses to its default content width — the field visibly shrinks on error.
+   `display: contents` makes the wrapper transparent to layout, so the input
+   keeps behaving (and sizing) exactly as it does when valid. */
+.field_with_errors {
+  display: contents;
+}
 .field-input:focus {
   outline: none;
   border-color: var(--accent-blue);
