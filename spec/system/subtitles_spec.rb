@@ -63,6 +63,19 @@ RSpec.describe "Subtitles", type: :system do
     end
   end
 
+  it "shows the language menu for a single-track video too" do
+    # An empty popup reads as "no subtitles" — the one track must be visible
+    # (auto-selected) even though there is nothing to switch to.
+    user.update!(subtitles_enabled: true)
+    visit player_path(video.slug)
+    find(".subtitles__toggle").click
+
+    within(".subtitles__popup") do
+      expect(page).to have_css("[data-subtitle-settings-target='languageRow']", visible: true)
+      expect(page).to have_select(options: ["English"])
+    end
+  end
+
   describe "admin manager (US4)" do
     let(:admin) { create(:user, :admin, password: "password123") }
 

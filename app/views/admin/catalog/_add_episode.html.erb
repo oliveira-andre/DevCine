@@ -1,0 +1,9 @@
+<%# The "add a brand-new episode" dropzone at the end of a season. Wrapped in a
+    stable id so the upload flow can stream a fresh copy back in (resetting the
+    "Uploading…" state) and insert the new episode row just before it.
+    Locals: season, item. %>
+<div class="admin-live admin-catalog__addepisode" id="admin_add_episode_<%= season.id %>">
+  <%= render "admin/catalog/video_upload", type: "serie", item: item,
+        scope_field: :season_id, scope_value: season.id, title_field: true,
+        label: "Add episode: drop the video, or click" %>
+</div>

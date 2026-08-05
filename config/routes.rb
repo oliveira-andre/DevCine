@@ -90,6 +90,9 @@ Rails.application.routes.draw do
       member do
         post   :upload
         delete :upload, action: :remove_upload
+        # Pick / decline the ffmpeg-suggested thumbnail for a just-uploaded slot.
+        patch  "thumbnail", action: :choose_thumbnail, as: :choose_thumbnail
+        delete "thumbnail", action: :skip_thumbnail,  as: :skip_thumbnail
         # Rename/reposition an episode of a serie item.
         get   "episodes/:episode_id/edit", action: :edit_episode, as: :edit_episode
         patch "episodes/:episode_id",      action: :update_episode, as: :episode

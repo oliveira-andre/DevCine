@@ -25,8 +25,11 @@ export default class extends Controller {
   }
 
   // Native "close" event (button/Escape/programmatic): empty the frame.
+  // The OUTERMOST modal frame, not closest(): a modal delivered by a Turbo
+  // Stream update nests the helper's own frame inside the page's shared one,
+  // and emptying only the inner copy would leave residue in the outer frame.
   onClose() {
-    const frame = this.element.closest("turbo-frame")
+    const frame = document.querySelector("turbo-frame#modal")
     if (frame) {
       frame.removeAttribute("src")
       frame.innerHTML = ""

@@ -2,12 +2,12 @@
     confirmed remove (purges the file so a new one can be dropped).
     Locals: video, type, item. %>
 <div class="admin-live__actions admin-file">
+  <span class="admin-file__name"><%= video.file.filename %></span>
   <% if local_assigns[:episode] %>
     <%= link_to edit_episode_admin_catalog_item_path("serie", item, episode_id: episode.id),
           class: "admin-live__action", data: { turbo_frame: "modal" },
           "aria-label": "Rename episode #{episode.position}" do %><%= icon(:pencil) %><% end %>
   <% end %>
-  <span class="admin-file__name"><%= video.file.filename %></span>
   <%= link_to rails_blob_path(video.file, disposition: "attachment"),
         class: "admin-live__action", "aria-label": "Download #{video.file.filename}" do %>
     <%= icon(:download) %>

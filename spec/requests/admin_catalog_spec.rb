@@ -216,6 +216,40 @@ RSpec.describe "Admin::Catalog", type: :request do
       expect(response.body).to include('name="backdrop"')
     end
 
+    describe "thumbnail suggestions in the edit modal" do
+      it "offers the async frame chooser when the movie's video has no thumbnail" do
+        get edit_admin_catalog_item_path("movie", movie), headers: { "Turbo-Frame" => "modal" }
+
+        expect(response.body).to include('<turbo-frame id="thumbnail_suggestions"')
+        expect(response.body).to include(thumbnail_suggestions_video_path(movie.video))
+      end
+
+      it "omits the chooser once a thumbnail exists" do
+        movie.video.thumbnail.attach(io: StringIO.new("jpg"), filename: "t.jpg", content_type: "image/jpeg")
+        get edit_admin_catalog_item_path("movie", movie), headers: { "Turbo-Frame" => "modal" }
+
+        expect(response.body).not_to include('id="thumbnail_suggestions"')
+      end
+
+      it "promotes the picked frame on save and clears the other candidates" do
+        movie.video.thumbnail_candidates.attach(
+          io: StringIO.new("f1"), filename: "suggestion-01.jpg", content_type: "image/jpeg"
+        )
+        movie.video.thumbnail_candidates.attach(
+          io: StringIO.new("f2"), filename: "suggestion-02.jpg", content_type: "image/jpeg"
+        )
+        chosen = movie.video.ordered_thumbnail_candidates.last
+
+        patch_movie(title: "Full Edit Movie",
+                    video: { thumbnail_signed_id: chosen.signed_id })
+
+        video = movie.video.reload
+        expect(video.thumbnail).to be_attached
+        expect(video.thumbnail.blob.filename.to_s).to eq("suggestion-02.jpg")
+        expect(video.thumbnail_candidates.count).to eq(0)
+      end
+    end
+
     it "updates maturity, original title and release date" do
       patch_movie(title: "Full Edit Movie", original_title: "Le Film",
                   maturity_rating: "A16", release_date: "1999-03-31")

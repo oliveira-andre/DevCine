@@ -1,9 +1,8 @@
-<%# The suggested frames, as a pickable grid. Shared by the account modal step
-    and the admin catalog modal. Locals: video, return_to (optional).
-    The forms target _top: in the catalog flow this chooser lives inside the
-    "modal" turbo-frame, and picking/skipping must reload the whole page (so the
-    episode row flips from "Uploading…" to its uploaded state) rather than
-    navigate the frame. %>
+<%# The suggested frames, as a pickable grid — the member-facing full-page
+    chooser (thumbnail_suggestions#show). The admin catalog modal has its own
+    stream-driven chooser: admin/catalog/_thumbnail_chooser.
+    Locals: video, return_to (optional). The forms target _top so picking or
+    skipping navigates the page rather than any enclosing frame. %>
 <p class="thumb-suggest__intro">
   Pick a frame from “<%= video.title %>” to use as its thumbnail.
 </p>

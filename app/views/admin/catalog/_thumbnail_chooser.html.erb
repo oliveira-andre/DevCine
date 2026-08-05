@@ -1,0 +1,35 @@
+<%# The thumbnail chooser inside the shared modal, shown right after a catalog
+    upload. The slot row was already stream-updated by #upload, so picking and
+    skipping only answer with streams that close the modal — no page reload.
+    (The ✕ close is equally safe: it just leaves the suggestions unchosen.)
+    Locals: video, item, type. %>
+<%= modal title: "Choose a thumbnail", size: :wide do %>
+  <div class="thumb-suggest">
+    <p class="thumb-suggest__intro">
+      Pick a frame from “<%= video.title %>” to use as its thumbnail.
+    </p>
+
+    <div class="thumb-suggest__grid">
+      <% video.ordered_thumbnail_candidates.each_with_index do |candidate, index| %>
+        <%= form_with url: choose_thumbnail_admin_catalog_item_path(type, item, video_id: video.id),
+              method: :patch, class: "thumb-suggest__option" do %>
+          <%= hidden_field_tag :signed_id, candidate.signed_id %>
+          <button type="submit" class="thumb-suggest__pick"
+                  aria-label="Use frame <%= index + 1 %> as the thumbnail">
+            <%= image_tag candidate.variant(resize_to_limit: [ 480, 270 ]),
+                  class: "thumb-suggest__img", alt: "Suggested frame #{index + 1}" %>
+            <span class="thumb-suggest__use"><%= icon(:check) %><span>Use this</span></span>
+          </button>
+        <% end %>
+      <% end %>
+    </div>
+
+    <div class="thumb-suggest__skiprow">
+      <%= button_to skip_thumbnail_admin_catalog_item_path(type, item, video_id: video.id),
+            method: :delete, class: "btn btn-outline thumb-suggest__skip",
+            form: { class: "thumb-suggest__skip-form" } do %>
+        Skip — no thumbnail
+      <% end %>
+    </div>
+  </div>
+<% end %>

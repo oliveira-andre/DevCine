@@ -111,6 +111,22 @@
       </div>
     </div>
 
+    <%# A movie whose video still lacks a thumbnail: fetch ffmpeg frame
+        suggestions in their own async request (the modal renders instantly with
+        a spinner; Turbo swaps the frames in when ready). The picked radio
+        submits with this form as video[thumbnail_signed_id]. %>
+    <% if @item.is_a?(Movie) && @item.video&.file&.attached? && !@item.video.thumbnail.attached? %>
+      <div class="field">
+        <span class="field-label">Thumbnail</span>
+        <%= turbo_frame_tag "thumbnail_suggestions",
+              src: thumbnail_suggestions_video_path(@item.video) do %>
+          <p class="thumb-suggest__loading">
+            <%= icon(:spinner) %><span>Looking for good frames…</span>
+          </p>
+        <% end %>
+      </div>
+    <% end %>
+
     <div class="modal__footer">
       <button type="button" class="btn btn-outline" data-action="modal#close">Cancel</button>
       <%= submit_tag "Save", class: "btn btn-primary" %>

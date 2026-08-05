@@ -21,28 +21,7 @@
 
     <% if @item.is_a?(Movie) %>
       <h2 class="admin__subtitle">Movie file</h2>
-      <% if @item.video.file.attached? %>
-        <div class="admin-lives">
-          <div class="admin-live">
-            <span class="admin-live__title">
-              <%= @item.video.title %><span class="admin-badge">Uploaded</span>
-            </span>
-            <%= render "admin/catalog/slot_actions", video: @item.video, type: "movie", item: @item %>
-          </div>
-        </div>
-      <% else %>
-        <div class="admin-live">
-          <%= render "admin/catalog/video_upload", type: "movie", item: @item,
-                scope_field: :video_id, scope_value: @item.video_id, big: true,
-                label: "Drag & drop the movie file, or click to browse" %>
-          <div class="admin-live__actions">
-            <%= link_to new_admin_video_subtitle_path(@item.video), class: "admin-live__action",
-                  data: { turbo_frame: "modal" }, "aria-label": "Add subtitles for #{@item.title}" do %>
-              <%= icon(:captions) %>
-            <% end %>
-          </div>
-        </div>
-      <% end %>
+      <%= render "admin/catalog/movie_slot", item: @item %>
     <% else %>
       <% @seasons.each do |season| %>
         <h2 class="admin__subtitle"><%= season.name %></h2>
@@ -52,11 +31,7 @@
           <% end %>
 
           <%# Add a brand-new episode (vanilla flow / extending an import). %>
-          <div class="admin-live admin-catalog__addepisode">
-            <%= render "admin/catalog/video_upload", type: "serie", item: @item,
-                  scope_field: :season_id, scope_value: season.id, title_field: true,
-                  label: "Add episode: drop the video, or click" %>
-          </div>
+          <%= render "admin/catalog/add_episode", season: season, item: @item %>
         </div>
       <% end %>
     <% end %>

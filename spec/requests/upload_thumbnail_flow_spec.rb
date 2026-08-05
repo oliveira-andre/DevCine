@@ -172,7 +172,7 @@ RSpec.describe "Upload thumbnail suggestions", type: :request do
 
     before { sign_in_as(admin) }
 
-    it "opens the thumbnail chooser in the modal, without navigating away" do
+    it "opens the thumbnail chooser in the modal AND settles the slot row in place" do
       stub_extractor(frames: 3)
       placeholder = movie.video
 
@@ -181,23 +181,77 @@ RSpec.describe "Upload thumbnail suggestions", type: :request do
            headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
       expect(placeholder.reload.thumbnail_candidates.count).to eq(3)
-      # A Turbo Stream that fills the shared modal — not a redirect.
+      # Turbo Streams, not a redirect: the chooser fills the shared modal and
+      # the slot row flips to Uploaded behind it — so even a plain ✕ close
+      # leaves a correct page.
       expect(response.media_type).to eq("text/vnd.turbo-stream.html")
       expect(response.body).to include('target="modal"')
       expect(response.body).to include("Choose a thumbnail")
-      # The chooser posts the pick back with a way home to the catalog item.
-      expect(response.body).to include(admin_catalog_item_path("movie", movie.id))
+      expect(response.body).to include("admin_movie_slot_#{movie.id}")
+      # The chooser posts the pick/skip back to the owning catalog item.
+      expect(response.body).to include(choose_thumbnail_admin_catalog_item_path("movie", movie.id))
+      expect(response.body).to include(skip_thumbnail_admin_catalog_item_path("movie", movie.id))
     end
 
-    it "finishes as before when ffmpeg gives nothing" do
+    it "streams the settled row and a toast when ffmpeg gives nothing" do
       stub_extractor_failure
       placeholder = movie.video
 
       post upload_admin_catalog_item_path("movie", movie.id),
-           params: { file: video_upload, video_id: placeholder.id }
+           params: { file: video_upload, video_id: placeholder.id },
+           headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
-      expect(response).to redirect_to(admin_catalog_item_path("movie", movie.id))
-      expect(flash[:notice]).to match(/saved successfully/)
+      expect(response.media_type).to eq("text/vnd.turbo-stream.html")
+      expect(response.body).to include("admin_movie_slot_#{movie.id}")
+      expect(response.body).to include("saved successfully")
+      expect(response.body).not_to include("Choose a thumbnail")
+    end
+
+    it "choosing a frame promotes it and closes the modal without a redirect" do
+      placeholder = movie.video
+      placeholder.file.attach(io: StringIO.new("bytes"), filename: "m.mp4", content_type: "video/mp4")
+      placeholder.thumbnail_candidates.attach(
+        io: StringIO.new("f1"), filename: "suggestion-01.jpg", content_type: "image/jpeg"
+      )
+      chosen = placeholder.ordered_thumbnail_candidates.first
+
+      patch choose_thumbnail_admin_catalog_item_path("movie", movie.id),
+            params: { video_id: placeholder.id, signed_id: chosen.signed_id }
+
+      placeholder.reload
+      expect(placeholder.thumbnail).to be_attached
+      expect(placeholder.thumbnail_candidates.count).to eq(0)
+      expect(response.media_type).to eq("text/vnd.turbo-stream.html")
+      expect(response.body).to include('action="update" target="modal"')
+      expect(response.body).to include("Thumbnail set.")
+    end
+
+    it "skipping clears the candidates and closes the modal without a redirect" do
+      placeholder = movie.video
+      placeholder.thumbnail_candidates.attach(
+        io: StringIO.new("f1"), filename: "suggestion-01.jpg", content_type: "image/jpeg"
+      )
+
+      delete skip_thumbnail_admin_catalog_item_path("movie", movie.id),
+             params: { video_id: placeholder.id }
+
+      expect(placeholder.reload.thumbnail_candidates.count).to eq(0)
+      expect(placeholder.thumbnail).not_to be_attached
+      expect(response.media_type).to eq("text/vnd.turbo-stream.html")
+      expect(response.body).to include('action="update" target="modal"')
+    end
+
+    it "rejects a video that does not belong to the item" do
+      foreign = create(:video, :with_file)
+      foreign.thumbnail_candidates.attach(
+        io: StringIO.new("f1"), filename: "suggestion-01.jpg", content_type: "image/jpeg"
+      )
+
+      patch choose_thumbnail_admin_catalog_item_path("movie", movie.id),
+            params: { video_id: foreign.id, signed_id: "x" }
+
+      expect(response).to have_http_status(:not_found)
+      expect(foreign.reload.thumbnail_candidates.count).to eq(1)
     end
   end
 

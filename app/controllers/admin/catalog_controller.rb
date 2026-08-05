@@ -118,6 +118,7 @@ module Admin
 
       if @item.save
         apply_movie_visibility
+        apply_chosen_thumbnail
         flash.now[:notice] = "“#{@item.title}” was saved successfully."
         render turbo_stream: [
           turbo_stream.update("modal", ""),
@@ -143,33 +144,54 @@ module Admin
         return
       end
 
+      set_item
       saved =
         if params[:video_id].present?
-          fill_placeholder(Video.find(params[:video_id]), file)
+          fill_placeholder(find_slot_video(params[:video_id]), file)
         elsif params[:season_id].present?
-          add_episode(Season.find(params[:season_id]), file).video
+          @season = @item.seasons.find(params[:season_id])
+          @new_episode = add_episode(@season, file)
+          @new_episode.video
         end
 
       # The bytes are now copied into Active Storage — drop the chunk scratch file.
       @chunked_upload&.discard
 
-      item_path = admin_catalog_item_path(params[:type], params[:id])
-
-      # Offer frames from the upload as thumbnail suggestions, shown in the modal
-      # rather than by navigating away — picking/skipping (in the chooser) then
-      # reloads this page and clears the modal. Best-effort: if ffmpeg produces
-      # nothing, the upload finishes exactly as it used to.
+      # The slot is updated IN PLACE (row swap / new row + a fresh add form), so
+      # nothing depends on a page reload — choosing, skipping or plain ✕-closing
+      # the chooser modal all leave a correct page behind. Frames are offered
+      # best-effort: if ffmpeg produces nothing, the streams just carry a toast.
+      streams = upload_row_streams(saved)
       if saved&.suggest_thumbnails!
-        render turbo_stream: turbo_stream.update(
-          "modal",
-          render_to_string(partial: "thumbnail_suggestions/modal_chooser",
-                           locals: { video: saved, return_to: item_path }, formats: :html)
-        )
+        streams << turbo_stream.update("modal", partial: "admin/catalog/thumbnail_chooser",
+                                                locals: { video: saved, item: @item, type: params[:type] })
       else
-        redirect_to item_path, notice: "Video “#{saved&.title}” was saved successfully."
+        flash.now[:notice] = "Video “#{saved&.title}” was saved successfully."
+        streams << turbo_stream.update("flash", partial: "shared/flash")
       end
+      render turbo_stream: streams
     rescue ActiveRecord::RecordInvalid => e
       redirect_to admin_catalog_item_path(params[:type], params[:id]), alert: e.message
+    end
+
+    # Promote a suggested frame for a just-uploaded slot. The row is already
+    # correct (updated by #upload), so the answer only closes the modal.
+    def choose_thumbnail
+      set_item
+      video = find_slot_video(params[:video_id])
+      if video.accept_thumbnail_candidate(params[:signed_id])
+        close_chooser(notice: "Thumbnail set.")
+      else
+        close_chooser(alert: "That suggestion is no longer available.")
+      end
+    end
+
+    # Decline the suggestions and keep the slot as it is.
+    def skip_thumbnail
+      set_item
+      video = find_slot_video(params[:video_id])
+      video.clear_thumbnail_candidates!
+      close_chooser(notice: "Saved without a thumbnail.")
     end
 
     # Remove an uploaded file so a new one can be dropped: purge the attachment
@@ -252,6 +274,17 @@ module Admin
       @item.video.update(attrs)
     end
 
+    # The edit modal offers ffmpeg frame suggestions (lazy turbo frame) when a
+    # movie's video has no thumbnail; the picked radio rides along with the
+    # form as video[thumbnail_signed_id] — same contract as the member upload.
+    # Accepting also clears the remaining candidates.
+    def apply_chosen_thumbnail
+      chosen = params.dig(:video, :thumbnail_signed_id)
+      return if chosen.blank? || !@item.is_a?(Movie) || @item.video.nil?
+
+      @item.video.accept_thumbnail_candidate(chosen)
+    end
+
     # Movies are addressed by uuid, series by friendly slug (see routes).
     def set_item
       @item =
@@ -321,6 +354,50 @@ module Admin
       )
       video.file.attach(file)
       season.episodes.create!(video: video, title: title, position: position)
+    end
+
+    # A slot video may only be addressed through the catalog item that owns it —
+    # the movie's own feature video or one of the serie's episode videos.
+    def find_slot_video(video_id)
+      if @item.is_a?(Movie)
+        raise ActiveRecord::RecordNotFound unless @item.video_id.to_s == video_id.to_s
+
+        @item.video
+      else
+        Video.joins(episodes: :season).where(seasons: { serie_id: @item.id }).find(video_id)
+      end
+    end
+
+    # Streams that flip the uploaded slot to its settled state: the movie slot
+    # or episode row swaps in place; a brand-new episode's row is inserted where
+    # it belongs and the add-episode form comes back fresh (clearing its
+    # "Uploading…" label) so the next episode can be dropped straight away.
+    def upload_row_streams(video)
+      if @item.is_a?(Movie)
+        [ turbo_stream.replace("admin_movie_slot_#{@item.id}",
+                               partial: "admin/catalog/movie_slot", locals: { item: @item }) ]
+      elsif @new_episode
+        [ turbo_stream.before("admin_add_episode_#{@season.id}",
+                              partial: "admin/catalog/episode",
+                              locals: { episode: @new_episode, item: @item }),
+          turbo_stream.replace("admin_add_episode_#{@season.id}",
+                               partial: "admin/catalog/add_episode",
+                               locals: { season: @season, item: @item }) ]
+      else
+        episode = Episode.joins(:season).where(seasons: { serie_id: @item.id }).find_by!(video_id: video.id)
+        [ turbo_stream.replace("admin_episode_#{episode.id}",
+                               partial: "admin/catalog/episode",
+                               locals: { episode: episode, item: @item }) ]
+      end
+    end
+
+    def close_chooser(notice: nil, alert: nil)
+      flash.now[:notice] = notice if notice
+      flash.now[:alert] = alert if alert
+      render turbo_stream: [
+        turbo_stream.update("modal", ""),
+        turbo_stream.update("flash", partial: "shared/flash")
+      ]
     end
 
     # The video slot either arrives as a direct multipart upload (small files)

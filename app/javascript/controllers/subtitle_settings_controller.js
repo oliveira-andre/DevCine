@@ -100,7 +100,10 @@ export default class extends Controller {
   populateLanguages() {
     if (!this.hasLanguageTarget) return
     const tracks = this.tracksValue || []
-    if (tracks.length <= 1) return
+    // Show the row for a single track too: the player auto-selects it, but an
+    // empty popup reads as "no subtitles" to the viewer. Hide only when the
+    // video truly has no tracks.
+    if (!tracks.length) return
     this.languageTarget.replaceChildren()
     tracks.forEach((t) => {
       const o = document.createElement("option")
