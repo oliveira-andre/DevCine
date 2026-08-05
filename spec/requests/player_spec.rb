@@ -31,12 +31,15 @@ RSpec.describe "Player", type: :request do
   end
 
   describe "GET /playing/:slug" do
-    it "renders the player with the proxy media source for a public video" do
+    it "renders the player with the redirect-mode media source for a public video" do
       sign_in
       video = create(:video, :with_file, visibility: :public)
       get player_path(video.slug)
       expect(response).to have_http_status(:ok)
-      expect(response.body).to include("/rails/active_storage/blobs/proxy/")
+      # Redirect mode (disk controller) streams ranges of any size; the proxy
+      # 416s a whole-file range beyond streaming_chunk_max_size, so multi-GB
+      # movies can only play through this path.
+      expect(response.body).to include("/rails/active_storage/blobs/redirect/")
       expect(response.body).to include(video.title)
     end
 

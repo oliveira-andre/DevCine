@@ -14,7 +14,13 @@
       <div id="player-stage" data-slug="<%= @video.slug %>"></div>
       <div data-controller="player-source"
            data-player-source-slug-value="<%= @video.slug %>"
-           data-player-source-src-value="<%= url_for(@video.file) %>"
+           <%# Explicitly redirect mode, NOT the proxy (rails_blob_path would
+               still resolve to the proxy via resolve_model_to_route): the disk
+               controller streams byte ranges of any size (Rack::Files), while
+               the proxy 416s a range larger than streaming_chunk_max_size and
+               buffers it in memory — a <video> asks for bytes=0- (the whole
+               file), so multi-GB movies only play through the redirect path. %>
+           data-player-source-src-value="<%= rails_storage_redirect_path(@video.file) %>"
            data-player-source-artwork-value="<%= @video.thumbnail.attached? ? url_for(@video.thumbnail) : "/logo.png" %>"
            data-player-source-title-value="<%= @video.title %>"
            data-player-source-album-value="<%= @album %>"

@@ -78,7 +78,11 @@ class PlayerController < ApplicationController
 
       {
         slug: video.slug,
-        src: rails_storage_proxy_path(video.file),
+        # Redirect mode (disk controller = Rack::Files) — the proxy cannot serve
+        # a full-file byte range for multi-GB videos (see player/show.html.erb).
+        # rails_storage_redirect_path, not rails_blob_path: the latter resolves
+        # back to the proxy via resolve_model_to_route.
+        src: rails_storage_redirect_path(video.file),
         artwork: video.thumbnail.attached? ? rails_storage_proxy_path(video.thumbnail) : "/logo.png",
         title: video.title,
         album: album_for(video, list),

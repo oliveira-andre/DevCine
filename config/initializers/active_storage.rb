@@ -1,16 +1,17 @@
-# Active Storage proxy range limit.
+# How media is served (all local Disk, no object storage):
 #
-# The proxy (config.active_storage.resolve_model_to_route = :rails_storage_proxy)
-# serves a single Range response only if it is smaller than
-# `streaming_chunk_max_size` — otherwise ActiveStorage::Streaming#ranges_valid?
-# returns false and the request gets a 416. A <video> element opens with
-# `Range: bytes=0-` (the entire file), so any media larger than the cap fails to
-# play through the proxy. The default cap is 100 MB; our seeded sample clip is
-# ~435 MB, so raise it for local streaming.
+# - Small assets (posters, thumbnails, ~15s hover previews) go through the
+#   proxy (config.active_storage.resolve_model_to_route = :rails_storage_proxy)
+#   — cacheable, and comfortably inside the proxy's default 100 MB range cap.
 #
-# NOTE: an over-cap single range is buffered in memory before being sent, so in
-# production prefer a CDN in front of the proxy (it caches and serves byte ranges)
-# and reasonably sized / transcoded media rather than raising this much further.
-# Must set the config option (ActiveStorage applies it in an after_initialize,
-# overwriting any direct assignment to ActiveStorage.streaming_chunk_max_size).
-Rails.application.config.active_storage.streaming_chunk_max_size = 500.megabytes
+# - The player's video source uses REDIRECT mode (rails_storage_redirect_path;
+#   note rails_blob_path resolves back to the proxy via resolve_model_to_route):
+#   a <video> element opens with `Range: bytes=0-` (the entire file), and the
+#   proxy both rejects a range larger than `streaming_chunk_max_size` with a
+#   416 AND buffers the whole requested range in memory before sending. The
+#   redirect path lands on ActiveStorage::DiskController, which serves byte
+#   ranges of any size via Rack::Files at constant memory — the only way a
+#   multi-GB movie can play from local Disk. Do not switch the player back to
+#   rails_storage_proxy_path, and do not "fix" a playback 416 by raising
+#   streaming_chunk_max_size: past ~1 GB that trades the 416 for Puma
+#   swallowing the file size in RAM per viewer.
