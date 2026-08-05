@@ -32,16 +32,9 @@
         </div>
       <% else %>
         <div class="admin-live">
-          <%= form_with url: upload_admin_catalog_item_path("movie", @item), method: :post, multipart: true, class: "dropzone-form" do %>
-            <%= hidden_field_tag :video_id, @item.video_id %>
-            <div class="dropzone dropzone--big" data-controller="dropzone"
-                 data-action="click->dropzone#browse dragover->dropzone#over dragleave->dropzone#leave drop->dropzone#drop">
-              <%= file_field_tag :file, accept: "video/*", class: "dropzone__input",
-                    data: { "dropzone-target": "input", action: "change->dropzone#changed" } %>
-              <span class="dropzone__icon"><%= icon(:upload) %></span>
-              <span data-dropzone-target="label">Drag &amp; drop the movie file, or click to browse</span>
-            </div>
-          <% end %>
+          <%= render "admin/catalog/video_upload", type: "movie", item: @item,
+                scope_field: :video_id, scope_value: @item.video_id, big: true,
+                label: "Drag & drop the movie file, or click to browse" %>
           <div class="admin-live__actions">
             <%= link_to new_admin_video_subtitle_path(@item.video), class: "admin-live__action",
                   data: { turbo_frame: "modal" }, "aria-label": "Add subtitles for #{@item.title}" do %>
@@ -60,19 +53,9 @@
 
           <%# Add a brand-new episode (vanilla flow / extending an import). %>
           <div class="admin-live admin-catalog__addepisode">
-            <%= form_with url: upload_admin_catalog_item_path("serie", @item), method: :post, multipart: true, class: "dropzone-form" do %>
-              <%= hidden_field_tag :season_id, season.id %>
-              <div class="admin-catalog__upload">
-                <%= text_field_tag :title, nil, placeholder: "New episode title (optional)", class: "field-input" %>
-                <div class="dropzone" data-controller="dropzone"
-                     data-action="click->dropzone#browse dragover->dropzone#over dragleave->dropzone#leave drop->dropzone#drop">
-                  <%= file_field_tag :file, accept: "video/*", class: "dropzone__input",
-                        data: { "dropzone-target": "input", action: "change->dropzone#changed" } %>
-                  <span class="dropzone__icon"><%= icon(:upload) %></span>
-                  <span data-dropzone-target="label">Add episode: drop the video, or click</span>
-                </div>
-              </div>
-            <% end %>
+            <%= render "admin/catalog/video_upload", type: "serie", item: @item,
+                  scope_field: :season_id, scope_value: season.id, title_field: true,
+                  label: "Add episode: drop the video, or click" %>
           </div>
         </div>
       <% end %>

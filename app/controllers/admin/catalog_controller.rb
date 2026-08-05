@@ -136,7 +136,8 @@ module Admin
 
     # Attach a file to a placeholder video, or add a brand-new episode.
     def upload
-      if params[:file].blank?
+      file = resolved_upload_file
+      if file.blank?
         redirect_to admin_catalog_item_path(params[:type], params[:id]),
                     alert: "No file received — please pick a video file."
         return
@@ -144,10 +145,13 @@ module Admin
 
       saved =
         if params[:video_id].present?
-          fill_placeholder(Video.find(params[:video_id]))
+          fill_placeholder(Video.find(params[:video_id]), file)
         elsif params[:season_id].present?
-          add_episode(Season.find(params[:season_id])).video
+          add_episode(Season.find(params[:season_id]), file).video
         end
+
+      # The bytes are now copied into Active Storage — drop the chunk scratch file.
+      @chunked_upload&.discard
 
       item_path = admin_catalog_item_path(params[:type], params[:id])
 
@@ -302,21 +306,37 @@ module Admin
       scope.limit(30)
     end
 
-    def fill_placeholder(video)
-      video.file.attach(params[:file])
+    def fill_placeholder(video, file)
+      video.file.attach(file)
       video.update!(status: :ready, visibility: :public)
       video
     end
 
-    def add_episode(season)
+    def add_episode(season, file)
       position = season.episodes.maximum(:position).to_i + 1
       title = params[:title].presence || "Episode #{position}"
       video = Video.create!(
         title: "#{season.serie.title} S#{season.position}E#{position}",
         kind: :episode, status: :ready, visibility: :public, uploader: Current.user
       )
-      video.file.attach(params[:file])
+      video.file.attach(file)
       season.episodes.create!(video: video, title: title, position: position)
+    end
+
+    # The video slot either arrives as a direct multipart upload (small files)
+    # or was streamed ahead of time in chunks (large files) — see ChunkedUpload.
+    # Returns something Active Storage can attach, or nil when neither is present.
+    def resolved_upload_file
+      return params[:file] if params[:file].present?
+      return nil if params[:chunked_upload_id].blank?
+
+      @chunked_upload = ChunkedUpload.new(Current.user, params[:chunked_upload_id])
+      @chunked_upload.to_attachable(
+        filename: params[:chunked_upload_filename],
+        content_type: params[:chunked_upload_content_type]
+      )
+    rescue ChunkedUpload::InvalidId
+      nil
     end
   end
 end

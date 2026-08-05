@@ -11,17 +11,13 @@ servers:
   web:
     hosts:
       - <%= ENV.fetch("DEVCINE_HOST") %>
+    proxy: false
     options:
       publish: ["127.0.0.1:3070:80"]
   # job:
   #   hosts:
   #     - 192.168.0.1
   #   cmd: bin/jobs
-
-# kamal-proxy: only response_timeout, as requested (default is 30s — the cause
-# of the upload 502s). Requires kamal-proxy to actually be in front.
-proxy:
-  response_timeout: 3600
 
 registry:
   # Specify the registry server, if you're not using Docker Hub

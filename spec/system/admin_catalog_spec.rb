@@ -38,7 +38,7 @@ RSpec.describe "Admin catalog wizard", type: :system do
     expect(Serie.friendly.find("garage-chronicles").seasons.count).to eq(2)
   end
 
-  it "uploads through the dropzone end-to-end (multipart) and shows the file afterwards" do
+  it "uploads through the chunked dropzone end-to-end and shows the file afterwards" do
     serie = CatalogImport.vanilla!(kind: "serie", title: "Zone Show", seasons_count: 1, uploader: admin)
     season = serie.seasons.first
     placeholder = Video.create!(title: "Zone Show S1E1", kind: :episode, status: :uploading,
@@ -48,14 +48,19 @@ RSpec.describe "Admin catalog wizard", type: :system do
     visit admin_catalog_item_path("serie", serie)
     expect(page).to have_css(".dropzone", count: 2) # placeholder slot + add-episode
 
-    # Feed the hidden input directly — fires change → dropzone auto-submits.
+    # Feed the hidden input directly — fires change → the file is streamed to
+    # /admin/chunked_uploads in chunks, then the form auto-submits.
     attach_file "file", Rails.root.join("spec/fixtures/files/sample_image.jpg"),
                 make_visible: true, match: :first
 
     expect(page).to have_content("was saved successfully") # flash banner
-    expect(page).to have_css(".admin-badge", text: "Uploaded")
-    expect(page).to have_content("sample_image.jpg")          # filename shown
+    # The filename + download link render only for a settled, attached slot.
+    expect(page).to have_content("sample_image.jpg")             # filename shown
     expect(page).to have_css("a[href*='disposition=attachment']") # download link
+    # The "Uploaded" badge is appended to the (nowrap, overflow-hidden) title, so
+    # on the 390px mobile viewport it can be clipped out of the visible box —
+    # assert its presence in the DOM rather than its on-screen visibility.
+    expect(page).to have_css(".admin-badge", text: "Uploaded", visible: :all)
     expect(placeholder.reload.file).to be_attached
   end
 

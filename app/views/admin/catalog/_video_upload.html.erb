@@ -1,0 +1,33 @@
+<%# Resumable video upload slot. Streams the file to /admin/chunked_uploads in
+    small chunks (beating the proxy timeout on multi-GB files), then submits this
+    form carrying only the upload id for the server to reassemble + attach.
+    Locals: type, item, scope_field (:video_id|:season_id), scope_value, label,
+    big (optional, movie slot), title_field (optional, add-episode flow). %>
+<% big = local_assigns.fetch(:big, false) %>
+<% title_field = local_assigns.fetch(:title_field, false) %>
+<%= form_with url: upload_admin_catalog_item_path(type, item), method: :post, multipart: true,
+      class: "dropzone-form",
+      data: { controller: "chunked-upload",
+              "chunked-upload-url-value": admin_chunked_uploads_path } do %>
+  <%= hidden_field_tag scope_field, scope_value %>
+  <%= hidden_field_tag :chunked_upload_id, "", data: { "chunked-upload-target": "id" } %>
+  <%= hidden_field_tag :chunked_upload_filename, "", data: { "chunked-upload-target": "filename" } %>
+  <%= hidden_field_tag :chunked_upload_content_type, "", data: { "chunked-upload-target": "contentType" } %>
+  <% dropzone = capture do %>
+    <div class="dropzone <%= "dropzone--big" if big %>"
+         data-action="click->chunked-upload#browse dragover->chunked-upload#over dragleave->chunked-upload#leave drop->chunked-upload#drop">
+      <%= file_field_tag :file, accept: "video/*", class: "dropzone__input",
+            data: { "chunked-upload-target": "input", action: "change->chunked-upload#changed" } %>
+      <span class="dropzone__icon"><%= icon(:upload) %></span>
+      <span data-chunked-upload-target="label"><%= label %></span>
+    </div>
+  <% end %>
+  <% if title_field %>
+    <div class="admin-catalog__upload">
+      <%= text_field_tag :title, nil, placeholder: "New episode title (optional)", class: "field-input" %>
+      <%= dropzone %>
+    </div>
+  <% else %>
+    <%= dropzone %>
+  <% end %>
+<% end %>

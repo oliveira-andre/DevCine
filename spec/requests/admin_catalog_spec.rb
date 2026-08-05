@@ -460,5 +460,76 @@ RSpec.describe "Admin::Catalog", type: :request do
       expect(episode.video.file).to be_attached
       expect(episode.video).to have_attributes(status: "ready", visibility: "public")
     end
+
+    # Large files arrive via ChunkedUpload (streamed to /admin/chunked_uploads)
+    # rather than one multipart POST — the upload action then attaches the
+    # reassembled scratch file exactly like a direct upload.
+    describe "chunked (resumable) uploads" do
+      let(:upload_id) { "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee" }
+
+      after { FileUtils.rm_rf(ChunkedUpload.dir_for(admin)) }
+
+      def stream_chunks(*parts)
+        parts.each_with_index do |bytes, index|
+          post admin_chunked_uploads_path, params: {
+            upload_id: upload_id, index: index,
+            chunk: Rack::Test::UploadedFile.new(StringIO.new(bytes), "application/octet-stream", original_filename: "chunk.bin")
+          }
+          expect(response).to have_http_status(:ok)
+        end
+      end
+
+      it "attaches an episode placeholder from a file streamed in chunks" do
+        serie = CatalogImport.vanilla!(kind: "serie", title: "Chunk Show", seasons_count: 1, uploader: admin)
+        season = serie.seasons.first
+        placeholder = Video.create!(title: "Chunk Show S1E1", kind: :episode, status: :uploading,
+                                    visibility: :private, uploader: admin)
+        season.episodes.create!(video: placeholder, title: "Episode 1", position: 1)
+
+        stream_chunks("chunk-one-", "chunk-two")
+        post upload_admin_catalog_item_path("serie", serie), params: {
+          video_id: placeholder.id, chunked_upload_id: upload_id,
+          chunked_upload_filename: "big.mp4", chunked_upload_content_type: "video/mp4"
+        }
+
+        placeholder.reload
+        expect(placeholder.file).to be_attached
+        expect(placeholder.file.filename.to_s).to eq("big.mp4")
+        expect(placeholder.file.download).to eq("chunk-one-chunk-two")
+        expect(placeholder).to have_attributes(status: "ready", visibility: "public")
+      end
+
+      it "deletes the scratch file once the bytes are in Active Storage" do
+        serie = CatalogImport.vanilla!(kind: "serie", title: "Sweep Show", seasons_count: 1, uploader: admin)
+        season = serie.seasons.first
+
+        stream_chunks("bytes")
+        expect(ChunkedUpload.new(admin, upload_id).exists?).to be(true)
+
+        post upload_admin_catalog_item_path("serie", serie), params: {
+          season_id: season.id, chunked_upload_id: upload_id,
+          chunked_upload_filename: "clip.mp4", chunked_upload_content_type: "video/mp4"
+        }
+
+        expect(ChunkedUpload.new(admin, upload_id).exists?).to be(false)
+      end
+
+      it "rejects a chunk with a non-UUID upload id" do
+        post admin_chunked_uploads_path, params: {
+          upload_id: "../escape", index: 0,
+          chunk: Rack::Test::UploadedFile.new(StringIO.new("x"), "application/octet-stream", original_filename: "chunk.bin")
+        }
+        expect(response).to have_http_status(:bad_request)
+      end
+
+      it "requires admin to stream chunks" do
+        sign_in(create(:user, password: "password123"))
+        post admin_chunked_uploads_path, params: {
+          upload_id: upload_id, index: 0,
+          chunk: Rack::Test::UploadedFile.new(StringIO.new("x"), "application/octet-stream", original_filename: "chunk.bin")
+        }
+        expect(response).to redirect_to(root_path)
+      end
+    end
   end
 end

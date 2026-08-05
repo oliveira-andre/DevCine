@@ -49,6 +49,9 @@ Rails.application.routes.draw do
 
   namespace :admin do
     get "dashboard", to: "dashboard#show"
+    # Receives resumable upload chunks (large catalog video files) — see
+    # ChunkedUpload / chunked_upload_controller.js.
+    resources :chunked_uploads, only: :create
     resources :lives, param: :slug
     # Standalone + catalog video management: search/filter, detail, metadata
     # edit, delete, and the per-video subtitle manager.
