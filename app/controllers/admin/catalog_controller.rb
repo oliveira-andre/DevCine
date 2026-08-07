@@ -196,12 +196,36 @@ module Admin
 
     # Remove an uploaded file so a new one can be dropped: purge the attachment
     # and revert the video to its hidden placeholder state.
+    # Remove an uploaded slot video ENTIRELY — its file, slug, stats, comments
+    # and subtitles go with it — and wire a pristine hidden placeholder into
+    # the slot (the same shape imports create) so a new file can be dropped.
+    # The placeholder is structural: episodes and movies require a video row.
+    # Merely reverting the old row left it lingering in Admin → Videos.
     def remove_upload
-      video = Video.find(params[:video_id])
-      video.file.purge if video.file.attached?
-      video.update!(status: :uploading, visibility: :private)
+      set_item
+      old = find_slot_video(params[:video_id])
+      placeholder = Video.create!(title: old.title, kind: old.kind, status: :uploading,
+                                  visibility: :private, uploader: Current.user)
+      old.episodes.find_each { |episode| episode.update!(video: placeholder) }
+      old.movies.find_each { |movie| movie.update!(video: placeholder) }
+      old.destroy!
       redirect_to admin_catalog_item_path(params[:type], params[:id]),
-                  notice: "Video “#{video.title}” file was deleted successfully — drop a new one when ready."
+                  notice: "Video “#{placeholder.title}” was removed — drop a new file when ready."
+    end
+
+    # ✕ on the edit modal's current thumbnail: purge it (and the stale frame
+    # candidates) and stream the section back in its "fetching thumbnails"
+    # state, so ffmpeg re-analyses the video and a new frame can be picked
+    # without leaving the modal.
+    def remove_thumbnail
+      set_item
+      video = find_slot_video(params[:video_id])
+      video.thumbnail.purge if video.thumbnail.attached?
+      video.clear_thumbnail_candidates!
+      render turbo_stream: turbo_stream.replace(
+        "edit_thumbnail_section",
+        partial: "admin/catalog/edit_thumbnail", locals: { item: @item, type: params[:type] }
+      )
     end
 
     # Rename / reposition an episode (renders the modal form).

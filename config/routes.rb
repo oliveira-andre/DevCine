@@ -93,6 +93,8 @@ Rails.application.routes.draw do
         # Pick / decline the ffmpeg-suggested thumbnail for a just-uploaded slot.
         patch  "thumbnail", action: :choose_thumbnail, as: :choose_thumbnail
         delete "thumbnail", action: :skip_thumbnail,  as: :skip_thumbnail
+        # ✕ on the edit modal's current thumbnail — re-triggers the analysis.
+        delete "remove-thumbnail", action: :remove_thumbnail, as: :remove_thumbnail
         # Rename/reposition an episode of a serie item.
         get   "episodes/:episode_id/edit", action: :edit_episode, as: :edit_episode
         patch "episodes/:episode_id",      action: :update_episode, as: :episode

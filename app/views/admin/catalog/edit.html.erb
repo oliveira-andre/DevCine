@@ -111,20 +111,10 @@
       </div>
     </div>
 
-    <%# A movie whose video still lacks a thumbnail: the thumbnail-loader
-        Stimulus controller fetches ffmpeg frame suggestions in their own
-        request — the modal renders instantly with a "Fetching thumbnails…"
-        note and the pickable frames land here, just above Save. The picked
-        radio submits with this form as video[thumbnail_signed_id]. %>
-    <% if @item.is_a?(Movie) && @item.video&.file&.attached? && !@item.video.thumbnail.attached? %>
-      <div class="field" data-controller="thumbnail-loader"
-           data-thumbnail-loader-url-value="<%= thumbnail_suggestions_video_path(@item.video) %>">
-        <span class="field-label">Thumbnail</span>
-        <p class="thumb-suggest__loading" data-thumbnail-loader-target="status">
-          <%= icon(:spinner) %><span>Fetching thumbnails…</span>
-        </p>
-        <div data-thumbnail-loader-target="frames"></div>
-      </div>
+    <%# Movie thumbnail management (see _edit_thumbnail): current image + ✕
+        remove when one exists, or the JS-fetched frame chooser when not. %>
+    <% if @item.is_a?(Movie) && @item.video&.file&.attached? %>
+      <%= render "admin/catalog/edit_thumbnail", item: @item, type: "movie" %>
     <% end %>
 
     <div class="modal__footer">

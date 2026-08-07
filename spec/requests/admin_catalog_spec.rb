@@ -225,11 +225,30 @@ RSpec.describe "Admin::Catalog", type: :request do
         expect(response.body).to include("Fetching thumbnails…")
       end
 
-      it "omits the chooser once a thumbnail exists" do
+      it "shows the current thumbnail with a remove (✕) control instead of the chooser" do
         movie.video.thumbnail.attach(io: StringIO.new("jpg"), filename: "t.jpg", content_type: "image/jpeg")
         get edit_admin_catalog_item_path("movie", movie), headers: { "Turbo-Frame" => "modal" }
 
         expect(response.body).not_to include("thumbnail-loader")
+        expect(response.body).to include('title="Remove thumbnail"')
+        expect(response.body).to include(remove_thumbnail_admin_catalog_item_path("movie", movie))
+      end
+
+      it "removing the thumbnail purges it and streams the section back in fetch mode" do
+        movie.video.thumbnail.attach(io: StringIO.new("jpg"), filename: "t.jpg", content_type: "image/jpeg")
+        movie.video.thumbnail_candidates.attach(
+          io: StringIO.new("stale"), filename: "suggestion-01.jpg", content_type: "image/jpeg"
+        )
+
+        delete remove_thumbnail_admin_catalog_item_path("movie", movie),
+               params: { video_id: movie.video_id }
+
+        video = movie.video.reload
+        expect(video.thumbnail).not_to be_attached
+        expect(video.thumbnail_candidates.count).to eq(0) # stale frames dropped — analysis re-runs
+        expect(response.media_type).to eq("text/vnd.turbo-stream.html")
+        expect(response.body).to include('target="edit_thumbnail_section"')
+        expect(response.body).to include("thumbnail-loader")
       end
 
       it "promotes the picked frame on save and clears the other candidates" do
@@ -462,23 +481,43 @@ RSpec.describe "Admin::Catalog", type: :request do
       expect(response.body).to include(admin_video_path(video)) # captions shortcut (empty slot too)
     end
 
-    it "removes an uploaded file and reverts the slot to a hidden placeholder" do
+    it "removes an uploaded video entirely and wires a fresh placeholder into the slot" do
       serie = CatalogImport.vanilla!(kind: "serie", title: "Redo Show", seasons_count: 1, uploader: admin)
       season = serie.seasons.first
       video = Video.create!(title: "Redo Show S1E1", kind: :episode, status: :ready,
                             visibility: :public, uploader: admin)
       video.file.attach(io: StringIO.new("bytes"), filename: "old-cut.mp4", content_type: "video/mp4")
-      season.episodes.create!(video: video, title: "Episode 1", position: 1)
+      episode = season.episodes.create!(video: video, title: "Episode 1", position: 1)
 
       delete upload_admin_catalog_item_path("serie", serie), params: { video_id: video.id }
-      video.reload
-      expect(video.file).not_to be_attached
-      expect(video).to have_attributes(status: "uploading", visibility: "private")
+
+      # The old video is GONE — no lingering hidden row in Admin → Videos.
+      expect(Video.exists?(video.id)).to be(false)
+      # The episode slot survives on a pristine hidden placeholder.
+      episode.reload
+      expect(episode.video).to have_attributes(title: "Redo Show S1E1", status: "uploading",
+                                               visibility: "private")
+      expect(episode.video.file).not_to be_attached
       expect(response).to redirect_to(admin_catalog_item_path("serie", serie))
 
       follow_redirect!
-      expect(response.body).to include("file was deleted successfully")
+      expect(response.body).to include("was removed")
       expect(response.body).to include("Drop the episode here") # dropzone is back
+    end
+
+    it "removing a movie's video keeps the movie on a fresh placeholder" do
+      movie = create(:movie, title: "Redo Film",
+                             video: create(:video, kind: :feature, visibility: :public))
+      old = movie.video
+      old.file.attach(io: StringIO.new("bytes"), filename: "old-cut.mp4", content_type: "video/mp4")
+
+      delete upload_admin_catalog_item_path("movie", movie), params: { video_id: old.id }
+
+      expect(Video.exists?(old.id)).to be(false)
+      movie.reload
+      expect(movie.video).to be_present
+      expect(movie.video.file).not_to be_attached
+      expect(movie.video).to have_attributes(status: "uploading", visibility: "private")
     end
 
     it "adds a brand-new episode to a season (vanilla flow)" do

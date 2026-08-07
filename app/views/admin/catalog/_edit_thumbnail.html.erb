@@ -1,0 +1,27 @@
+<%# Thumbnail section of the movie edit modal, id'd so remove_thumbnail can
+    stream a fresh copy in place. With a thumbnail: the current image plus a ✕
+    (remove) control, so the analysis can be re-triggered for a new pick.
+    Without one (but with a video file): the thumbnail-loader Stimulus
+    controller fetches ffmpeg suggestions and the picked radio rides along with
+    the enclosing edit form as video[thumbnail_signed_id].
+    Locals: item, type. %>
+<% video = item.video %>
+<div class="field" id="edit_thumbnail_section">
+  <span class="field-label">Thumbnail</span>
+  <% if video.thumbnail.attached? %>
+    <div class="edit-thumb">
+      <%= image_tag url_for(video.thumbnail), alt: "Current thumbnail", class: "edit-thumb__img" %>
+      <%= link_to remove_thumbnail_admin_catalog_item_path(type, item, video_id: video.id),
+            data: { turbo_method: :delete }, class: "edit-thumb__remove",
+            title: "Remove thumbnail", "aria-label": "Remove thumbnail" do %>✕<% end %>
+    </div>
+  <% else %>
+    <div data-controller="thumbnail-loader"
+         data-thumbnail-loader-url-value="<%= thumbnail_suggestions_video_path(video) %>">
+      <p class="thumb-suggest__loading" data-thumbnail-loader-target="status">
+        <%= icon(:spinner) %><span>Fetching thumbnails…</span>
+      </p>
+      <div data-thumbnail-loader-target="frames"></div>
+    </div>
+  <% end %>
+</div>
