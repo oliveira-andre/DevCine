@@ -16,13 +16,15 @@ class PlayerController < ApplicationController
   end
 
   # GET /playing/:slug/related — lazy Turbo Frame content (US8, FR-028). Inside a
-  # collection the sidebar lists the sequence IN ORDER; otherwise same-kind recent.
+  # collection the sidebar CONTINUES the sequence from the playing video — on
+  # E22 it lists E23, E24, E25… (earlier episodes wrap after), never the start
+  # of the serie, so up-next is always the first card. Otherwise same-kind recent.
   def related
     @video = find_playable_video!
     ids = sequence_ids
-    if ids.present? && ids.include?(@video.id)
-      ordered = ids - [ @video.id ]
-      @related = Video.in_order_of(:id, ordered).with_attached_thumbnail.limit(20).to_a
+    if ids.present? && (idx = ids.index(@video.id))
+      ordered = ids[(idx + 1)..] + ids[0...idx]
+      @related = ordered.empty? ? [] : Video.in_order_of(:id, ordered).with_attached_thumbnail.limit(20).to_a
       @sequenced = true
     else
       @related = @video.related(pundit_user, limit: 12)
