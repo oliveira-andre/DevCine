@@ -65,10 +65,21 @@ aliases:
   dbc: app exec --interactive --reuse "bin/rails dbconsole"
 
 
-# Use a persistent storage volume for sqlite database files and local Active Storage files.
-# Recommended to change this to a mounted volume path that is backed up off server.
+# Active Storage files live on the HOST at /opt/devcine_storage (bind mount),
+# so uploads are directly browsable/backupable on the server. Dev videos never
+# enter the image: /storage is git- and docker-ignored, and Kamal builds from a
+# clone of the committed tree.
+#
+# ONE-TIME migration from the old named volume (run on the server BEFORE the
+# first deploy with this config — the container runs as uid/gid 1000, so the
+# chown is required or every upload will fail with EACCES):
+#   sudo mkdir -p /opt/devcine_storage
+#   sudo rsync -a /var/lib/docker/volumes/devcine_storage/_data/ /opt/devcine_storage/
+#   sudo chown -R 1000:1000 /opt/devcine_storage
+# Keep the old `devcine_storage` volume as a backup until the switch is
+# verified, then remove it with: docker volume rm devcine_storage
 volumes:
-  - "devcine_storage:/rails/storage"
+  - "/opt/devcine_storage:/rails/storage"
 
 
 # Bridge fingerprinted assets, like JS and CSS, between versions to avoid
