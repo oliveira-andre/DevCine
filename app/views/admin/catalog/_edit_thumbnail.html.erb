@@ -1,11 +1,10 @@
-<%# Thumbnail section of the movie edit modal, id'd so remove_thumbnail can
-    stream a fresh copy in place. With a thumbnail: the current image plus a ✕
-    (remove) control, so the analysis can be re-triggered for a new pick.
-    Without one (but with a video file): the thumbnail-loader Stimulus
-    controller fetches ffmpeg suggestions and the picked radio rides along with
-    the enclosing edit form as video[thumbnail_signed_id].
-    Locals: item, type. %>
-<% video = item.video %>
+<%# Thumbnail section of an edit modal (movie file or serie episode), id'd so
+    remove_thumbnail can stream a fresh copy in place. With a thumbnail: the
+    current image plus a ✕ (remove) control, so the analysis can be
+    re-triggered for a new pick. Without one (but with a video file): the
+    thumbnail-loader Stimulus controller fetches ffmpeg suggestions and the
+    picked radio rides along with the enclosing edit form as
+    video[thumbnail_signed_id]. Locals: video, item, type. %>
 <div class="field" id="edit_thumbnail_section">
   <span class="field-label">Thumbnail</span>
   <% if video.thumbnail.attached? %>
@@ -13,8 +12,15 @@
       <%= image_tag url_for(video.thumbnail), alt: "Current thumbnail", class: "edit-thumb__img" %>
       <%= link_to remove_thumbnail_admin_catalog_item_path(type, item, video_id: video.id),
             data: { turbo_method: :delete }, class: "edit-thumb__remove",
-            title: "Remove thumbnail", "aria-label": "Remove thumbnail" do %>✕<% end %>
+            title: "Remove thumbnail", "aria-label": "Remove thumbnail" do %>
+        <%= icon(:trash) %>
+      <% end %>
     </div>
+  <% elsif video.thumbnail_candidates.attached? %>
+    <%# The frames were already extracted (an earlier upload/analysis) — show
+        them straight away; "Fetching…" is only for a real extraction. %>
+    <%= render "thumbnail_suggestions/frame_grid", video: video,
+          intro: "Pick a frame to use as the thumbnail." %>
   <% else %>
     <div data-controller="thumbnail-loader"
          data-thumbnail-loader-url-value="<%= thumbnail_suggestions_video_path(video) %>">

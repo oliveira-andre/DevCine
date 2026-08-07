@@ -114,7 +114,7 @@
     <%# Movie thumbnail management (see _edit_thumbnail): current image + ✕
         remove when one exists, or the JS-fetched frame chooser when not. %>
     <% if @item.is_a?(Movie) && @item.video&.file&.attached? %>
-      <%= render "admin/catalog/edit_thumbnail", item: @item, type: "movie" %>
+      <%= render "admin/catalog/edit_thumbnail", video: @item.video, item: @item, type: "movie" %>
     <% end %>
 
     <div class="modal__footer">

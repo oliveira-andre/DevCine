@@ -26,7 +26,9 @@ export default class extends Controller {
       const frame = doc.querySelector("turbo-frame#thumbnail_suggestions")
       if (!frame) throw new Error("no suggestions frame in response")
 
-      this.statusTarget.hidden = true
+      // remove(), not hidden: .thumb-suggest__loading's own `display: flex`
+      // overrides the UA's [hidden] { display: none }.
+      this.statusTarget.remove()
       this.framesTarget.innerHTML = frame.innerHTML
     } catch {
       // Best-effort, like everywhere else in the thumbnail pipeline: the edit

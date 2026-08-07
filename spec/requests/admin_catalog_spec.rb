@@ -225,6 +225,17 @@ RSpec.describe "Admin::Catalog", type: :request do
         expect(response.body).to include("Fetching thumbnails…")
       end
 
+      it "renders already-extracted frames inline — no loader, no fetch" do
+        movie.video.thumbnail_candidates.attach(
+          io: StringIO.new("f1"), filename: "suggestion-01.jpg", content_type: "image/jpeg"
+        )
+        get edit_admin_catalog_item_path("movie", movie), headers: { "Turbo-Frame" => "modal" }
+
+        expect(response.body).to include('name="video[thumbnail_signed_id]"')
+        expect(response.body).not_to include("thumbnail-loader")
+        expect(response.body).not_to include("Fetching thumbnails…")
+      end
+
       it "shows the current thumbnail with a remove (✕) control instead of the chooser" do
         movie.video.thumbnail.attach(io: StringIO.new("jpg"), filename: "t.jpg", content_type: "image/jpeg")
         get edit_admin_catalog_item_path("movie", movie), headers: { "Turbo-Frame" => "modal" }
@@ -377,6 +388,63 @@ RSpec.describe "Admin::Catalog", type: :request do
       expect(response).to have_http_status(:ok)
       expect(response.body).to include("Old Name")
       expect(response.body).to include('name="episode[title]"')
+    end
+
+    describe "thumbnail section in the episode modal" do
+      before { episode.video.file.attach(io: StringIO.new("bytes"), filename: "ep.mp4", content_type: "video/mp4") }
+
+      it "offers the JS-fetched chooser for an uploaded episode with no thumbnail" do
+        get edit_episode_admin_catalog_item_path("serie", serie, episode_id: episode.id),
+            headers: { "Turbo-Frame" => "modal" }
+
+        expect(response.body).to include('data-controller="thumbnail-loader"')
+        expect(response.body).to include(thumbnail_suggestions_video_path(episode.video))
+      end
+
+      it "shows the current thumbnail with the remove (✕) control" do
+        episode.video.thumbnail.attach(io: StringIO.new("jpg"), filename: "t.jpg", content_type: "image/jpeg")
+        get edit_episode_admin_catalog_item_path("serie", serie, episode_id: episode.id),
+            headers: { "Turbo-Frame" => "modal" }
+
+        expect(response.body).to include('title="Remove thumbnail"')
+        expect(response.body).to include(remove_thumbnail_admin_catalog_item_path("serie", serie))
+        expect(response.body).not_to include("thumbnail-loader")
+      end
+
+      it "omits the section for an episode slot with no file" do
+        episode.video.file.purge
+        get edit_episode_admin_catalog_item_path("serie", serie, episode_id: episode.id),
+            headers: { "Turbo-Frame" => "modal" }
+
+        expect(response.body).not_to include("edit_thumbnail_section")
+      end
+
+      it "promotes a picked frame along with the rename" do
+        episode.video.thumbnail_candidates.attach(
+          io: StringIO.new("f1"), filename: "suggestion-01.jpg", content_type: "image/jpeg"
+        )
+        chosen = episode.video.ordered_thumbnail_candidates.first
+
+        patch episode_admin_catalog_item_path("serie", serie, episode_id: episode.id),
+              params: { episode: { title: "Named Now", position: 1 },
+                        video: { thumbnail_signed_id: chosen.signed_id } }
+
+        video = episode.video.reload
+        expect(episode.reload.title).to eq("Named Now")
+        expect(video.thumbnail).to be_attached
+        expect(video.thumbnail_candidates.count).to eq(0)
+      end
+
+      it "removing the episode thumbnail streams the section back in fetch mode" do
+        episode.video.thumbnail.attach(io: StringIO.new("jpg"), filename: "t.jpg", content_type: "image/jpeg")
+
+        delete remove_thumbnail_admin_catalog_item_path("serie", serie),
+               params: { video_id: episode.video_id }
+
+        expect(episode.video.reload.thumbnail).not_to be_attached
+        expect(response.body).to include('target="edit_thumbnail_section"')
+        expect(response.body).to include("thumbnail-loader")
+      end
     end
 
     it "updates the episode title and position" do

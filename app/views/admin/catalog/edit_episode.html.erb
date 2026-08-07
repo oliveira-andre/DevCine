@@ -15,6 +15,13 @@
       <%= number_field_tag "episode[position]", @episode.position, min: 1, class: "field-input" %>
     </div>
 
+    <%# Episode thumbnail management — same section as the movie edit modal:
+        current image + ✕ remove, or the JS-fetched frame chooser. Only for a
+        slot that actually has a video file to analyse. %>
+    <% if @episode.video.file.attached? %>
+      <%= render "admin/catalog/edit_thumbnail", video: @episode.video, item: @item, type: "serie" %>
+    <% end %>
+
     <div class="modal__footer">
       <button type="button" class="btn btn-outline" data-action="modal#close">Cancel</button>
       <%= submit_tag "Save", class: "btn btn-primary" %>

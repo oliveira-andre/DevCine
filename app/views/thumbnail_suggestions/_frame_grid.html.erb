@@ -1,0 +1,25 @@
+<%# The extracted frames as radios that ride along with an enclosing form
+    (video[thumbnail_signed_id], first frame preselected). Shared by the
+    suggestions frame response (member upload form + the edit modal's JS
+    loader) and rendered inline by the edit modal when the frames already
+    exist. Locals: video, intro (optional). %>
+<% if video.thumbnail_candidates.attached? %>
+  <p class="thumb-suggest__intro"><%= local_assigns.fetch(:intro, "Pick a frame, or upload your own image below.") %></p>
+  <div class="thumb-suggest__grid">
+    <% video.ordered_thumbnail_candidates.each_with_index do |candidate, index| %>
+      <label class="thumb-suggest__option">
+        <%= radio_button_tag "video[thumbnail_signed_id]", candidate.signed_id, index.zero?,
+              class: "thumb-suggest__radio", id: "thumbnail_candidate_#{index}" %>
+        <span class="thumb-suggest__pick">
+          <%= image_tag candidate.variant(resize_to_limit: [ 480, 270 ]),
+                class: "thumb-suggest__img", alt: "Suggested frame #{index + 1}" %>
+          <span class="thumb-suggest__use"><%= icon(:check) %><span>Frame <%= index + 1 %></span></span>
+        </span>
+      </label>
+    <% end %>
+  </div>
+<% else %>
+  <p class="thumb-suggest__none">
+    Couldn’t read any frames from this file — upload your own thumbnail below.
+  </p>
+<% end %>
