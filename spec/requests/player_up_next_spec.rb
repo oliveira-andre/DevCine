@@ -17,12 +17,20 @@ RSpec.describe "Player up_next", type: :request do
       create(:episode, season: season, video: v1, position: 1)
       create(:episode, season: season, video: v2, position: 2)
 
+      create(:subtitle, :with_file, video: v2, language: :english, is_default: true)
+
       get up_next_player_path(v1.slug)
       expect(response).to have_http_status(:ok)
       expect(body["slug"]).to eq(v2.slug)
       expect(body["album"]).to eq(serie.title)
       expect(body["src"]).to include("/rails/active_storage")
       expect(body["upNextUrl"]).to eq(up_next_player_path(v2.slug))
+      # Subtitles + caption prefs ride along so an in-place (fullscreen/docked)
+      # advance keeps captions without a page navigation.
+      expect(body["subtitles"].length).to eq(1)
+      expect(body["subtitles"].first["language"]).to eq("english")
+      expect(body).to have_key("subEnabled")
+      expect(body).to have_key("subTextColor")
     end
 
     it "returns 204 at the serie end once the only recommendation is played" do

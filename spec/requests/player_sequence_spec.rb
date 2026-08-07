@@ -62,6 +62,15 @@ RSpec.describe "Player sequence navigation", type: :request do
       expect(body.index(e3.title)).to be < body.index(e4.title)
     end
 
+    it "continues from the playing episode — up next first, earlier ones wrap after" do
+      get related_player_path(e3.slug)
+      body = response.body
+      # On e3 the list reads e4 (next), then e1, e2 — never restarts at e1.
+      expect(body.index(e4.title)).to be < body.index(e1.title)
+      expect(body.index(e1.title)).to be < body.index(e2.title)
+      expect(body).not_to include(e3.title)
+    end
+
     it "sidebar links break out of the frame to _top (not a frame swap)" do
       get related_player_path(e1.slug)
       expect(response.body).to match(/related__item[^>]*data-turbo-frame="_top"/)

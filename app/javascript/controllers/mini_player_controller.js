@@ -370,6 +370,14 @@ export default class extends Controller {
   onFullscreenChange() {
     if (document.fullscreenElement || document.webkitFullscreenElement) return
     try { screen.orientation?.unlock?.() } catch { /* unsupported */ }
+    // Autoplay advanced in place while fullscreen, so the page underneath is
+    // still the previous episode's — navigate to the playing one now that
+    // leaving fullscreen makes navigation safe.
+    if (this.pageStale && this.currentSlug) {
+      this.pageStale = false
+      sessionStorage.setItem(ADVANCE_KEY, "1")
+      this.visit(`/playing/${this.currentSlug}`)
+    }
   }
 
   // --- playback state --------------------------------------------------------
@@ -445,7 +453,14 @@ export default class extends Controller {
 
   onEnded() {
     if (!this.autoplayValue || this.dismissed) return
-    if (this.expanded && this.desc.nextUrl) {
+    if (this.inFullscreen()) {
+      // Navigating would reparent this (turbo-permanent) element, and moving
+      // the fullscreen element kicks the browser out of fullscreen — and an
+      // autoplay advance has no user gesture to re-request it with. So the
+      // advance happens IN PLACE (descriptor swap, same element, fullscreen
+      // survives) and the stale page underneath is synced on fullscreen exit.
+      this.advanceViaUpNext(false, { keepExpanded: true })
+    } else if (this.expanded && this.desc.nextUrl) {
       // Explicit sequence next — full navigation refreshes the page chrome; the
       // persistent <video> survives the #page-content swap.
       sessionStorage.setItem(ADVANCE_KEY, "1")
@@ -455,7 +470,7 @@ export default class extends Controller {
     }
   }
 
-  async advanceViaUpNext(navigate) {
+  async advanceViaUpNext(navigate, { keepExpanded = false } = {}) {
     if (!this.desc.upNextUrl) return
     const url = new URL(this.desc.upNextUrl, window.location.origin)
     url.searchParams.set("played", this.chain().join(","))
@@ -476,9 +491,17 @@ export default class extends Controller {
     } else {
       this.pushChain(this.currentSlug)
       document.dispatchEvent(new CustomEvent("mini-player:load", {
-        detail: { ...data, expanded: false, viaAutoplay: true }
+        detail: { ...data, expanded: keepExpanded, viaAutoplay: true }
       }))
+      // The page behind a fullscreen in-place advance still shows the previous
+      // episode; remember to bring it up to date once fullscreen ends.
+      if (keepExpanded) this.pageStale = true
     }
+  }
+
+  inFullscreen() {
+    const fsEl = document.fullscreenElement || document.webkitFullscreenElement
+    return !!fsEl && (fsEl === this.element || this.element.contains(fsEl))
   }
 
   // --- autoplay preference ---------------------------------------------------

@@ -94,7 +94,16 @@ class PlayerController < ApplicationController
         list: list,
         viewsUrl: views_player_path(video.slug),
         progressUrl: progress_player_path(video.slug),
-        upNextUrl: up_next_player_path(video.slug, params_for)
+        upNextUrl: up_next_player_path(video.slug, params_for),
+        # Subtitle tracks + the viewer's caption prefs ride along so an
+        # IN-PLACE advance (fullscreen / docked autoplay, no page navigation)
+        # keeps captions working on the next episode.
+        subtitles: helpers.subtitle_tracks_data(video, video.subtitle_tracks),
+        subEnabled: Current.user.subtitles_enabled,
+        subTextColor: Current.user.subtitle_text_color,
+        subBgColor: Current.user.subtitle_background_color,
+        subFontSize: Current.user.subtitle_font_size,
+        subFontWeight: Current.user.subtitle_font_weight
       }
     end
 
