@@ -224,7 +224,8 @@ module Admin
       video.clear_thumbnail_candidates!
       render turbo_stream: turbo_stream.replace(
         "edit_thumbnail_section",
-        partial: "admin/catalog/edit_thumbnail", locals: { item: @item, type: params[:type] }
+        partial: "admin/catalog/edit_thumbnail",
+        locals: { video: video, item: @item, type: params[:type] }
       )
     end
 
@@ -238,6 +239,10 @@ module Admin
       set_item
       @episode = find_episode
       if @episode.update(episode_params)
+        # The rename modal also hosts the thumbnail chooser (see
+        # _edit_thumbnail) — promote a picked frame along with the save.
+        chosen = params.dig(:video, :thumbnail_signed_id)
+        @episode.video.accept_thumbnail_candidate(chosen) if chosen.present?
         render turbo_stream: [
           turbo_stream.replace("admin_episode_#{@episode.id}",
                                partial: "admin/catalog/episode", locals: { episode: @episode, item: @item }),

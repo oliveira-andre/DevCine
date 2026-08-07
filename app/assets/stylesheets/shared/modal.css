@@ -217,6 +217,34 @@ body.modal-open { overflow: hidden; }
 .thumb-suggest__use .icon { width: 12px; height: 12px; opacity: 0; }
 .thumb-suggest__radio:checked + .thumb-suggest__pick .thumb-suggest__use .icon { opacity: 1; }
 
+/* Current thumbnail in the catalog edit modal, with its ✕ (remove) control. */
+.edit-thumb { position: relative; display: inline-block; }
+.edit-thumb__img {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  border-radius: var(--radius-tile);
+  border: 1px solid var(--border-subtle);
+}
+.edit-thumb__remove {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  font-size: 14px;
+  line-height: 1;
+  text-decoration: none;
+}
+.edit-thumb__remove .icon { width: 14px; height: 14px; }
+.edit-thumb__remove:hover { background: var(--danger); }
+
 /* Already-saved file / subtitle facts on the update step. */
 .upload-form__saved {
   display: flex;
