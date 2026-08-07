@@ -84,7 +84,7 @@ class PlayerController < ApplicationController
         # back to the proxy via resolve_model_to_route.
         src: rails_storage_redirect_path(video.file),
         artwork: video.thumbnail.attached? ? rails_storage_proxy_path(video.thumbnail) : "/logo.png",
-        title: video.title,
+        title: video.display_title,
         album: album_for(video, list),
         prevUrl: prev_v ? player_path(prev_v.slug, params_for) : "",
         nextUrl: next_v ? player_path(next_v.slug, params_for) : "",

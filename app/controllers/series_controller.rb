@@ -46,6 +46,7 @@ class SeriesController < ApplicationController
       return [ nil, [] ] if season.nil?
 
       ids = @serie.season_video_ids(season, pundit_user)
-      paginate(Video.in_order_of(:id, ids).with_attached_thumbnail, limit: 12)
+      # :episodes feeds Video#display_title ("E4 — Pilot") without a per-card query.
+      paginate(Video.in_order_of(:id, ids).with_attached_thumbnail.includes(:episodes), limit: 12)
     end
 end

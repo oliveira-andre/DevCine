@@ -111,19 +111,19 @@
       </div>
     </div>
 
-    <%# A movie whose video still lacks a thumbnail: fetch ffmpeg frame
-        suggestions in their own async request (the modal renders instantly with
-        a spinner; Turbo swaps the frames in when ready). The picked radio
-        submits with this form as video[thumbnail_signed_id]. %>
+    <%# A movie whose video still lacks a thumbnail: the thumbnail-loader
+        Stimulus controller fetches ffmpeg frame suggestions in their own
+        request — the modal renders instantly with a "Fetching thumbnails…"
+        note and the pickable frames land here, just above Save. The picked
+        radio submits with this form as video[thumbnail_signed_id]. %>
     <% if @item.is_a?(Movie) && @item.video&.file&.attached? && !@item.video.thumbnail.attached? %>
-      <div class="field">
+      <div class="field" data-controller="thumbnail-loader"
+           data-thumbnail-loader-url-value="<%= thumbnail_suggestions_video_path(@item.video) %>">
         <span class="field-label">Thumbnail</span>
-        <%= turbo_frame_tag "thumbnail_suggestions",
-              src: thumbnail_suggestions_video_path(@item.video) do %>
-          <p class="thumb-suggest__loading">
-            <%= icon(:spinner) %><span>Looking for good frames…</span>
-          </p>
-        <% end %>
+        <p class="thumb-suggest__loading" data-thumbnail-loader-target="status">
+          <%= icon(:spinner) %><span>Fetching thumbnails…</span>
+        </p>
+        <div data-thumbnail-loader-target="frames"></div>
       </div>
     <% end %>
 

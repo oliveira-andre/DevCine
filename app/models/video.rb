@@ -88,7 +88,7 @@ class Video < ApplicationRecord
   validate :live_requires_embed_url
 
   def live_embed_url=(url)
-    super(url.to_s.gsub('live', 'embed'))
+    super(url.to_s.gsub("live", "embed"))
   end
 
   def uploaded_file_present
@@ -206,6 +206,21 @@ class Video < ApplicationRecord
   def parent_series
     Serie.joins(seasons: :episodes).where(episodes: { video_id: id }).first
   end
+
+  # The viewer-facing name. Episode videos carry a machine name ("Serie S1E4");
+  # when the episode row was given a real title the member UI shows
+  # "E4 — Pilot" instead. The auto "Episode N" placeholder does not count as a
+  # real title, and every other kind keeps its own title. Callers rendering
+  # lists should includes(:episodes) to keep this N+1-free.
+  def display_title
+    return title unless kind == "episode"
+
+    episode = episodes.first
+    return title if episode.nil? || episode.title.blank?
+    return title if episode.title.match?(/\AEpisode \d+\z/)
+
+    "E#{episode.position} — #{episode.title}"
+  end
   # NOTE (006): the old `listable` scope and `playable_by?` were replaced by
   # VideoPolicy (Scope#resolve / #watch?) — the single visibility authority.
 
@@ -241,7 +256,8 @@ class Video < ApplicationRecord
                         .resolve.where(kind: kind).where.not(id: id)
                         .recent.limit(limit).pluck(:id)
     end
-    Video.where(id: ids).with_attached_thumbnail.index_by(&:id).values_at(*ids).compact
+    # :episodes feeds #display_title in the sidebar without a per-row query.
+    Video.where(id: ids).with_attached_thumbnail.includes(:episodes).index_by(&:id).values_at(*ids).compact
   end
 
   # Invalidate cached reads on any change (Constitution VI).

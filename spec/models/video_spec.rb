@@ -144,6 +144,32 @@ RSpec.describe Video, type: :model do
     end
   end
 
+  describe "#display_title" do
+    def episode_video(episode_title:, position: 4)
+      serie = create(:serie, title: "Named Show")
+      season = serie.seasons.create!(position: 1, name: "Season 1")
+      video = create(:video, kind: :episode, title: "Named Show S1E#{position}")
+      season.episodes.create!(video: video, title: episode_title, position: position)
+      video
+    end
+
+    it "shows E-number — episode title when the episode was really named" do
+      expect(episode_video(episode_title: "The Heist").display_title).to eq("E4 — The Heist")
+    end
+
+    it "keeps the machine name for the auto 'Episode N' placeholder title" do
+      expect(episode_video(episode_title: "Episode 4").display_title).to eq("Named Show S1E4")
+    end
+
+    it "keeps the plain title for non-episode videos" do
+      expect(build(:video, kind: :standalone, title: "Just a Clip").display_title).to eq("Just a Clip")
+    end
+
+    it "falls back to the video title for an episode video with no episode row" do
+      expect(build(:video, kind: :episode, title: "Orphan S1E1").display_title).to eq("Orphan S1E1")
+    end
+  end
+
   describe "#attach_generated_thumbnail! (backfill)" do
     def fake_frame
       file = Tempfile.new([ "frame", ".jpg" ], binmode: true)

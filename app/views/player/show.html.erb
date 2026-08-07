@@ -1,4 +1,4 @@
-<% content_for :title, @video.title %>
+<% content_for :title, @video.display_title %>
 <% content_for :page_styles do %>
   <%= stylesheet_link_tag "player", "subtitles", "vendor/pickr-nano", "data-turbo-track": "dynamic" %>
 <% end %>
@@ -22,7 +22,7 @@
                file), so multi-GB movies only play through the redirect path. %>
            data-player-source-src-value="<%= rails_storage_redirect_path(@video.file) %>"
            data-player-source-artwork-value="<%= @video.thumbnail.attached? ? url_for(@video.thumbnail) : "/logo.png" %>"
-           data-player-source-title-value="<%= @video.title %>"
+           data-player-source-title-value="<%= @video.display_title %>"
            data-player-source-album-value="<%= @album %>"
            data-player-source-prev-url-value="<%= @prev_video ? player_path(@prev_video.slug, sequence_params) : "" %>"
            data-player-source-next-url-value="<%= @next_video ? player_path(@next_video.slug, sequence_params) : "" %>"
@@ -69,7 +69,7 @@
         </div>
       </div>
 
-      <h1 class="player__title"><%= @video.title %></h1>
+      <h1 class="player__title"><%= @video.display_title %></h1>
 
       <% if @video.description.present? %>
         <% if @video.description.length > 200 %>

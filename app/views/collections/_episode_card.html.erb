@@ -9,13 +9,13 @@
       "aria-current": (current ? "true" : nil) do %>
   <div class="episode-card__media">
     <% if item.thumbnail.attached? %>
-      <%= poster_image_tag item.thumbnail, alt: item.title, class: "episode-card__img", loading: "lazy" %>
+      <%= poster_image_tag item.thumbnail, alt: item.display_title, class: "episode-card__img", loading: "lazy" %>
     <% else %>
       <span class="episode-card__img episode-card__img--placeholder"></span>
     <% end %>
   </div>
   <div class="episode-card__body">
-    <h3 class="episode-card__title"><%= item.title %></h3>
+    <h3 class="episode-card__title"><%= item.display_title %></h3>
     <% if item.description.present? %>
       <p class="episode-card__desc"><%= item.description %></p>
     <% end %>

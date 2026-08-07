@@ -217,18 +217,19 @@ RSpec.describe "Admin::Catalog", type: :request do
     end
 
     describe "thumbnail suggestions in the edit modal" do
-      it "offers the async frame chooser when the movie's video has no thumbnail" do
+      it "offers the JS-fetched frame chooser when the movie's video has no thumbnail" do
         get edit_admin_catalog_item_path("movie", movie), headers: { "Turbo-Frame" => "modal" }
 
-        expect(response.body).to include('<turbo-frame id="thumbnail_suggestions"')
+        expect(response.body).to include('data-controller="thumbnail-loader"')
         expect(response.body).to include(thumbnail_suggestions_video_path(movie.video))
+        expect(response.body).to include("Fetching thumbnails…")
       end
 
       it "omits the chooser once a thumbnail exists" do
         movie.video.thumbnail.attach(io: StringIO.new("jpg"), filename: "t.jpg", content_type: "image/jpeg")
         get edit_admin_catalog_item_path("movie", movie), headers: { "Turbo-Frame" => "modal" }
 
-        expect(response.body).not_to include('id="thumbnail_suggestions"')
+        expect(response.body).not_to include("thumbnail-loader")
       end
 
       it "promotes the picked frame on save and clears the other candidates" do
