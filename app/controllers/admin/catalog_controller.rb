@@ -238,19 +238,34 @@ module Admin
     def update_episode
       set_item
       @episode = find_episode
-      if @episode.update(episode_params)
+      permitted = episode_params
+      # Reposition via acts_as_list's insert_at: a taken position SHIFTS its
+      # occupant (19→18 pushes the old 18 down) instead of colliding with it —
+      # so `position` is stripped from the plain update.
+      @episode.insert_at(clamped_position(permitted[:position])) if permitted[:position].present?
+      if @episode.update(permitted.except(:position))
         # The rename modal also hosts the thumbnail chooser (see
         # _edit_thumbnail) — promote a picked frame along with the save.
         chosen = params.dig(:video, :thumbnail_signed_id)
         @episode.video.accept_thumbnail_candidate(chosen) if chosen.present?
         render turbo_stream: [
-          turbo_stream.replace("admin_episode_#{@episode.id}",
-                               partial: "admin/catalog/episode", locals: { episode: @episode, item: @item }),
+          # A reposition renumbers OTHER rows too — refresh the whole season.
+          replace_season_stream(@episode.season),
           turbo_stream.update("modal", "")
         ]
       else
         render :edit_episode, status: :unprocessable_entity
       end
+    end
+
+    # Drag-and-drop reorder (episode-sort controller): move one episode to the
+    # dropped position; insert_at shifts everything in between, and the
+    # renumbered season block streams back to replace the optimistic DOM order.
+    def update_position
+      set_item
+      @episode = find_episode
+      @episode.insert_at(clamped_position(params[:position]))
+      render turbo_stream: replace_season_stream(@episode.season)
     end
 
     private
@@ -383,6 +398,17 @@ module Admin
       )
       video.file.attach(file)
       season.episodes.create!(video: video, title: title, position: position)
+    end
+
+    # Keep a requested position inside the season's real range — insert_at with
+    # an out-of-range target would park the episode on a phantom position.
+    def clamped_position(position)
+      position.to_i.clamp(1, @episode.season.episodes.count)
+    end
+
+    def replace_season_stream(season)
+      turbo_stream.replace("admin_season_#{season.id}",
+                           partial: "admin/catalog/season", locals: { season: season, item: @item })
     end
 
     # A slot video may only be addressed through the catalog item that owns it —

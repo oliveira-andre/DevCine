@@ -237,6 +237,18 @@
   border-radius: var(--radius-card);
 }
 .admin-live__title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Drag handle for sortable episode rows. */
+.admin-live__grip {
+  display: inline-flex;
+  flex: 0 0 auto;
+  color: var(--text-tertiary);
+  cursor: grab;
+}
+.admin-live__grip:active { cursor: grabbing; }
+.admin-live__grip .icon { width: 14px; height: 14px; }
+/* SortableJS drop shadow while dragging. */
+.sortable-ghost { opacity: 0.4; }
 .admin-live__actions { display: flex; align-items: center; gap: var(--space-2); flex: 0 0 auto; }
 .admin-live__delete-form { margin: 0; }
 .admin-live__action {

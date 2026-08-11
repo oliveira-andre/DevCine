@@ -1,11 +1,17 @@
 <%# One episode row on the serie catalog page. Renamable via the pencil (opens
     the edit modal); uploaded slots also expose download/subtitles/remove, empty
     slots a dropzone. Wrapped in a stable id so the rename can replace it. %>
-<div class="admin-live" id="admin_episode_<%= episode.id %>">
-  <span class="admin-live__title">
-    E<%= episode.position %> — <%= episode.title %>
+<div class="admin-live" id="admin_episode_<%= episode.id %>"
+     data-position-url="<%= update_position_admin_catalog_item_path("serie", item, episode_id: episode.id) %>">
+  <div>
+    <span class="admin-live__grip" data-sort-handle title="Drag to reorder"><%= icon(:grip) %></span>
+    <span class="admin-live__title">
+      E<%= episode.position %> — <%= episode.title %>
+    </span>
+
     <% if episode.video.file.attached? %><span class="admin-badge">Uploaded</span><% end %>
-  </span>
+  </div>
+
 
   <% if episode.video.file.attached? %>
     <%= render "admin/catalog/slot_actions", video: episode.video, type: "serie", item: item, episode: episode %>

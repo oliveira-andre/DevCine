@@ -8,7 +8,8 @@
       url: (draft ? video_path(video) : videos_path),
       method: (draft ? :patch : :post),
       class: "modal__form upload-form",
-      data: (draft ? {} : { controller: "draft-autosave" }) do |form| %>
+      data: (draft ? {} : { controller: "draft-autosave",
+                            "draft-autosave-chunk-url-value": chunked_uploads_path }) do |form| %>
 
   <% if video.errors.any? %>
     <div class="form-flash form-flash-alert upload-form__flash"><%= video.errors.full_messages.first %></div>
@@ -18,6 +19,11 @@
       JavaScript it stays "0" and the form behaves as a plain one-shot upload. %>
   <% unless draft %>
     <%= hidden_field_tag :draft, "0", data: { "draft-autosave-target": "draft" } %>
+    <%# Filled by draft-autosave after it streamed the file in chunks — the
+        submit then carries these instead of the file bytes. %>
+    <%= hidden_field_tag :chunked_upload_id, "", data: { "draft-autosave-target": "chunkId" } %>
+    <%= hidden_field_tag :chunked_upload_filename, "", data: { "draft-autosave-target": "chunkName" } %>
+    <%= hidden_field_tag :chunked_upload_content_type, "", data: { "draft-autosave-target": "chunkType" } %>
   <% end %>
 
   <div class="upload-form__grid">

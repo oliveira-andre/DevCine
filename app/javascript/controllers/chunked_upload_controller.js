@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { uploadInChunks } from "lib/chunk_uploader"
 
 // Resumable upload zone for large catalog video files. Instead of POSTing the
 // whole file in one multipart request (which trips the reverse-proxy's response
@@ -53,16 +54,13 @@ export default class extends Controller {
     this.uploading = true
     this.element.classList.add("is-uploading")
 
-    const id = this.uuid()
-    const total = Math.max(1, Math.ceil(file.size / this.chunkSizeValue))
-
+    let done
     try {
-      for (let index = 0; index < total; index++) {
-        const start = index * this.chunkSizeValue
-        const chunk = file.slice(start, start + this.chunkSizeValue)
-        await this.sendChunk(id, index, chunk)
-        this.setLabel(`Uploading ${file.name}… ${Math.round(((index + 1) / total) * 100)}%`)
-      }
+      done = await uploadInChunks(file, this.urlValue, {
+        chunkSize: this.chunkSizeValue,
+        retries: this.retriesValue,
+        onProgress: (pct) => this.setLabel(`Uploading ${file.name}… ${pct}%`)
+      })
     } catch (error) {
       this.uploading = false
       this.element.classList.remove("is-uploading")
@@ -73,54 +71,15 @@ export default class extends Controller {
 
     // Hand the reassembled file to the form: the big bytes are already on the
     // server, so clear the file input and submit only the id + metadata.
-    this.idTarget.value = id
-    this.filenameTarget.value = file.name
-    this.contentTypeTarget.value = file.type || "application/octet-stream"
+    this.idTarget.value = done.id
+    this.filenameTarget.value = done.filename
+    this.contentTypeTarget.value = done.contentType
     this.inputTarget.value = ""
     this.setLabel(`Finishing ${file.name}…`)
     this.element.requestSubmit ? this.element.requestSubmit() : this.element.submit()
   }
 
-  async sendChunk(id, index, chunk) {
-    let lastError
-    for (let attempt = 0; attempt <= this.retriesValue; attempt++) {
-      try {
-        const body = new FormData()
-        body.append("upload_id", id)
-        body.append("index", index)
-        body.append("chunk", chunk)
-
-        const response = await fetch(this.urlValue, {
-          method: "POST",
-          body,
-          credentials: "same-origin",
-          headers: { "X-CSRF-Token": this.csrfToken() }
-        })
-        if (!response.ok) throw new Error(`chunk ${index} failed: ${response.status}`)
-        return
-      } catch (error) {
-        lastError = error
-      }
-    }
-    throw lastError
-  }
-
   setLabel(text) {
     if (this.hasLabelTarget) this.labelTarget.textContent = text
-  }
-
-  csrfToken() {
-    return document.querySelector('meta[name="csrf-token"]')?.content || ""
-  }
-
-  // crypto.randomUUID is available in every browser `allow_browser :modern`
-  // admits; the fallback keeps a hand-run dev browser from throwing.
-  uuid() {
-    if (window.crypto?.randomUUID) return window.crypto.randomUUID()
-    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
-      const r = (Math.random() * 16) | 0
-      const v = c === "x" ? r : (r & 0x3) | 0x8
-      return v.toString(16)
-    })
   }
 }

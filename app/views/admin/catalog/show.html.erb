@@ -25,14 +25,7 @@
     <% else %>
       <% @seasons.each do |season| %>
         <h2 class="admin__subtitle"><%= season.name %></h2>
-        <div class="admin-lives">
-          <% season.episodes.sort_by(&:position).each do |episode| %>
-            <%= render "admin/catalog/episode", episode: episode, item: @item %>
-          <% end %>
-
-          <%# Add a brand-new episode (vanilla flow / extending an import). %>
-          <%= render "admin/catalog/add_episode", season: season, item: @item %>
-        </div>
+        <%= render "admin/catalog/season", season: season, item: @item %>
       <% end %>
     <% end %>
   </section>

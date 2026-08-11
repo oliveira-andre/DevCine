@@ -36,8 +36,11 @@ class VideosController < ApplicationController
     @video.require_file = true
     @video.status = drafting ? :uploading : :ready
     @video.visibility = :private if drafting
+    attach_chunked_file
 
     if @video.save
+      # The bytes are in Active Storage now — drop the chunk scratch file.
+      @chunked_upload&.discard
       drafting ? render_draft_step : finish_upload
     else
       @video.subtitles.build if @video.subtitles.empty?
@@ -73,6 +76,23 @@ class VideosController < ApplicationController
       turbo_stream.update("modal", ""),
       turbo_stream.prepend("recent_uploads_items", partial: "home/poster_card", locals: { item: @video })
     ]
+  end
+
+  # Large files arrive pre-streamed in chunks (lib/chunk_uploader via the
+  # draft-autosave controller) — attach the assembled scratch file when the
+  # form carries an upload id instead of file bytes. The no-JS direct submit
+  # still sends a plain multipart file and skips this entirely.
+  def attach_chunked_file
+    return if params[:chunked_upload_id].blank? || @video.file.attached?
+
+    @chunked_upload = ChunkedUpload.new(Current.user, params[:chunked_upload_id])
+    attachable = @chunked_upload.to_attachable(
+      filename: params[:chunked_upload_filename],
+      content_type: params[:chunked_upload_content_type]
+    )
+    @video.file.attach(attachable) if attachable
+  rescue ChunkedUpload::InvalidId
+    nil
   end
 
   # The picked suggestion arrives as a signed blob id; anything else (including

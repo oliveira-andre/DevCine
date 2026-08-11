@@ -4,10 +4,8 @@ Rails.application.routes.draw do
   resources :passwords, param: :token
 
   get "search", to: "search#index"
-  # `update` finalises a draft: the form saves itself as soon as it has a title
-  # and a file, so ffmpeg can work on the real upload before the viewer commits.
+  resources :chunked_uploads, only: :create
   resources :videos, only: %i[index new create update] do
-    # Pick one of the ffmpeg-suggested frames as the thumbnail (or decline).
     member do
       get   "thumbnail-suggestions", to: "thumbnail_suggestions#show",   as: :thumbnail_suggestions
       patch "thumbnail-suggestions", to: "thumbnail_suggestions#update"
@@ -21,16 +19,12 @@ Rails.application.routes.draw do
     end
   end
   resources :playlists, only: %i[index show new create destroy] do
-    # "Save"/"grab"/"clone" are the same action: take a copy of a public
-    # playlist under your own account. Its own controller so PlaylistsController
-    # keeps its create-vs-clone concerns apart.
     post :save, to: "playlist_clones#create", on: :member
   end
   get "lives", to: "lives#index"
   get "genres/:slug", to: "catalog/browse#show", as: :genre_browse
   get "kinds/:kind", to: "catalog/browse#show", as: :kind_browse
 
-  # The viewer's own account: show is AccountsController, editing is Profiles.
   resource :account, only: :show, controller: "accounts" do
     get   :edit,        to: "profiles#edit"
     patch "/",          to: "profiles#update",      as: :update
@@ -48,13 +42,10 @@ Rails.application.routes.draw do
   end
 
   namespace :admin do
+    get "/", to: "dashboard#show"
     get "dashboard", to: "dashboard#show"
-    # Receives resumable upload chunks (large catalog video files) — see
-    # ChunkedUpload / chunked_upload_controller.js.
     resources :chunked_uploads, only: :create
     resources :lives, param: :slug
-    # Standalone + catalog video management: search/filter, detail, metadata
-    # edit, delete, and the per-video subtitle manager.
     resources :videos, only: %i[index show edit update destroy], param: :slug do
       resources :subtitles, only: %i[new create edit update destroy]
     end
@@ -63,8 +54,6 @@ Rails.application.routes.draw do
     resources :comments, only: %i[index show destroy]
     resources :playlists, only: %i[index show destroy]
 
-    # User management. The four member actions are the "see all" pages behind
-    # each recent-activity section on the detail page.
     resources :users, only: %i[index show edit update] do
       member do
         get :comments
@@ -74,7 +63,6 @@ Rails.application.routes.draw do
       end
     end
 
-    # Catalog creation wizard (movies / series / anime; vanilla or API-assisted).
     resources :catalog, only: %i[index new create], controller: "catalog" do
       collection do
         get  :start
@@ -83,21 +71,18 @@ Rails.application.routes.draw do
         post :import
       end
     end
-    # A created catalog item is addressed by content type + id (movie uuid /
-    # serie slug), so the type rides in the path.
     resources :catalog_items, path: "catalog/:type", controller: "catalog",
               only: %i[show edit update destroy], constraints: { type: /movie|serie/ } do
       member do
         post   :upload
         delete :upload, action: :remove_upload
-        # Pick / decline the ffmpeg-suggested thumbnail for a just-uploaded slot.
         patch  "thumbnail", action: :choose_thumbnail, as: :choose_thumbnail
         delete "thumbnail", action: :skip_thumbnail,  as: :skip_thumbnail
-        # ✕ on the edit modal's current thumbnail — re-triggers the analysis.
         delete "remove-thumbnail", action: :remove_thumbnail, as: :remove_thumbnail
-        # Rename/reposition an episode of a serie item.
         get   "episodes/:episode_id/edit", action: :edit_episode, as: :edit_episode
         patch "episodes/:episode_id",      action: :update_episode, as: :episode
+        # Drag-to-reorder within a season (episode-sort Stimulus controller).
+        patch "episodes/:episode_id/position", action: :update_position, as: :update_position
       end
     end
   end

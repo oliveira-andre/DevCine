@@ -1,0 +1,12 @@
+<%# One season's episode rows + the add-episode form, wrapped in a stable id so
+    a reorder (drag drop or the edit modal's position field) can stream the
+    whole renumbered list back. episode-sort makes the rows draggable via
+    their grip handles. Locals: season, item. %>
+<div class="admin-lives" id="admin_season_<%= season.id %>" data-controller="episode-sort">
+  <% season.episodes.sort_by(&:position).each do |episode| %>
+    <%= render "admin/catalog/episode", episode: episode, item: item %>
+  <% end %>
+
+  <%# Add a brand-new episode (vanilla flow / extending an import). %>
+  <%= render "admin/catalog/add_episode", season: season, item: item %>
+</div>
