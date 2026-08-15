@@ -350,7 +350,7 @@ export default class extends Controller {
     const el = this.element
     if (document.fullscreenElement || document.webkitFullscreenElement) {
       (document.exitFullscreen || document.webkitExitFullscreen)?.call(document)
-    } else {
+    } else if (el.requestFullscreen || el.webkitRequestFullscreen) {
       const request = el.requestFullscreen || el.webkitRequestFullscreen
       // Landscape is the only usable orientation for video on a handheld. The
       // Screen Orientation API only permits a lock while fullscreen, so this
@@ -358,10 +358,29 @@ export default class extends Controller {
       // rejects wherever it isn't supported (desktop, iOS Safari), which is the
       // intended no-op. "landscape" rather than "landscape-primary" so the
       // viewer can still flip the phone 180°.
-      Promise.resolve(request?.call(el))
+      Promise.resolve(request.call(el))
         .then(() => screen.orientation?.lock?.("landscape"))
         .catch(() => {})
+    } else if (this.videoTarget.webkitEnterFullscreen) {
+      // iPhone Safari: NO element Fullscreen API exists — only the <video>
+      // itself can go fullscreen, through the native player.
+      this.enterNativeVideoFullscreen()
     }
+  }
+
+  // iPhone-native fullscreen shows only the video layer, so the custom caption
+  // overlay is invisible there — hand the active track to the native player
+  // (mode "showing") for the duration and take it back on exit.
+  enterNativeVideoFullscreen() {
+    const video = this.videoTarget
+    if (this.activeTT) this.activeTT.mode = "showing"
+    const restore = () => {
+      video.removeEventListener("webkitendfullscreen", restore)
+      if (this.activeTT) this.activeTT.mode = "hidden"
+      this.onFullscreenChange() // sync a page left stale by an in-place advance
+    }
+    video.addEventListener("webkitendfullscreen", restore)
+    try { video.webkitEnterFullscreen() } catch (_) { /* not allowed yet (no metadata) */ }
   }
 
   // Leaving fullscreen should hand rotation back to the viewer. Browsers are
@@ -500,6 +519,9 @@ export default class extends Controller {
   }
 
   inFullscreen() {
+    // iPhone-native video fullscreen never sets document.fullscreenElement —
+    // the video element carries its own flag.
+    if (this.videoTarget.webkitDisplayingFullscreen) return true
     const fsEl = document.fullscreenElement || document.webkitFullscreenElement
     return !!fsEl && (fsEl === this.element || this.element.contains(fsEl))
   }

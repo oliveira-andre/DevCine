@@ -448,6 +448,10 @@ RSpec.describe "Admin::Catalog", type: :request do
     end
 
     it "updates the episode title and position" do
+      episode # force the lazy let FIRST — an explicit-position create shifts later rows
+      other = season.episodes.create!(title: "Second", position: 2,
+                                      video: create(:video, kind: :episode, visibility: :public))
+
       patch episode_admin_catalog_item_path("serie", serie, episode_id: episode.id),
             params: { episode: { title: "New Name", position: 2 } },
             headers: { "Accept" => "text/vnd.turbo-stream.html" }
@@ -455,7 +459,63 @@ RSpec.describe "Admin::Catalog", type: :request do
       episode.reload
       expect(episode.title).to eq("New Name")
       expect(episode.position).to eq(2)
-      expect(response.body).to include("admin_episode_#{episode.id}")
+      # insert_at semantics: the old occupant SHIFTS instead of being clobbered.
+      expect(other.reload.position).to eq(1)
+      # A reposition renumbers other rows too — the whole season streams back.
+      expect(response.body).to include("admin_season_#{season.id}")
+    end
+
+    it "moving onto a taken position shifts the occupant — never removes it" do
+      episodes = [ episode ] + (2..4).map do |n|
+        season.episodes.create!(title: "Ep #{n}", position: n,
+                                video: create(:video, kind: :episode, visibility: :public))
+      end
+      mover = episodes[3] # position 4 → 2 (the reported 19→18 case, scaled down)
+
+      patch episode_admin_catalog_item_path("serie", serie, episode_id: mover.id),
+            params: { episode: { title: mover.title, position: 2 } },
+            headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+      expect(season.episodes.count).to eq(4) # nobody vanished
+      expect(mover.reload.position).to eq(2)
+      expect(episodes[0].reload.position).to eq(1)
+      expect(episodes[1].reload.position).to eq(3) # pushed down
+      expect(episodes[2].reload.position).to eq(4) # pushed down
+    end
+
+    describe "drag-and-drop update_position" do
+      it "moves the episode and streams the renumbered season back" do
+        episode # force the lazy let FIRST — an explicit-position create shifts later rows
+        others = (2..3).map do |n|
+          season.episodes.create!(title: "Ep #{n}", position: n,
+                                  video: create(:video, kind: :episode, visibility: :public))
+        end
+
+        patch update_position_admin_catalog_item_path("serie", serie, episode_id: episode.id),
+              params: { position: 3 },
+              headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+        expect(episode.reload.position).to eq(3)
+        expect(others.map { |e| e.reload.position }).to eq([ 1, 2 ])
+        expect(response.media_type).to eq("text/vnd.turbo-stream.html")
+        expect(response.body).to include("admin_season_#{season.id}")
+      end
+
+      it "clamps an out-of-range position to the end of the season" do
+        patch update_position_admin_catalog_item_path("serie", serie, episode_id: episode.id),
+              params: { position: 99 }
+
+        expect(episode.reload.position).to eq(1) # only episode → clamped to 1
+      end
+
+      it "404s for an episode of a different serie" do
+        other = create(:serie, title: "Other Sort Show")
+
+        patch update_position_admin_catalog_item_path("serie", other, episode_id: episode.id),
+              params: { position: 1 }
+
+        expect(response).to have_http_status(:not_found)
+      end
     end
 
     it "rejects a blank title" do
