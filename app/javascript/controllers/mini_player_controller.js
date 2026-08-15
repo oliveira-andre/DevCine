@@ -592,13 +592,36 @@ export default class extends Controller {
 
   // --- idle auto-hide (expanded only) ----------------------------------------
 
-  activity() {
+  activity(event) {
     if (!this.expanded) return
+    // Touch pointers are handled by tapReveal (a tap's stray pointermove must
+    // not undo the "second tap hides the controls" toggle).
+    if (event && event.pointerType === "touch") return
     this.element.classList.add("is-active")
     clearTimeout(this.hideTimer)
     this.hideTimer = setTimeout(() => {
       if (!this.videoTarget.paused) this.element.classList.remove("is-active")
     }, 2000)
+  }
+
+  // Touch has no hover: a tap on the expanded player reveals the control
+  // overlay exactly like desktop's hover does, and a second tap on the bare
+  // video hides it again. Taps on the controls themselves act normally, and
+  // mouse/pen pointers keep the hover behavior.
+  tapReveal(event) {
+    if (event.pointerType !== "touch" || !this.expanded) return
+    if (event.target.closest("button, a, [data-mini-player-target='timeline']")) return
+
+    if (this.element.classList.contains("is-active")) {
+      this.element.classList.remove("is-active")
+      clearTimeout(this.hideTimer)
+    } else {
+      this.element.classList.add("is-active")
+      clearTimeout(this.hideTimer)
+      this.hideTimer = setTimeout(() => {
+        if (!this.videoTarget.paused) this.element.classList.remove("is-active")
+      }, 3000)
+    }
   }
 
   // --- keyboard --------------------------------------------------------------

@@ -6,7 +6,7 @@
     when DOCKED. %>
 <div id="mini-player" class="mini-player" data-turbo-permanent data-controller="mini-player"
      data-mini-player-autoplay-value="<%= Current.user.autoplay %>"
-     data-action="click->mini-player#openVideo pointermove->mini-player#activity"
+     data-action="click->mini-player#openVideo pointermove->mini-player#activity pointerdown->mini-player#tapReveal"
      hidden>
   <video class="mini-player__video" data-mini-player-target="video"
          playsinline webkit-playsinline preload="metadata"></video>
