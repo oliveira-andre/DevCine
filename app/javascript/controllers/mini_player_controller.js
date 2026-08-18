@@ -14,7 +14,7 @@ const ADVANCE_KEY = "miniPlayerAutoAdvance" // set right before an autoplay Turb
 export default class extends Controller {
   static targets = [
     "video", "controls", "prevBtn", "nextBtn", "captions",
-    "timeline", "timelineFill", "currentTime", "duration",
+    "timeline", "timelineFill", "timelineBuffer", "currentTime", "duration",
     "skipIntro", "skipNext", "buffering"
   ]
   static values = { autoplay: Boolean }
@@ -80,6 +80,9 @@ export default class extends Controller {
     v.addEventListener("playing", this.hideBuffering)
     v.addEventListener("canplay", this.hideBuffering)
     v.addEventListener("pause", this.hideBuffering)
+    // `progress` fires as the browser downloads ahead — keep the loaded bar live.
+    this.onProgress = () => this.updateBufferBar()
+    v.addEventListener("progress", this.onProgress)
 
     // Announce readiness so a player-source that connected first (full/direct
     // page load) re-dispatches its descriptor and isn't a missed handshake.
@@ -443,8 +446,27 @@ export default class extends Controller {
     if (this.hasTimelineFillTarget) {
       this.timelineFillTarget.style.width = dur ? `${(v.currentTime / dur) * 100}%` : "0%"
     }
+    this.updateBufferBar()
     if (this.hasCurrentTimeTarget) this.currentTimeTarget.textContent = this.formatTime(v.currentTime)
     if (this.hasDurationTarget) this.durationTarget.textContent = this.formatTime(dur)
+  }
+
+  // The lighter "loaded so far" track: end of the buffered range the playhead
+  // is inside (that's the contiguous stretch that can play without a stall).
+  updateBufferBar() {
+    if (!this.hasTimelineBufferTarget) return
+    const v = this.videoTarget
+    const dur = v.duration || 0
+    if (!dur || !v.buffered.length) { this.timelineBufferTarget.style.width = "0%"; return }
+
+    let end = 0
+    for (let i = 0; i < v.buffered.length; i++) {
+      if (v.buffered.start(i) <= v.currentTime && v.currentTime <= v.buffered.end(i)) {
+        end = v.buffered.end(i)
+        break
+      }
+    }
+    this.timelineBufferTarget.style.width = `${(end / dur) * 100}%`
   }
 
   scrubStart(event) {

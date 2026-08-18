@@ -249,6 +249,15 @@
   touch-action: none;
 }
 .mini-player__timeline:hover { height: 9px; }
+/* What the browser has downloaded so far — lighter track under the playhead
+   fill, so "current vs loaded" reads at a glance. */
+.mini-player__timeline-buffer {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  background: rgba(255, 255, 255, 0.45);
+  pointer-events: none;
+}
 .mini-player__timeline-fill {
   position: absolute;
   inset: 0 auto 0 0;

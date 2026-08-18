@@ -8,8 +8,11 @@
      data-mini-player-autoplay-value="<%= Current.user.autoplay %>"
      data-action="click->mini-player#openVideo pointermove->mini-player#activity pointerdown->mini-player#tapReveal"
      hidden>
+  <%# preload="auto": ask the browser to buffer generously ahead of the
+      playhead (it owns the range requests — there is no API to push chunks
+      manually short of an MSE player rewrite). %>
   <video class="mini-player__video" data-mini-player-target="video"
-         playsinline webkit-playsinline preload="metadata"></video>
+         playsinline webkit-playsinline preload="auto"></video>
 
   <%# Custom caption overlay (feature 012). Styled from CSS vars set by the
       subtitle prefs; text written from the active track's cues. %>
@@ -33,6 +36,8 @@
   <div class="mini-player__timeline" data-mini-player-target="timeline"
        data-action="pointerdown->mini-player#scrubStart"
        role="slider" aria-label="Seek">
+    <%# Downloaded-ahead indicator (video.buffered), behind the playhead fill. %>
+    <div class="mini-player__timeline-buffer" data-mini-player-target="timelineBuffer"></div>
     <div class="mini-player__timeline-fill" data-mini-player-target="timelineFill"></div>
     <div class="mini-player__timeline-knob"></div>
   </div>
