@@ -158,6 +158,25 @@
 .mini-player.is-playing .mini-player__icon-play { display: none; }
 .mini-player.is-playing .mini-player__icon-pause { display: inline-flex; }
 
+/* Buffering spinner: centered overlay while the video waits for data. */
+.mini-player__buffering {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 4;
+}
+.mini-player__buffering[hidden] { display: none; }
+.mini-player__buffering .icon {
+  width: 44px;
+  height: 44px;
+  color: #fff;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.6));
+}
+.mini-player--docked .mini-player__buffering .icon { width: 22px; height: 22px; }
+
 /* Skip-intro / Next buttons: black pill, white text + border, bottom-right
    above the timeline. Independent of the activity HUD — an intro should be
    skippable without waking the controls first. */

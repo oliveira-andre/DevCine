@@ -15,6 +15,13 @@
       subtitle prefs; text written from the active track's cues. %>
   <div class="mini-player__captions" data-mini-player-target="captions" hidden></div>
 
+  <%# Buffering feedback: shown while the video is stalled waiting for data
+      (chunked range loads on long files) and hidden the moment playback
+      resumes — driven by the media element's waiting/playing events. %>
+  <div class="mini-player__buffering" data-mini-player-target="buffering" hidden>
+    <%= icon(:spinner) %>
+  </div>
+
   <%# Skip-intro / next-episode buttons — shown by updateSkipButtons while the
       playhead is inside the opening / past the ending marker (expanded only). %>
   <button type="button" class="mini-player__skip" data-mini-player-target="skipIntro"

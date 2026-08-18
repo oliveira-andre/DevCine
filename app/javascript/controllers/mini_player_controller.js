@@ -15,7 +15,7 @@ export default class extends Controller {
   static targets = [
     "video", "controls", "prevBtn", "nextBtn", "captions",
     "timeline", "timelineFill", "currentTime", "duration",
-    "skipIntro", "skipNext"
+    "skipIntro", "skipNext", "buffering"
   ]
   static values = { autoplay: Boolean }
   static PROGRESS_INTERVAL = 10
@@ -71,6 +71,15 @@ export default class extends Controller {
     v.addEventListener("ended", this.onEnded)
     v.addEventListener("timeupdate", this.onTimeUpdate)
     v.addEventListener("loadedmetadata", this.onLoadedMetadata)
+    // Buffering feedback: `waiting` = playback stalled for data (long files
+    // stream in ranges), `playing`/`canplay` = data arrived; pausing is not
+    // loading, so it clears the spinner too.
+    this.showBuffering = () => this.setBuffering(true)
+    this.hideBuffering = () => this.setBuffering(false)
+    v.addEventListener("waiting", this.showBuffering)
+    v.addEventListener("playing", this.hideBuffering)
+    v.addEventListener("canplay", this.hideBuffering)
+    v.addEventListener("pause", this.hideBuffering)
 
     // Announce readiness so a player-source that connected first (full/direct
     // page load) re-dispatches its descriptor and isn't a missed handshake.
@@ -124,6 +133,7 @@ export default class extends Controller {
     // Drive visit (resetting instance state), but dataset survives — so the docked
     // tile can still open the right video.
     this.element.dataset.slug = d.slug
+    this.setBuffering(false) // a fresh source starts clean; `waiting` re-shows
     this.videoTarget.src = d.src
     this.videoTarget.poster = d.artwork || ""
     this.syncNeighbors()
@@ -589,6 +599,10 @@ export default class extends Controller {
     if (now - this.lastSavedAt >= this.constructor.PROGRESS_INTERVAL || now < this.lastSavedAt) {
       this.saveProgress()
     }
+  }
+
+  setBuffering(on) {
+    if (this.hasBufferingTarget) this.bufferingTarget.hidden = !on
   }
 
   // --- skip intro / next episode (opening_time / ending_time markers) --------
