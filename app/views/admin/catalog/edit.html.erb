@@ -44,6 +44,16 @@
                 class: "field-input" %>
         </div>
 
+        <%# Skip-intro / next-episode markers (HH:MM:SS, stored as seconds). On
+            a serie they are the default for every episode; a movie keeps them
+            on its video. %>
+        <%= render "admin/catalog/time_mask_field", name: :opening_time,
+              seconds: (@item.is_a?(Movie) ? @item.video&.opening_time : @item.opening_time),
+              label: "Opening ends at" %>
+        <%= render "admin/catalog/time_mask_field", name: :ending_time,
+              seconds: (@item.is_a?(Movie) ? @item.video&.ending_time : @item.ending_time),
+              label: "Ending starts at" %>
+
         <% if @item.is_a?(Serie) %>
           <div class="field">
             <%= label_tag :status, "Status", class: "field-label" %>

@@ -170,6 +170,34 @@ RSpec.describe Video, type: :model do
     end
   end
 
+  describe "skip markers (#effective_opening_time / #effective_ending_time)" do
+    def episode_of(serie_attrs, video_attrs)
+      serie = create(:serie, **serie_attrs)
+      season = serie.seasons.create!(position: 1, name: "Season 1")
+      video = create(:video, kind: :episode, **video_attrs)
+      season.episodes.create!(video: video, title: "Ep", position: 1)
+      video
+    end
+
+    it "falls back to the serie's markers when the video has none" do
+      video = episode_of({ opening_time: 30, ending_time: 1200 }, {})
+      expect(video.effective_opening_time).to eq(30)
+      expect(video.effective_ending_time).to eq(1200)
+    end
+
+    it "prefers the video's own markers over the serie's" do
+      video = episode_of({ opening_time: 30, ending_time: 1200 },
+                         { opening_time: 45, ending_time: 1100 })
+      expect(video.effective_opening_time).to eq(45)
+      expect(video.effective_ending_time).to eq(1100)
+    end
+
+    it "is nil when neither carries markers (standalone too)" do
+      expect(build(:video).effective_opening_time).to be_nil
+      expect(build(:video).effective_ending_time).to be_nil
+    end
+  end
+
   describe "#attach_generated_thumbnail! (backfill)" do
     def fake_frame
       file = Tempfile.new([ "frame", ".jpg" ], binmode: true)

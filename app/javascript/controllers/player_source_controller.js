@@ -10,6 +10,8 @@ export default class extends Controller {
     slug: String, src: String, artwork: String, title: String, album: String,
     prevUrl: String, nextUrl: String, resume: Number, list: String,
     viewsUrl: String, progressUrl: String, upNextUrl: String,
+    // Skip-intro / next-episode markers (seconds; 0 = none).
+    openingTime: Number, endingTime: Number,
     // Subtitles (feature 012): per-video tracks + per-user prefs.
     subtitles: Array, subEnabled: Boolean, subTextColor: String,
     subBgColor: String, subFontSize: Number, subFontWeight: Number
@@ -46,6 +48,8 @@ export default class extends Controller {
         viewsUrl: this.viewsUrlValue,
         progressUrl: this.progressUrlValue,
         upNextUrl: this.upNextUrlValue,
+        openingTime: this.openingTimeValue,
+        endingTime: this.endingTimeValue,
         subtitles: this.subtitlesValue,
         subEnabled: this.subEnabledValue,
         subTextColor: this.subTextColorValue,

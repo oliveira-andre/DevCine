@@ -166,6 +166,23 @@ RSpec.describe "Admin::Catalog", type: :request do
       expect(serie.reload.title).to eq("Renamed Show")
     end
 
+    it "saves the serie's default skip markers" do
+      serie = create(:serie, title: "Marked Show")
+      patch admin_catalog_item_path("serie", serie),
+            params: { title: "Marked Show", opening_time: 30, ending_time: 1200 },
+            headers: { "Accept" => "text/vnd.turbo-stream.html" }
+      expect(serie.reload).to have_attributes(opening_time: 30, ending_time: 1200)
+    end
+
+    it "saves a movie's skip markers onto its video" do
+      movie = create(:movie, title: "Marked Film",
+                             video: create(:video, kind: :feature, visibility: :public))
+      patch admin_catalog_item_path("movie", movie),
+            params: { title: "Marked Film", opening_time: 15, ending_time: 5000 },
+            headers: { "Accept" => "text/vnd.turbo-stream.html" }
+      expect(movie.video.reload).to have_attributes(opening_time: 15, ending_time: 5000)
+    end
+
     it "re-renders the modal with the error when the title is blank" do
       patch admin_catalog_item_path("movie", movie),
             params: { title: "", description: "x" },
@@ -214,6 +231,10 @@ RSpec.describe "Admin::Catalog", type: :request do
       expect(response.body).to include('name="genre_ids[]"')
       expect(response.body).to include('name="poster"')
       expect(response.body).to include('name="backdrop"')
+      # Skip markers: HH:MM:SS masked display + hidden integer-seconds field.
+      expect(response.body).to include('data-controller="time-mask"')
+      expect(response.body).to include('name="opening_time"')
+      expect(response.body).to include('name="ending_time"')
     end
 
     describe "thumbnail suggestions in the edit modal" do
@@ -388,6 +409,34 @@ RSpec.describe "Admin::Catalog", type: :request do
       expect(response).to have_http_status(:ok)
       expect(response.body).to include("Old Name")
       expect(response.body).to include('name="episode[title]"')
+    end
+
+    it "does not reshuffle positions when saving with the position unchanged" do
+      episode # force creation order (see below)
+      others = (2..3).map do |n|
+        season.episodes.create!(title: "Ep #{n}", position: n,
+                                video: create(:video, kind: :episode, visibility: :public))
+      end
+      # Simulate a legacy gap: the last episode sits beyond the count.
+      others.last.update_column(:position, 5)
+
+      patch episode_admin_catalog_item_path("serie", serie, episode_id: others.last.id),
+            params: { episode: { title: "Renamed Only", position: 5 } },
+            headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+      # Same position submitted → nobody moves, even though 5 > count (gap).
+      expect(others.last.reload).to have_attributes(title: "Renamed Only", position: 5)
+      expect(episode.reload.position).to eq(1)
+      expect(others.first.reload.position).to eq(2)
+    end
+
+    it "saves per-episode skip markers onto the video" do
+      patch episode_admin_catalog_item_path("serie", serie, episode_id: episode.id),
+            params: { episode: { title: "Old Name", position: 1 },
+                      video: { opening_time: 42, ending_time: 1000 } },
+            headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+      expect(episode.video.reload).to have_attributes(opening_time: 42, ending_time: 1000)
     end
 
     describe "thumbnail section in the episode modal" do

@@ -15,6 +15,15 @@
       <%= number_field_tag "episode[position]", @episode.position, min: 1, class: "field-input" %>
     </div>
 
+    <%# Per-episode skip markers (HH:MM:SS) — leave blank to inherit the
+        serie's defaults (shown as placeholders). %>
+    <%= render "admin/catalog/time_mask_field", name: "video[opening_time]",
+          seconds: @episode.video.opening_time, label: "Opening ends at",
+          placeholder_seconds: @item.opening_time %>
+    <%= render "admin/catalog/time_mask_field", name: "video[ending_time]",
+          seconds: @episode.video.ending_time, label: "Ending starts at",
+          placeholder_seconds: @item.ending_time %>
+
     <%# Episode thumbnail management — same section as the movie edit modal:
         current image + ✕ remove, or the JS-fetched frame chooser. Only for a
         slot that actually has a video file to analyse. %>

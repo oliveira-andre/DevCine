@@ -15,6 +15,13 @@
       subtitle prefs; text written from the active track's cues. %>
   <div class="mini-player__captions" data-mini-player-target="captions" hidden></div>
 
+  <%# Skip-intro / next-episode buttons — shown by updateSkipButtons while the
+      playhead is inside the opening / past the ending marker (expanded only). %>
+  <button type="button" class="mini-player__skip" data-mini-player-target="skipIntro"
+          data-action="mini-player#skipIntro" hidden>Skip</button>
+  <button type="button" class="mini-player__skip" data-mini-player-target="skipNext"
+          data-action="mini-player#nextFromEnding" hidden>Next</button>
+
   <%# Seekable timeline + time readout (expanded only). %>
   <div class="mini-player__timeline" data-mini-player-target="timeline"
        data-action="pointerdown->mini-player#scrubStart"

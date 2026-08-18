@@ -118,6 +118,7 @@ module Admin
 
       if @item.save
         apply_movie_visibility
+        apply_playback_markers
         apply_chosen_thumbnail
         flash.now[:notice] = "“#{@item.title}” was saved successfully."
         render turbo_stream: [
@@ -241,13 +242,23 @@ module Admin
       permitted = episode_params
       # Reposition via acts_as_list's insert_at: a taken position SHIFTS its
       # occupant (19→18 pushes the old 18 down) instead of colliding with it —
-      # so `position` is stripped from the plain update.
-      @episode.insert_at(clamped_position(permitted[:position])) if permitted[:position].present?
+      # so `position` is stripped from the plain update. Only when it actually
+      # CHANGED: the form always submits the field, and re-inserting an
+      # unchanged position through the clamp reshuffled gapped seasons on every
+      # plain rename/marker save.
+      requested = permitted[:position].presence&.to_i
+      @episode.insert_at(clamped_position(requested)) if requested && requested != @episode.position
       if @episode.update(permitted.except(:position))
         # The rename modal also hosts the thumbnail chooser (see
         # _edit_thumbnail) — promote a picked frame along with the save.
         chosen = params.dig(:video, :thumbnail_signed_id)
         @episode.video.accept_thumbnail_candidate(chosen) if chosen.present?
+        # Per-episode skip markers override the serie defaults; blank clears
+        # back to inheriting.
+        if params[:video].present?
+          markers = params[:video].permit(:opening_time, :ending_time)
+          @episode.video.update(markers) if markers.keys.any?
+        end
         render turbo_stream: [
           # A reposition renumbers OTHER rows too — refresh the whole season.
           replace_season_stream(@episode.season),
@@ -295,6 +306,10 @@ module Admin
       @item.maturity_rating = params[:maturity_rating] if params[:maturity_rating].present?
       @item.original_title = params[:original_title] if @item.respond_to?(:original_title=) && params.key?(:original_title)
       @item.status = params[:status] if @item.respond_to?(:status=) && params[:status].present?
+      # Skip-intro / next-episode defaults (serie columns; a movie's live on its
+      # video — see apply_playback_markers). Blank casts to nil = no marker.
+      @item.opening_time = params[:opening_time] if @item.respond_to?(:opening_time=) && params.key?(:opening_time)
+      @item.ending_time = params[:ending_time] if @item.respond_to?(:ending_time=) && params.key?(:ending_time)
 
       # genre_ids= replaces the taggings wholesale. Only sync when the form
       # actually submitted them — the edit form carries a hidden "" sentinel so
@@ -316,6 +331,17 @@ module Admin
       attrs = { visibility: params[:visibility] }
       attrs[:maturity_rating] = :A18 if params[:visibility] == "restricted"
       @item.video.update(attrs)
+    end
+
+    # A movie has no marker columns of its own — its opening/ending live on the
+    # single feature video (series keep theirs in assign_item_attributes).
+    def apply_playback_markers
+      return unless @item.is_a?(Movie) && @item.video
+
+      attrs = {}
+      attrs[:opening_time] = params[:opening_time] if params.key?(:opening_time)
+      attrs[:ending_time] = params[:ending_time] if params.key?(:ending_time)
+      @item.video.update(attrs) if attrs.any?
     end
 
     # The edit modal offers ffmpeg frame suggestions (lazy turbo frame) when a

@@ -35,6 +35,10 @@ class Serie < ApplicationRecord
   has_one_attached :backdrop
 
   validates :title, presence: true
+  # Default skip-intro / next-episode markers (seconds) for every episode; a
+  # video's own values override these (Video#effective_opening_time).
+  validates :opening_time, :ending_time,
+            numericality: { greater_than_or_equal_to: 0, only_integer: true }, allow_nil: true
 
   # Recency for the "Recently added series" rail.
   scope :recent, -> { order(created_at: :desc) }

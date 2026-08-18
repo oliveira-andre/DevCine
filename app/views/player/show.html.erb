@@ -27,6 +27,8 @@
            data-player-source-prev-url-value="<%= @prev_video ? player_path(@prev_video.slug, sequence_params) : "" %>"
            data-player-source-next-url-value="<%= @next_video ? player_path(@next_video.slug, sequence_params) : "" %>"
            data-player-source-resume-value="<%= @resume_position.to_i %>"
+           data-player-source-opening-time-value="<%= @video.effective_opening_time.to_i %>"
+           data-player-source-ending-time-value="<%= @video.effective_ending_time.to_i %>"
            data-player-source-list-value="<%= sequence_params[:list] %>"
            data-player-source-views-url-value="<%= views_player_path(@video.slug) %>"
            data-player-source-progress-url-value="<%= progress_player_path(@video.slug) %>"

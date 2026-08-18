@@ -56,4 +56,13 @@ module AdminHelper
       format("%d:%02d", minutes, secs)
     end
   end
+
+  # Canonical HH:MM:SS for the time-mask inputs (skip markers). Blank stays
+  # blank — an empty marker must not render as 00:00:00.
+  def hms(total_seconds)
+    return "" if total_seconds.blank?
+
+    total = total_seconds.to_i
+    format("%02d:%02d:%02d", total / 3600, (total % 3600) / 60, total % 60)
+  end
 end

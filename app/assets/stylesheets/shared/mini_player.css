@@ -158,6 +158,28 @@
 .mini-player.is-playing .mini-player__icon-play { display: none; }
 .mini-player.is-playing .mini-player__icon-pause { display: inline-flex; }
 
+/* Skip-intro / Next buttons: black pill, white text + border, bottom-right
+   above the timeline. Independent of the activity HUD — an intro should be
+   skippable without waking the controls first. */
+.mini-player__skip {
+  position: absolute;
+  right: var(--space-4);
+  bottom: 72px;
+  z-index: 6;
+  padding: 10px 22px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  border: 1px solid #fff;
+  border-radius: var(--radius-tile);
+  font-size: var(--text-meta);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+.mini-player__skip:hover { background: #000; }
+.mini-player__skip[hidden],
+.mini-player--docked .mini-player__skip { display: none; }
+
 /* --- EXPANDED chrome (player page): rich controls, fullscreen; no close/dock. --- */
 .mini-player__fullscreen {
   position: absolute;

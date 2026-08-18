@@ -14,7 +14,8 @@ const ADVANCE_KEY = "miniPlayerAutoAdvance" // set right before an autoplay Turb
 export default class extends Controller {
   static targets = [
     "video", "controls", "prevBtn", "nextBtn", "captions",
-    "timeline", "timelineFill", "currentTime", "duration"
+    "timeline", "timelineFill", "currentTime", "duration",
+    "skipIntro", "skipNext"
   ]
   static values = { autoplay: Boolean }
   static PROGRESS_INTERVAL = 10
@@ -137,6 +138,7 @@ export default class extends Controller {
     }
 
     d.expanded ? this.expand() : this.dock()
+    this.updateSkipButtons()
     const p = this.videoTarget.play()
     if (p && p.catch) p.catch(() => {})
   }
@@ -173,6 +175,7 @@ export default class extends Controller {
     el.classList.remove("mini-player--expanded", "is-active")
     el.classList.add("mini-player--docked")
     el.style.top = el.style.left = el.style.width = el.style.height = ""
+    this.updateSkipButtons()
   }
 
   positionExpanded() {
@@ -472,6 +475,12 @@ export default class extends Controller {
 
   onEnded() {
     if (!this.autoplayValue || this.dismissed) return
+    this.advanceToNext()
+  }
+
+  // Shared by the natural end-of-video (autoplay) and the explicit "Next"
+  // button shown during the ending marker.
+  advanceToNext() {
     if (this.inFullscreen()) {
       // Navigating would reparent this (turbo-permanent) element, and moving
       // the fullscreen element kicks the browser out of fullscreen — and an
@@ -575,10 +584,41 @@ export default class extends Controller {
 
   onTimeUpdate() {
     this.updateTimeline()
+    this.updateSkipButtons()
     const now = this.videoTarget.currentTime
     if (now - this.lastSavedAt >= this.constructor.PROGRESS_INTERVAL || now < this.lastSavedAt) {
       this.saveProgress()
     }
+  }
+
+  // --- skip intro / next episode (opening_time / ending_time markers) --------
+
+  updateSkipButtons() {
+    const opening = Number(this.desc?.openingTime) || 0
+    const ending = Number(this.desc?.endingTime) || 0
+    const t = this.videoTarget.currentTime || 0
+    if (this.hasSkipIntroTarget) {
+      this.skipIntroTarget.hidden = !(this.expanded && opening > 0 && t <= opening)
+    }
+    if (this.hasSkipNextTarget) {
+      this.skipNextTarget.hidden =
+        !(this.expanded && ending > 0 && t >= ending && !this.videoTarget.ended)
+    }
+  }
+
+  // Jump straight past the intro — to the exact opening_time mark.
+  skipIntro() {
+    const opening = Number(this.desc?.openingTime) || 0
+    if (opening > 0) this.videoTarget.currentTime = opening
+    this.updateSkipButtons()
+  }
+
+  // "Next" during the ending: advance right away with the same logic the
+  // natural end-of-video uses (fullscreen-aware, autoplay pref irrelevant —
+  // this is an explicit click).
+  nextFromEnding() {
+    this.saveProgress()
+    this.advanceToNext()
   }
 
   saveProgress() {

@@ -83,6 +83,9 @@ class Video < ApplicationRecord
   # optional at upload time; when present it must be positive.
   validates :duration_seconds, numericality: { greater_than: 0 }, allow_nil: true
   validates :file_size_bytes, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
+  # Skip-intro / next-episode markers (seconds into the video).
+  validates :opening_time, :ending_time,
+            numericality: { greater_than_or_equal_to: 0, only_integer: true }, allow_nil: true
   validate :uploaded_file_present, if: :require_file
   # A live is played by embedding a stream URL, not a file (feature 009).
   validate :live_requires_embed_url
@@ -205,6 +208,17 @@ class Video < ApplicationRecord
 
   def parent_series
     Serie.joins(seasons: :episodes).where(episodes: { video_id: id }).first
+  end
+
+  # Skip-intro / next-episode markers for the player. The serie's values are
+  # the default for every episode; a video's own values override them for the
+  # odd episode with a different opening or ending.
+  def effective_opening_time
+    opening_time || parent_series&.opening_time
+  end
+
+  def effective_ending_time
+    ending_time || parent_series&.ending_time
   end
 
   # The viewer-facing name. Episode videos carry a machine name ("Serie S1E4");

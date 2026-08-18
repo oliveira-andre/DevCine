@@ -1,0 +1,14 @@
+<%# HH:MM:SS masked duration field (skip markers). The visible text input is
+    display-only (empty name — never submitted) and enforced to the 00:00:00
+    shape by the time-mask controller; the hidden field submits the parsed
+    integer seconds under `name`. Locals: name, seconds, label,
+    placeholder_seconds (optional, e.g. the serie default an episode inherits). %>
+<div class="field" data-controller="time-mask">
+  <%= label_tag name, label, class: "field-label" %>
+  <%= text_field_tag "", hms(seconds), id: nil,
+        class: "field-input", inputmode: "numeric", autocomplete: "off",
+        placeholder: (local_assigns[:placeholder_seconds].present? ? hms(local_assigns[:placeholder_seconds]) : "00:00:00"),
+        data: { "time-mask-target": "display",
+                action: "input->time-mask#input blur->time-mask#normalize" } %>
+  <%= hidden_field_tag name, seconds, data: { "time-mask-target": "seconds" } %>
+</div>

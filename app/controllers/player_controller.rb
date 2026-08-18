@@ -95,6 +95,8 @@ class PlayerController < ApplicationController
         viewsUrl: views_player_path(video.slug),
         progressUrl: progress_player_path(video.slug),
         upNextUrl: up_next_player_path(video.slug, params_for),
+        openingTime: video.effective_opening_time.to_i,
+        endingTime: video.effective_ending_time.to_i,
         # Subtitle tracks + the viewer's caption prefs ride along so an
         # IN-PLACE advance (fullscreen / docked autoplay, no page navigation)
         # keeps captions working on the next episode.
