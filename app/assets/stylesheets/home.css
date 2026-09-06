@@ -22,9 +22,20 @@
   position: absolute;
   inset: 0;
   opacity: 0;
-  transition: opacity 600ms var(--ease-standard);
+  /* Inactive slides must be truly inert: transparent elements still catch
+     clicks (and keep their links in the tab order), so the LAST stacked slide
+     was swallowing every hero click regardless of which one was visible.
+     visibility flips only after the fade-out so the cross-fade is preserved. */
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 600ms var(--ease-standard), visibility 0s 600ms;
 }
-.hero__slide.is-active { opacity: 1; }
+.hero__slide.is-active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition-delay: 0s;
+}
 
 .hero__img { width: 100%; height: 100%; object-fit: cover; }
 
