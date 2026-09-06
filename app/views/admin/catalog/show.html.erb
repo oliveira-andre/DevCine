@@ -19,6 +19,15 @@
 
     <%= render "admin/catalog/summary", item: @item %>
 
+    <%# Uploads on this page consult this toggle: ON = offer the ffmpeg frame
+        chooser after each upload (single-file flow); OFF = just save, so a
+        run of drops isn't interrupted by a modal per file. %>
+    <label class="admin-thumbpref" data-controller="thumbnail-pref">
+      <input type="checkbox" id="thumbnail_chooser_pref" checked
+             data-thumbnail-pref-target="box" data-action="thumbnail-pref#save">
+      Offer thumbnail chooser after each upload
+    </label>
+
     <% if @item.is_a?(Movie) %>
       <h2 class="admin__subtitle">Movie file</h2>
       <%= render "admin/catalog/movie_slot", item: @item %>

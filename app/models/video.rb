@@ -45,6 +45,9 @@ class Video < ApplicationRecord
   has_many :episodes, dependent: :destroy
   has_many :movies, dependent: :destroy
   has_many :subtitles, dependent: :destroy
+  # Named audio tracks (MKV ingest — see VideoIngest). Position 1 is the
+  # default whose sound is embedded in the playable file itself.
+  has_many :audio_tracks, dependent: :destroy
   # Subtitle tracks attached during the upload form (the uploader's only chance
   # to add them — there is no member-facing subtitle manager). A row with no
   # file is an untouched slot, not an error, so it is dropped rather than

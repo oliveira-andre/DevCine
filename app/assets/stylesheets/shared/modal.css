@@ -46,6 +46,14 @@
 /* Wide modal (e.g. the two-column video upload). */
 .modal--wide { max-width: 760px; }
 
+/* File vs Live mode switch on the member upload form. */
+.upload-form__modes {
+  display: flex;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+.upload-form__modes .field-check { display: inline-flex; align-items: center; gap: var(--space-2); cursor: pointer; }
+
 /* Upload form: single column on mobile, two columns (fields | uploads) wide. */
 .upload-form__flash { margin-bottom: var(--space-4); }
 .upload-form__grid {

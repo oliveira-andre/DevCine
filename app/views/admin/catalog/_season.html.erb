@@ -9,4 +9,17 @@
 
   <%# Add a brand-new episode (vanilla flow / extending an import). %>
   <%= render "admin/catalog/add_episode", season: season, item: item %>
+
+  <%# Bulk-create hidden placeholder slots (manually-built series): lay out
+      "Episode N…M" first, then drop the files one after another. %>
+  <div class="admin-live admin-catalog__bulkadd">
+    <%= form_with url: create_episodes_admin_catalog_item_path("serie", item),
+          method: :post, class: "admin-catalog__bulkform" do %>
+      <%= hidden_field_tag :season_id, season.id %>
+      <%= number_field_tag :count, nil, min: 1, max: 100, required: true,
+            placeholder: "How many?", class: "field-input admin-catalog__bulkcount",
+            "aria-label": "Number of episode slots to create" %>
+      <%= submit_tag "Create episode slots", class: "btn btn-outline" %>
+    <% end %>
+  </div>
 </div>

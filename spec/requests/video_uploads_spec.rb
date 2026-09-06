@@ -31,11 +31,70 @@ RSpec.describe "Video uploads", type: :request do
       expect(video.visibility).to eq("public")
       expect(video.maturity_rating).to eq("A12")
       expect(video.file).to be_attached
+      # MKV ingest (remux + audio/subtitle stripping) runs off the request path.
+      expect(VideoIngestJob).to have_been_enqueued.with(video)
     end
 
     it "rejects a missing title" do
       post videos_path, params: { video: { title: "", file: upload("sample_image.jpg", "video/mp4") } }
       expect(response).to have_http_status(:unprocessable_content)
+    end
+  end
+
+  # Live mode: only a name + embed URL, saved as kind live and played in an
+  # iframe like the admin-created lives (feature 009 plumbing).
+  describe "POST /videos (live mode)" do
+    it "creates a live from just a title + embed URL — no file, no ingest" do
+      expect {
+        post videos_path, params: {
+          upload_mode: "live",
+          video: { title: "My Stream", visibility: "public", maturity_rating: "L",
+                   live_embed_url: "https://www.youtube.com/embed/abc123" }
+        }
+      }.to change(member.uploaded_videos, :count).by(1)
+
+      video = member.uploaded_videos.order(:created_at).last
+      expect(video.kind).to eq("live")
+      expect(video).to be_embed
+      expect(video.embed_src).to eq("https://www.youtube.com/embed/abc123")
+      expect(video.file).not_to be_attached
+      expect(video.status).to eq("ready")
+      expect(VideoIngestJob).not_to have_been_enqueued
+    end
+
+    it "cannot smuggle an arbitrary kind — the mode param only maps to live/standalone" do
+      post videos_path, params: {
+        upload_mode: "live",
+        video: { title: "Sneaky", kind: "feature",
+                 live_embed_url: "https://www.youtube.com/embed/abc123" }
+      }
+      expect(member.uploaded_videos.order(:created_at).last.kind).to eq("live")
+    end
+
+    it "rejects a live without a valid https embed URL" do
+      post videos_path, params: {
+        upload_mode: "live", video: { title: "Broken Stream", live_embed_url: "http://insecure.example" }
+      }
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to include("must be a valid https embed link")
+    end
+
+    it "ignores the draft flag in live mode (nothing for ffmpeg to chew on)" do
+      post videos_path, params: {
+        upload_mode: "live", draft: "1",
+        video: { title: "Live Draftless", visibility: "public",
+                 live_embed_url: "https://www.youtube.com/embed/abc123" }
+      }
+      video = member.uploaded_videos.order(:created_at).last
+      expect(video.status).to eq("ready")
+      expect(video.visibility).to eq("public")
+    end
+
+    it "offers the mode switch and URL field on the upload form" do
+      get new_video_path
+      expect(response.body).to include('name="upload_mode"')
+      expect(response.body).to include("Live (embed URL)")
+      expect(response.body).to include('name="video[live_embed_url]"')
     end
   end
 

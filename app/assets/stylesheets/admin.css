@@ -238,6 +238,26 @@
 }
 .admin-live__title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+/* "Offer thumbnail chooser" toggle on the catalog item page. */
+.admin-thumbpref {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-4) 0 0;
+  color: var(--text-secondary);
+  font-size: var(--text-meta);
+  cursor: pointer;
+}
+
+/* Bulk episode-slot creation row at the end of a season. */
+.admin-catalog__bulkform {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+}
+.admin-catalog__bulkcount { max-width: 140px; }
+
 /* Drag handle for sortable episode rows. */
 .admin-live__grip {
   display: inline-flex;

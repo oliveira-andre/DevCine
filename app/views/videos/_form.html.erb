@@ -8,8 +8,9 @@
       url: (draft ? video_path(video) : videos_path),
       method: (draft ? :patch : :post),
       class: "modal__form upload-form",
-      data: (draft ? {} : { controller: "draft-autosave",
+      data: (draft ? {} : { controller: "draft-autosave upload-mode",
                             "draft-autosave-chunk-url-value": chunked_uploads_path }) do |form| %>
+  <% live_mode = !draft && video.kind == "live" %>
 
   <% if video.errors.any? %>
     <div class="form-flash form-flash-alert upload-form__flash"><%= video.errors.full_messages.first %></div>
@@ -18,6 +19,20 @@
   <%# Flipped to "1" by draft-autosave just before it submits. Without
       JavaScript it stays "0" and the form behaves as a plain one-shot upload. %>
   <% unless draft %>
+    <%# What kind of upload: a file (default, draft-autosave flow) or a live
+        embed where only a name + URL are needed. The server maps this to
+        :standalone / :live — never a raw kind from params. %>
+    <div class="field upload-form__modes" role="radiogroup" aria-label="Upload type">
+      <label class="field-check">
+        <%= radio_button_tag :upload_mode, "file", !live_mode,
+              data: { action: "change->upload-mode#switch" } %> Video file
+      </label>
+      <label class="field-check">
+        <%= radio_button_tag :upload_mode, "live", live_mode,
+              data: { action: "change->upload-mode#switch" } %> Live (embed URL)
+      </label>
+    </div>
+
     <%= hidden_field_tag :draft, "0", data: { "draft-autosave-target": "draft" } %>
     <%# Filled by draft-autosave after it streamed the file in chunks — the
         submit then carries these instead of the file bytes. %>
@@ -35,6 +50,16 @@
               data: (draft ? {} : { "draft-autosave-target": "title",
                                     action: "change->draft-autosave#maybeSave" }) %>
       </div>
+
+      <% unless draft %>
+        <%# Live mode: only a name + embed URL are needed (played in an
+            iframe, exactly like the admin-created lives). %>
+        <div class="field" data-upload-mode-target="liveSection" <%= "hidden" unless live_mode %>>
+          <%= form.label :live_embed_url, "Live URL", class: "field-label" %>
+          <%= form.url_field :live_embed_url, placeholder: "https://www.youtube.com/embed/…",
+                required: true, disabled: !live_mode, class: "field-input" %>
+        </div>
+      <% end %>
 
       <div class="field">
         <%= form.label :description, class: "field-label" %>
@@ -56,8 +81,8 @@
       </div>
     </div>
 
-    <%# Right: the video file, then the thumbnail %>
-    <div class="upload-form__col">
+    <%# Right: the video file, then the thumbnail — file mode only. %>
+    <div class="upload-form__col" data-upload-mode-target="fileSection" <%= "hidden" if live_mode %>>
       <% if draft %>
         <div class="field">
           <span class="field-label">Video file</span>
@@ -121,7 +146,9 @@
     </div>
   </div>
 
-  <%= render "videos/subtitle_section", form: form, video: video %>
+  <div data-upload-mode-target="fileSection" <%= "hidden" if live_mode %>>
+    <%= render "videos/subtitle_section", form: form, video: video %>
+  </div>
 
   <%= form.submit (draft ? "Save" : "Upload"),
         class: "btn btn-primary btn-block upload-form__submit" %>

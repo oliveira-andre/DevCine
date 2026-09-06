@@ -158,12 +158,18 @@ module Admin
       # The bytes are now copied into Active Storage — drop the chunk scratch file.
       @chunked_upload&.discard
 
+      # Off the request path: remux MKVs to MP4 + strip their audio/subtitle
+      # tracks (or just name the default track) — see VideoIngest.
+      VideoIngestJob.perform_later(saved) if saved
+
       # The slot is updated IN PLACE (row swap / new row + a fresh add form), so
       # nothing depends on a page reload — choosing, skipping or plain ✕-closing
       # the chooser modal all leave a correct page behind. Frames are offered
       # best-effort: if ffmpeg produces nothing, the streams just carry a toast.
+      # The page-level "offer thumbnail chooser" toggle rides with each upload;
+      # bulk sessions turn it off and no extraction runs at all.
       streams = upload_row_streams(saved)
-      if saved&.suggest_thumbnails!
+      if params[:suggest_thumbnails] != "0" && saved&.suggest_thumbnails!
         streams << turbo_stream.update("modal", partial: "admin/catalog/thumbnail_chooser",
                                                 locals: { video: saved, item: @item, type: params[:type] })
       else
@@ -267,6 +273,35 @@ module Admin
       else
         render :edit_episode, status: :unprocessable_entity
       end
+    end
+
+    # Bulk-create N hidden placeholder episodes at the end of a season — the
+    # same shape imports produce (private/uploading videos, so members never
+    # see them) — so a manually-built serie can lay out its slots first and
+    # then take file drops one after another.
+    def create_episodes
+      set_item
+      @season = @item.seasons.find(params[:season_id])
+      count = params[:count].to_i
+      unless count.between?(1, 100)
+        flash.now[:alert] = "Pick how many episodes to create (1–100)."
+        return render turbo_stream: turbo_stream.update("flash", partial: "shared/flash")
+      end
+
+      start = @season.episodes.maximum(:position).to_i
+      count.times do |i|
+        position = start + i + 1
+        video = Video.create!(title: "#{@item.title} S#{@season.position}E#{position}",
+                              kind: :episode, status: :uploading, visibility: :private,
+                              uploader: Current.user)
+        @season.episodes.create!(video: video, title: "Episode #{position}", position: position)
+      end
+
+      flash.now[:notice] = "#{count} episode #{"slot".pluralize(count)} added — drop the files when ready."
+      render turbo_stream: [
+        replace_season_stream(@season),
+        turbo_stream.update("flash", partial: "shared/flash")
+      ]
     end
 
     # Drag-and-drop reorder (episode-sort controller): move one episode to the

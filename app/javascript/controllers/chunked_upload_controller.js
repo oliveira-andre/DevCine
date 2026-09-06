@@ -11,7 +11,7 @@ import { uploadInChunks } from "lib/chunk_uploader"
 // Drag-and-drop / click-to-browse behaviour mirrors dropzone_controller (which
 // still handles small, single-shot pickers like the subtitle SRT field).
 export default class extends Controller {
-  static targets = ["input", "label", "id", "filename", "contentType"]
+  static targets = ["input", "label", "id", "filename", "contentType", "suggest"]
   static values = {
     url: String,
     chunkSize: { type: Number, default: 8 * 1024 * 1024 }, // 8 MB
@@ -67,6 +67,13 @@ export default class extends Controller {
       this.element.classList.add("is-error")
       this.setLabel("Upload failed — click to try again")
       return
+    }
+
+    // Carry the page-level chooser toggle with this upload (bulk sessions
+    // turn it off so no modal interrupts the run of drops).
+    if (this.hasSuggestTarget) {
+      const pref = document.getElementById("thumbnail_chooser_pref")
+      this.suggestTarget.value = pref && !pref.checked ? "0" : "1"
     }
 
     // Hand the reassembled file to the form: the big bytes are already on the

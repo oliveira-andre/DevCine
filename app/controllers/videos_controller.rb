@@ -29,18 +29,26 @@ class VideosController < ApplicationController
   # DIRECT — the form was submitted outright (no JavaScript, so no autosave).
   # Behaves as it always did: a finished video, no suggestions offered.
   def create
-    drafting = params[:draft] == "1"
+    # A live is just a name + embed URL, played in an iframe — no file, no
+    # draft step (drafting exists so ffmpeg can chew on the file). The mode
+    # param maps ONLY onto these two kinds, never a raw kind from the client.
+    live = params[:upload_mode] == "live"
+    drafting = !live && params[:draft] == "1"
 
     @video = Current.user.uploaded_videos.new(video_params)
-    @video.kind = :standalone   # forced server-side
-    @video.require_file = true
+    @video.kind = live ? :live : :standalone   # forced server-side
+    @video.require_file = !live
     @video.status = drafting ? :uploading : :ready
     @video.visibility = :private if drafting
-    attach_chunked_file
+    attach_chunked_file unless live
 
     if @video.save
       # The bytes are in Active Storage now — drop the chunk scratch file.
       @chunked_upload&.discard
+      # Off the request path: remux MKVs to MP4 + strip their audio/subtitle
+      # tracks (or just name the default track) — see VideoIngest. Lives have
+      # no file to ingest.
+      VideoIngestJob.perform_later(@video) if @video.file.attached?
       drafting ? render_draft_step : finish_upload
     else
       @video.subtitles.build if @video.subtitles.empty?
@@ -107,7 +115,7 @@ class VideosController < ApplicationController
   def video_params
     params.require(:video).permit(
       :title, :description, :maturity_rating, :visibility, :file, :thumbnail,
-      subtitles_attributes: %i[file language]
+      :live_embed_url, subtitles_attributes: %i[file language]
     )
   end
 end

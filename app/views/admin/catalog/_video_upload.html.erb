@@ -10,6 +10,8 @@
       data: { controller: "chunked-upload",
               "chunked-upload-url-value": admin_chunked_uploads_path } do %>
   <%= hidden_field_tag scope_field, scope_value %>
+  <%# Synced from the page-level chooser toggle just before submit. %>
+  <%= hidden_field_tag :suggest_thumbnails, "1", data: { "chunked-upload-target": "suggest" } %>
   <%= hidden_field_tag :chunked_upload_id, "", data: { "chunked-upload-target": "id" } %>
   <%= hidden_field_tag :chunked_upload_filename, "", data: { "chunked-upload-target": "filename" } %>
   <%= hidden_field_tag :chunked_upload_content_type, "", data: { "chunked-upload-target": "contentType" } %>

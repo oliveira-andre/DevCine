@@ -630,6 +630,8 @@ RSpec.describe "Admin::Catalog", type: :request do
       placeholder.reload
       expect(placeholder.file).to be_attached
       expect(placeholder).to have_attributes(status: "ready", visibility: "public")
+      # MKV ingest (remux + audio/subtitle stripping) runs off the request path.
+      expect(VideoIngestJob).to have_been_enqueued.with(placeholder)
     end
 
     it "shows the filename and a download link for an uploaded slot" do
@@ -695,6 +697,69 @@ RSpec.describe "Admin::Catalog", type: :request do
       expect(movie.video).to be_present
       expect(movie.video.file).not_to be_attached
       expect(movie.video).to have_attributes(status: "uploading", visibility: "private")
+    end
+
+    it "skips the thumbnail chooser (and extraction) when the toggle is off" do
+      serie = CatalogImport.vanilla!(kind: "serie", title: "Quiet Show", seasons_count: 1, uploader: admin)
+      season = serie.seasons.first
+      placeholder = Video.create!(title: "Quiet Show S1E1", kind: :episode, status: :uploading,
+                                  visibility: :private, uploader: admin)
+      season.episodes.create!(video: placeholder, title: "Episode 1", position: 1)
+      expect(VideoFrameExtractor).not_to receive(:call)
+
+      post upload_admin_catalog_item_path("serie", serie),
+           params: { video_id: placeholder.id, file: video_upload, suggest_thumbnails: "0" },
+           headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+      expect(placeholder.reload.file).to be_attached
+      expect(placeholder.thumbnail_candidates.count).to eq(0)
+      expect(response.body).not_to include("Choose a thumbnail")
+      expect(response.body).to include("saved successfully")
+    end
+
+    describe "bulk episode slots" do
+      let(:serie) { CatalogImport.vanilla!(kind: "serie", title: "Bulk Show", seasons_count: 1, uploader: admin) }
+      let(:season) { serie.seasons.first }
+
+      it "creates N hidden placeholders appended after the existing episodes" do
+        existing = Video.create!(title: "Bulk Show S1E1", kind: :episode, status: :ready,
+                                 visibility: :public, uploader: admin)
+        season.episodes.create!(video: existing, title: "Episode 1", position: 1)
+
+        expect {
+          post create_episodes_admin_catalog_item_path("serie", serie),
+               params: { season_id: season.id, count: 3 },
+               headers: { "Accept" => "text/vnd.turbo-stream.html" }
+        }.to change(Episode, :count).by(3).and change(Video, :count).by(3)
+
+        episodes = season.episodes.order(:position)
+        expect(episodes.map(&:position)).to eq([ 1, 2, 3, 4 ])
+        expect(episodes.map(&:title)).to eq([ "Episode 1", "Episode 2", "Episode 3", "Episode 4" ])
+        # Placeholders stay invisible to members until a file lands.
+        expect(episodes.last.video).to have_attributes(status: "uploading", visibility: "private",
+                                                       title: "Bulk Show S1E4")
+        expect(episodes.last.video.file).not_to be_attached
+        expect(response.body).to include("admin_season_#{season.id}") # season streams back
+      end
+
+      it "rejects a missing/out-of-range count" do
+        expect {
+          post create_episodes_admin_catalog_item_path("serie", serie),
+               params: { season_id: season.id, count: 0 },
+               headers: { "Accept" => "text/vnd.turbo-stream.html" }
+        }.not_to change(Episode, :count)
+
+        expect(response.body).to include("Pick how many")
+      end
+
+      it "404s for a season of a different serie" do
+        other = CatalogImport.vanilla!(kind: "serie", title: "Other Bulk", seasons_count: 1, uploader: admin)
+
+        post create_episodes_admin_catalog_item_path("serie", serie),
+             params: { season_id: other.seasons.first.id, count: 2 }
+
+        expect(response).to have_http_status(:not_found)
+      end
     end
 
     it "adds a brand-new episode to a season (vanilla flow)" do
