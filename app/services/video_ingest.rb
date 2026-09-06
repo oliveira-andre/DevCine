@@ -21,11 +21,17 @@ class VideoIngest
     def ok? = error.nil?
   end
 
-  # Container/codec probes are quick; a remux is disk-bound (GBs of I/O) and
-  # audio transcodes are ~faster than realtime — generous ceilings, they only
-  # exist so a wedged ffmpeg can't hang a job forever.
+  # Container/codec probes are quick; a remux is disk-bound (GBs of I/O), and a
+  # full VIDEO transcode (HEVC/10-bit → H.264) can run below realtime on a VPS,
+  # so the ffmpeg ceiling is generous — it only exists so a wedged process
+  # can't hang a job forever.
   PROBE_TIMEOUT = 30
-  FFMPEG_TIMEOUT = 3600
+  FFMPEG_TIMEOUT = 6 * 3600
+
+  # What every mainstream browser decodes without OS/GPU luck: H.264 in 8-bit
+  # 4:2:0, VP9 or AV1. HEVC (macOS-only in practice) and 10-bit anything
+  # (anime's beloved Main 10 / Hi10P) must be re-encoded.
+  SAFE_PIXEL_FORMATS = %w[yuv420p yuvj420p].freeze
 
   TEXT_SUBTITLE_CODECS = %w[subrip ass ssa mov_text webvtt text].freeze
 
@@ -64,6 +70,10 @@ class VideoIngest
 
       if matroska?(streams)
         ingest_matroska(source.path, streams)
+      elsif unsafe_video?(streams)
+        # Right container, undecodable codec (an HEVC/10-bit MP4): re-encode
+        # in place, then the default track row as for any non-MKV upload.
+        replace_with_playable(source.path, streams) || ensure_default_track(status: :transcoded)
       else
         ensure_default_track
       end
@@ -71,6 +81,31 @@ class VideoIngest
   rescue StandardError => e
     Rails.logger.warn("VideoIngest failed for video #{@video.id}: #{e.class}: #{e.message}")
     failure("ingest failed: #{e.message}")
+  end
+
+  # Fix an ALREADY-ingested (or pre-feature) file whose video codec browsers
+  # can't decode — HEVC / 10-bit, playable on macOS only. Replaces the file
+  # with an H.264 8-bit MP4; audio tracks and subtitles are left untouched
+  # (they were extracted at ingest). No-op (:safe) for decodable files.
+  def reencode
+    return failure("no video file attached") unless @video.file.attached?
+    return failure("ffmpeg is unavailable") unless VideoFrameExtractor.available?
+
+    @video.file.open do |source|
+      streams = probe(source.path)
+      return failure("could not probe the file") if streams.nil?
+      return Result.new(status: :safe, audio_tracks: 0, subtitles: 0, error: nil) unless unsafe_video?(streams)
+
+      replace_with_playable(source.path, streams) ||
+        Result.new(status: :transcoded, audio_tracks: 0, subtitles: 0, error: nil)
+    end
+  rescue StandardError => e
+    Rails.logger.warn("VideoIngest reencode failed for video #{@video.id}: #{e.class}: #{e.message}")
+    failure("reencode failed: #{e.message}")
+  end
+
+  def self.reencode(video)
+    new(video).reencode
   end
 
   private
@@ -92,9 +127,29 @@ class VideoIngest
   end
 
   # Non-MKV: nothing to strip — the row just names the embedded audio.
-  def ensure_default_track
+  def ensure_default_track(status: :default)
     @video.audio_tracks.create!(name: "default", position: 1)
-    Result.new(status: :default, audio_tracks: 1, subtitles: 0, error: nil)
+    Result.new(status: status, audio_tracks: 1, subtitles: 0, error: nil)
+  end
+
+  def first_stream(probed, type)
+    probed["streams"].find { |s| s["codec_type"] == type }
+  end
+
+  def unsafe_video?(probed)
+    stream = first_stream(probed, "video")
+    stream.present? && !browser_safe_video?(stream)
+  end
+
+  # What every mainstream browser decodes: H.264 in 8-bit 4:2:0, VP9 or AV1.
+  # HEVC only decodes where the OS/GPU happens to help (macOS, some Windows
+  # boxes — not Brave), and 10-bit H.264 (Hi10P) decodes nowhere.
+  def browser_safe_video?(stream)
+    case stream["codec_name"]
+    when "vp9", "av1" then true
+    when "h264" then SAFE_PIXEL_FORMATS.include?(stream["pix_fmt"].to_s)
+    else false
+    end
   end
 
   def ingest_matroska(path, probed)
@@ -102,7 +157,7 @@ class VideoIngest
     return failure("mkv has no audio stream") if audio_streams.empty?
 
     Dir.mktmpdir("video-ingest") do |dir|
-      mp4 = remux(path, audio_streams.first, dir)
+      mp4 = build_mp4(path, first_stream(probed, "video"), audio_streams.first, dir)
       return failure("remux failed — file left untouched") if mp4.nil?
 
       subtitles = extract_subtitles(path, probed["streams"], dir)
@@ -116,20 +171,45 @@ class VideoIngest
     end
   end
 
-  # Video stream + first audio into a faststart MP4. -c:v copy always: H.264/
-  # HEVC/VP9/AV1 all carry into MP4, and re-encoding video is off the table.
-  def remux(path, first_audio, dir)
+  # Re-encode the current file to a playable MP4 and swap it in. Returns nil on
+  # success so callers can chain their success Result after `||`; on failure
+  # returns the failure Result (original file untouched).
+  def replace_with_playable(path, probed)
+    Dir.mktmpdir("video-ingest") do |dir|
+      mp4 = build_mp4(path, first_stream(probed, "video"), first_stream(probed, "audio"), dir)
+      return failure("transcode failed — file left untouched") if mp4.nil?
+
+      replace_file!(mp4)
+    end
+    nil
+  end
+
+  # Video + first audio into a faststart MP4. Video is copied when browsers can
+  # decode it and re-encoded to H.264 8-bit otherwise; audio is copied when
+  # already AAC, transcoded to AAC otherwise.
+  def build_mp4(path, video_stream, audio_stream, dir)
     out = File.join(dir, "remux.mp4")
+    maps = [ "-map", "0:v:0" ]
+    maps += [ "-map", "0:a:0" ] if audio_stream
     _o, err, status = run(
-      [ "ffmpeg", "-y", "-i", path, "-map", "0:v:0", "-map", "0:a:0",
-        "-c:v", "copy", *audio_codec_args(first_audio),
+      [ "ffmpeg", "-y", "-i", path, *maps,
+        *video_codec_args(video_stream), *(audio_stream ? audio_codec_args(audio_stream) : []),
         "-movflags", "+faststart", "-sn", "-dn", out ],
       timeout: FFMPEG_TIMEOUT
     )
     return out if status&.success? && File.size?(out)
 
-    Rails.logger.warn("VideoIngest remux failed for #{@video.id}: #{err.to_s.lines.last(3).join.strip}")
+    Rails.logger.warn("VideoIngest build_mp4 failed for #{@video.id}: #{err.to_s.lines.last(3).join.strip}")
     nil
+  end
+
+  def video_codec_args(stream)
+    if stream && browser_safe_video?(stream)
+      [ "-c:v", "copy" ]
+    else
+      # CRF 23 veryfast: visually transparent, ~realtime-ish on a VPS core.
+      [ "-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-pix_fmt", "yuv420p" ]
+    end
   end
 
   def audio_codec_args(stream)
