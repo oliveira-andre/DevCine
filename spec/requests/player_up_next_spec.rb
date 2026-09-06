@@ -31,6 +31,10 @@ RSpec.describe "Player up_next", type: :request do
       expect(body["subtitles"].first["language"]).to eq("english")
       expect(body).to have_key("subEnabled")
       expect(body).to have_key("subTextColor")
+      # Audio tracks ride along so an in-place advance keeps the menu working.
+      v2.audio_tracks.create!(name: "default", position: 1)
+      get up_next_player_path(v1.slug)
+      expect(body["audioTracks"].map { |t| t["name"] }).to eq([ "default" ])
     end
 
     it "returns 204 at the serie end once the only recommendation is played" do

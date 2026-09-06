@@ -12,6 +12,8 @@ export default class extends Controller {
     viewsUrl: String, progressUrl: String, upNextUrl: String,
     // Skip-intro / next-episode markers (seconds; 0 = none).
     openingTime: Number, endingTime: Number,
+    // Named audio tracks (MKV ingest) for the audio menu.
+    audioTracks: Array,
     // Subtitles (feature 012): per-video tracks + per-user prefs.
     subtitles: Array, subEnabled: Boolean, subTextColor: String,
     subBgColor: String, subFontSize: Number, subFontWeight: Number
@@ -51,6 +53,7 @@ export default class extends Controller {
         openingTime: this.openingTimeValue,
         endingTime: this.endingTimeValue,
         subtitles: this.subtitlesValue,
+        audioTracks: this.audioTracksValue,
         subEnabled: this.subEnabledValue,
         subTextColor: this.subTextColorValue,
         subBgColor: this.subBgColorValue,

@@ -83,6 +83,9 @@ Rails.application.routes.draw do
         patch "episodes/:episode_id",      action: :update_episode, as: :episode
         # Drag-to-reorder within a season (episode-sort Stimulus controller).
         patch "episodes/:episode_id/position", action: :update_position, as: :update_position
+        # Bulk-create hidden placeholder episode slots for a season (admin-only
+        # by construction — the whole namespace is admin-gated).
+        post "episodes/bulk", action: :create_episodes, as: :create_episodes
       end
     end
   end

@@ -47,6 +47,8 @@ export default class extends Controller {
     this.onSubtitlesStyle = this.onSubtitlesStyle.bind(this)
     this.onSubtitlesLanguage = this.onSubtitlesLanguage.bind(this)
 
+    this.onAudioTrack = (event) => this.selectAudioTrack(event.detail?.trackId)
+    document.addEventListener("mini-player:audio-track", this.onAudioTrack)
     document.addEventListener("mini-player:load", this.onLoad)
     document.addEventListener("mini-player:dock", this.onDockEvent)
     document.addEventListener("mini-player:set-autoplay", this.setAutoplay)
@@ -90,6 +92,7 @@ export default class extends Controller {
   }
 
   disconnect() {
+    document.removeEventListener("mini-player:audio-track", this.onAudioTrack)
     document.removeEventListener("mini-player:load", this.onLoad)
     document.removeEventListener("mini-player:dock", this.onDockEvent)
     document.removeEventListener("mini-player:set-autoplay", this.setAutoplay)
@@ -137,6 +140,10 @@ export default class extends Controller {
     // tile can still open the right video.
     this.element.dataset.slug = d.slug
     this.setBuffering(false) // a fresh source starts clean; `waiting` re-shows
+    // A new video always starts on its embedded (default) audio.
+    this.audioTracks = Array.isArray(d.audioTracks) ? d.audioTracks : []
+    this.teardownAltAudio()
+    this.videoTarget.muted = false
     this.videoTarget.src = d.src
     this.videoTarget.poster = d.artwork || ""
     this.syncNeighbors()
@@ -352,6 +359,8 @@ export default class extends Controller {
   // Close (X): stop + remove; stays dismissed until a new video is started.
   close() {
     this.saveProgress()
+    this.teardownAltAudio()
+    this.videoTarget.muted = false
     this.videoTarget.pause()
     this.videoTarget.removeAttribute("src")
     this.videoTarget.load()
@@ -419,6 +428,7 @@ export default class extends Controller {
 
   onPlay() {
     this.element.classList.add("is-playing")
+    this.syncAltAudio()
     this.setupMediaSession()
     if ("mediaSession" in navigator) navigator.mediaSession.playbackState = "playing"
     this.recordView()
@@ -427,6 +437,7 @@ export default class extends Controller {
 
   onPause() {
     this.element.classList.remove("is-playing")
+    this.syncAltAudio()
     if ("mediaSession" in navigator) navigator.mediaSession.playbackState = "paused"
     this.saveProgress()
     if (this.expanded) this.activity()
@@ -617,6 +628,7 @@ export default class extends Controller {
   onTimeUpdate() {
     this.updateTimeline()
     this.updateSkipButtons()
+    this.syncAltAudio()
     const now = this.videoTarget.currentTime
     if (now - this.lastSavedAt >= this.constructor.PROGRESS_INTERVAL || now < this.lastSavedAt) {
       this.saveProgress()
@@ -625,6 +637,44 @@ export default class extends Controller {
 
   setBuffering(on) {
     if (this.hasBufferingTarget) this.bufferingTarget.hidden = !on
+  }
+
+  // --- audio tracks (MKV ingest) ---------------------------------------------
+  // Progressive MP4 can't switch audio natively, so an alternate track plays
+  // its extracted .m4a in a hidden <audio> element, slaved to the video clock:
+  // the video is muted, play/pause mirror over, and drift beyond 0.35s snaps
+  // back. The default track simply unmutes the MP4's embedded sound.
+
+  selectAudioTrack(trackId) {
+    const track = (this.audioTracks || []).find((t) => t.id === trackId)
+    if (!track || !track.url) {
+      this.videoTarget.muted = false
+      this.teardownAltAudio()
+      return
+    }
+
+    if (!this.altAudio) this.altAudio = new Audio()
+    this.altAudio.src = track.url
+    this.altAudio.currentTime = this.videoTarget.currentTime
+    this.videoTarget.muted = true
+    if (!this.videoTarget.paused) this.altAudio.play().catch(() => {})
+  }
+
+  syncAltAudio() {
+    if (!this.altAudio) return
+    const v = this.videoTarget
+    if (v.paused && !this.altAudio.paused) this.altAudio.pause()
+    if (!v.paused && this.altAudio.paused) this.altAudio.play().catch(() => {})
+    if (Math.abs(this.altAudio.currentTime - v.currentTime) > 0.35) {
+      this.altAudio.currentTime = v.currentTime
+    }
+  }
+
+  teardownAltAudio() {
+    if (!this.altAudio) return
+    this.altAudio.pause()
+    this.altAudio.removeAttribute("src")
+    this.altAudio = null
   }
 
   // --- skip intro / next episode (opening_time / ending_time markers) --------

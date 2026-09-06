@@ -1,0 +1,23 @@
+<%# Audio-track menu (MKV ingest) — sits beside the captions icon with the
+    same minimal popup. Lists the video's named tracks; picking one tells the
+    persistent player to switch (default = the MP4's embedded sound, alternates
+    play their extracted .m4a in sync). Locals: tracks (AudioTrack array). %>
+<div class="subtitles audio-menu" data-controller="audio-menu">
+  <button type="button" class="reaction-btn subtitles__toggle"
+          data-audio-menu-target="toggle"
+          data-action="audio-menu#togglePopup" aria-label="Audio track"
+          title="Audio track">
+    <%= icon(:audio) %>
+  </button>
+
+  <div class="subtitles__popup" data-audio-menu-target="popup" hidden>
+    <div class="subtitles__row">
+      <label>Audio</label>
+      <select data-audio-menu-target="select" data-action="change->audio-menu#change">
+        <% tracks.each do |track| %>
+          <option value="<%= track.id %>" <%= "selected" if track.default? %>><%= track.name %></option>
+        <% end %>
+      </select>
+    </div>
+  </div>
+</div>

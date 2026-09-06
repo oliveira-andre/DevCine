@@ -34,6 +34,7 @@
            data-player-source-progress-url-value="<%= progress_player_path(@video.slug) %>"
            data-player-source-up-next-url-value="<%= up_next_player_path(@video.slug, sequence_params) %>"
            data-player-source-subtitles-value="<%= subtitle_tracks_json(@video, @subtitle_tracks) %>"
+           data-player-source-audio-tracks-value="<%= audio_tracks_data(@audio_tracks).to_json %>"
            data-player-source-sub-enabled-value="<%= Current.user.subtitles_enabled %>"
            data-player-source-sub-text-color-value="<%= Current.user.subtitle_text_color %>"
            data-player-source-sub-bg-color-value="<%= Current.user.subtitle_background_color %>"
@@ -53,6 +54,9 @@
         <%= render "player/autoplay_toggle" %>
         <% unless @video.embed? %>
           <%= render "player/subtitle_controls" %>
+          <% if @audio_tracks.any? %>
+            <%= render "player/audio_controls", tracks: @audio_tracks %>
+          <% end %>
         <% end %>
         <div class="menu" data-controller="menu">
           <button type="button" class="reaction-btn menu__toggle"

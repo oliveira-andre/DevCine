@@ -13,6 +13,8 @@ class PlayerController < ApplicationController
     @album = album_label
     # Subtitle tracks for file-based videos only (feature 012).
     @subtitle_tracks = @video.embed? ? [] : @video.subtitle_tracks
+    # Named audio tracks (MKV ingest) for the audio menu.
+    @audio_tracks = @video.embed? ? [] : @video.audio_tracks.ordered.with_attached_file.to_a
   end
 
   # GET /playing/:slug/related — lazy Turbo Frame content (US8, FR-028). Inside a
@@ -101,6 +103,7 @@ class PlayerController < ApplicationController
         # IN-PLACE advance (fullscreen / docked autoplay, no page navigation)
         # keeps captions working on the next episode.
         subtitles: helpers.subtitle_tracks_data(video, video.subtitle_tracks),
+        audioTracks: helpers.audio_tracks_data(video.audio_tracks.ordered.with_attached_file),
         subEnabled: Current.user.subtitles_enabled,
         subTextColor: Current.user.subtitle_text_color,
         subBgColor: Current.user.subtitle_background_color,

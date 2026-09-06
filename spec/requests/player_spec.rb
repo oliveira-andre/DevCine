@@ -43,6 +43,19 @@ RSpec.describe "Player", type: :request do
       expect(response.body).to include(video.title)
     end
 
+    it "renders the audio-track menu with the video's named tracks" do
+      sign_in
+      video = create(:video, :with_file, visibility: :public)
+      video.audio_tracks.create!(name: "Português", position: 1)
+      track = video.audio_tracks.create!(name: "English", position: 2)
+      track.file.attach(io: StringIO.new("m4a"), filename: "english.m4a", content_type: "audio/mp4")
+
+      get player_path(video.slug)
+      expect(response.body).to include('data-controller="audio-menu"')
+      expect(response.body).to include("Português").and include("English")
+      expect(response.body).to include(rails_storage_redirect_path(track.file))
+    end
+
     it "plays an unlisted video via direct link" do
       sign_in
       video = create(:video, :with_file, visibility: :unlisted)
