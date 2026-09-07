@@ -37,6 +37,8 @@
            data-player-source-up-next-url-value="<%= up_next_player_path(@video.slug, sequence_params) %>"
            data-player-source-subtitles-value="<%= subtitle_tracks_json(@video, @subtitle_tracks) %>"
            data-player-source-audio-tracks-value="<%= audio_tracks_data(@audio_tracks).to_json %>"
+           data-player-source-preferred-audio-id-value="<%= @preferred_audio_id %>"
+           data-player-source-preferred-subtitle-id-value="<%= @preferred_subtitle_id %>"
            data-player-source-sub-enabled-value="<%= Current.user.subtitles_enabled %>"
            data-player-source-sub-text-color-value="<%= Current.user.subtitle_text_color %>"
            data-player-source-sub-bg-color-value="<%= Current.user.subtitle_background_color %>"
@@ -57,7 +59,8 @@
         <% unless @video.embed? %>
           <%= render "player/subtitle_controls" %>
           <% if @audio_tracks.any? %>
-            <%= render "player/audio_controls", tracks: @audio_tracks %>
+            <%= render "player/audio_controls", tracks: @audio_tracks, video: @video,
+                  selected_id: @preferred_audio_id %>
           <% end %>
         <% end %>
         <div class="menu" data-controller="menu">

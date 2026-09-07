@@ -103,6 +103,8 @@ Rails.application.routes.draw do
       get  "hls/*rest", to: "player/hls#show", as: :hls, format: false
       post :views,    to: "video_views#create"
       post :progress, to: "watch_progresses#create"
+      # Remembered audio/subtitle choice for this video's title (serie/movie).
+      patch :preference, to: "playback_preferences#update"
       get  :comments, to: "comments#index"
       post :comments, to: "comments#create", as: nil
       get  "add-to-playlist", to: "playlist_additions#new", as: :add_to_playlist

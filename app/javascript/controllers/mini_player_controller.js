@@ -141,8 +141,11 @@ export default class extends Controller {
     // tile can still open the right video.
     this.element.dataset.slug = d.slug
     this.setBuffering(false) // a fresh source starts clean; `waiting` re-shows
-    // A new video always starts on its embedded (default) audio.
+    // A new video starts on its default audio unless this title carries a
+    // remembered choice (resolved to a track id server-side).
     this.audioTracks = Array.isArray(d.audioTracks) ? d.audioTracks : []
+    this.pendingAudioTrackId = d.preferredAudioId || null
+    this.preferredSubtitleId = d.preferredSubtitleId || null
     this.teardownAltAudio()
     this.videoTarget.muted = false
     this.attachSource(d.src)
@@ -250,7 +253,9 @@ export default class extends Controller {
       el.label = t.label; el.dataset.trackId = t.id
       v.appendChild(el)
     })
-    const selected = this.tracks.find((t) => t.default) || this.tracks[0]
+    // The title's remembered subtitle language wins over the default track.
+    const selected = this.tracks.find((t) => t.id === this.preferredSubtitleId) ||
+      this.tracks.find((t) => t.default) || this.tracks[0]
     this.selectTrack(selected.id)
   }
 
@@ -652,12 +657,22 @@ export default class extends Controller {
     this.teardownHls()
     if (src.includes(".m3u8") && Hls.isSupported()) {
       this.hls = new Hls({ maxBufferLength: 60, maxMaxBufferLength: 120 })
+      // The remembered audio choice can only apply once renditions exist.
+      this.hls.on(Hls.Events.AUDIO_TRACKS_UPDATED, () => this.applyPendingAudioTrack())
       this.hls.loadSource(src)
       this.hls.attachMedia(this.videoTarget)
     } else {
       // Native HLS (iOS Safari) or a progressive file — same code path.
       this.videoTarget.src = src
+      this.applyPendingAudioTrack()
     }
+  }
+
+  applyPendingAudioTrack() {
+    if (!this.pendingAudioTrackId) return
+    const id = this.pendingAudioTrackId
+    this.pendingAudioTrackId = null
+    this.selectAudioTrack(id)
   }
 
   teardownHls() {

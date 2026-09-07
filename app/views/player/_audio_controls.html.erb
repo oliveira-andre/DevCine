@@ -1,8 +1,10 @@
 <%# Audio-track menu (MKV ingest) — sits beside the captions icon with the
     same minimal popup. Lists the video's named tracks; picking one tells the
-    persistent player to switch (default = the MP4's embedded sound, alternates
-    play their extracted .m4a in sync). Locals: tracks (AudioTrack array). %>
-<div class="subtitles audio-menu" data-controller="audio-menu">
+    persistent player to switch AND saves the choice for this title (serie /
+    movie) via the preference endpoint. Locals: tracks, video,
+    selected_id (optional — the viewer's remembered track). %>
+<div class="subtitles audio-menu" data-controller="audio-menu"
+     data-audio-menu-url-value="<%= preference_player_path(video.slug) %>">
   <button type="button" class="reaction-btn subtitles__toggle"
           data-audio-menu-target="toggle"
           data-action="audio-menu#togglePopup" aria-label="Audio track"
@@ -14,8 +16,10 @@
     <div class="subtitles__row">
       <label>Audio</label>
       <select data-audio-menu-target="select" data-action="change->audio-menu#change">
+        <% selected = local_assigns[:selected_id] %>
         <% tracks.each do |track| %>
-          <option value="<%= track.id %>" <%= "selected" if track.default? %>><%= track.name %></option>
+          <option value="<%= track.id %>"
+                  <%= "selected" if selected ? track.id == selected : track.default? %>><%= track.name %></option>
         <% end %>
       </select>
     </div>

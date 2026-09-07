@@ -15,6 +15,9 @@ class PlayerController < ApplicationController
     @subtitle_tracks = @video.embed? ? [] : @video.subtitle_tracks
     # Named audio tracks (MKV ingest) for the audio menu.
     @audio_tracks = @video.embed? ? [] : @video.audio_tracks.ordered.with_attached_file.to_a
+    # The viewer's remembered choice for this TITLE, resolved against THIS
+    # video's own tracks (an episode without the preferred track falls back).
+    @preferred_audio_id, @preferred_subtitle_id = resolve_preference(@video, @audio_tracks, @subtitle_tracks)
   end
 
   # GET /playing/:slug/related — lazy Turbo Frame content (US8, FR-028). Inside a
@@ -103,6 +106,7 @@ class PlayerController < ApplicationController
         # keeps captions working on the next episode.
         subtitles: helpers.subtitle_tracks_data(video, video.subtitle_tracks),
         audioTracks: helpers.audio_tracks_data(video.audio_tracks.ordered.with_attached_file),
+        **preference_payload(video),
         subEnabled: Current.user.subtitles_enabled,
         subTextColor: Current.user.subtitle_text_color,
         subBgColor: Current.user.subtitle_background_color,
@@ -179,6 +183,27 @@ class PlayerController < ApplicationController
       when Serie, Playlist then sequence_collection.title
       else "DevCine"
       end
+    end
+
+    # The viewer's per-title preference resolved against one video's tracks.
+    # Returns [audio_track_id, subtitle_id] (nils when absent/unmatched).
+    def resolve_preference(video, audio_tracks, subtitle_tracks)
+      return [ nil, nil ] if Current.user.nil? || video.embed?
+
+      preference = PlaybackPreference.find_by(user: Current.user, watchable: video.preference_scope)
+      return [ nil, nil ] if preference.nil?
+
+      [
+        audio_tracks.find { |t| t.name == preference.audio_track_name }&.id,
+        subtitle_tracks.find { |s| s.language == preference.subtitle_language }&.id
+      ]
+    end
+
+    def preference_payload(video)
+      audio_id, subtitle_id = resolve_preference(
+        video, video.audio_tracks.ordered.to_a, video.subtitle_tracks
+      )
+      { preferredAudioId: audio_id, preferredSubtitleId: subtitle_id }
     end
 
     # Carried on prev/next/related links so navigation stays within the sequence.

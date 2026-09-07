@@ -16,6 +16,8 @@ class User < ApplicationRecord
   }
 
   has_many :sessions, dependent: :destroy
+  # Remembered audio/subtitle choices, one per title (feature: playback prefs).
+  has_many :playback_preferences, dependent: :destroy
   has_many :uploaded_videos, class_name: "Video", foreign_key: :uploader_id,
                              inverse_of: :uploader, dependent: :destroy
   has_many :video_views, dependent: :destroy

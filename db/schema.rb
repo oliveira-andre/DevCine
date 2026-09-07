@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_09_07_150746) do
+ActiveRecord::Schema[8.0].define(version: 2026_09_07_231216) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -145,6 +145,17 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_07_150746) do
     t.date "birthdate"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "playback_preferences", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "user_id", null: false
+    t.string "watchable_type", null: false
+    t.uuid "watchable_id", null: false
+    t.string "audio_track_name"
+    t.string "subtitle_language"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id", "watchable_type", "watchable_id"], name: "index_playback_preferences_uniqueness", unique: true
   end
 
   create_table "playlist_items", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -348,6 +359,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_07_150746) do
   add_foreign_key "likes", "users"
   add_foreign_key "movies", "videos"
   add_foreign_key "movies", "videos", column: "trailer_id"
+  add_foreign_key "playback_preferences", "users"
   add_foreign_key "playlist_items", "playlists"
   add_foreign_key "playlist_items", "videos"
   add_foreign_key "playlists", "playlists", column: "cloned_from_id", on_delete: :nullify

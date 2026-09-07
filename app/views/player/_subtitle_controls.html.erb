@@ -7,6 +7,8 @@
      data-subtitle-settings-font-size-value="<%= Current.user.subtitle_font_size %>"
      data-subtitle-settings-font-weight-value="<%= Current.user.subtitle_font_weight %>"
      data-subtitle-settings-update-url-value="<%= settings_subtitle_path %>"
+     data-subtitle-settings-pref-url-value="<%= @video.embed? ? "" : preference_player_path(@video.slug) %>"
+     data-subtitle-settings-selected-id-value="<%= @preferred_subtitle_id %>"
      data-subtitle-settings-tracks-value="<%= subtitle_tracks_json(@video, @subtitle_tracks) %>">
   <button type="button"
           class="reaction-btn subtitles__toggle <%= 'is-on' if Current.user.subtitles_enabled %>"

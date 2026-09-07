@@ -213,6 +213,13 @@ class Video < ApplicationRecord
     Serie.joins(seasons: :episodes).where(episodes: { video_id: id }).first
   end
 
+  # The TITLE a playback preference attaches to: the whole Serie for an
+  # episode (every episode follows it), the Movie for a feature, the video
+  # itself otherwise.
+  def preference_scope
+    parent_series || movies.first || self
+  end
+
   # Skip-intro / next-episode markers for the player. The serie's values are
   # the default for every episode; a video's own values override them for the
   # odd episode with a different opening or ending.

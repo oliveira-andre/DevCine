@@ -10,7 +10,8 @@ export default class extends Controller {
   ]
   static values = {
     enabled: Boolean, textColor: String, bgColor: String,
-    fontSize: Number, fontWeight: Number, updateUrl: String, tracks: Array
+    fontSize: Number, fontWeight: Number, updateUrl: String, prefUrl: String,
+    selectedId: String, tracks: Array
   }
 
   connect() {
@@ -87,6 +88,17 @@ export default class extends Controller {
 
   changeLanguage() {
     this.toPlayer("subtitles-language", { trackId: this.languageTarget.value })
+    // Remember the language for this TITLE (serie/movie) — server-side this
+    // updates the single per-title preference row.
+    const language = this.languageTarget.selectedOptions[0]?.dataset.language
+    if (!this.prefUrlValue || !language) return
+    const token = document.querySelector('meta[name="csrf-token"]')?.content
+    fetch(this.prefUrlValue, {
+      method: "PATCH",
+      headers: { "X-CSRF-Token": token, "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({ subtitle_language: language })
+    }).catch(() => {})
   }
 
   // --- helpers ---------------------------------------------------------------
@@ -105,10 +117,15 @@ export default class extends Controller {
     // video truly has no tracks.
     if (!tracks.length) return
     this.languageTarget.replaceChildren()
+    // The title's remembered language (resolved to THIS video's track id
+    // server-side) wins; when this video doesn't carry it, fall back to the
+    // default track — same order the player itself applies.
+    const preferred = tracks.some((t) => t.id === this.selectedIdValue) ? this.selectedIdValue : null
     tracks.forEach((t) => {
       const o = document.createElement("option")
       o.value = t.id; o.textContent = t.label
-      if (t.default) o.selected = true
+      o.dataset.language = t.language // carried into the per-title preference
+      if (preferred ? t.id === preferred : t.default) o.selected = true
       this.languageTarget.appendChild(o)
     })
     if (this.hasLanguageRowTarget) this.languageRowTarget.hidden = false

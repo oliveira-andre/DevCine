@@ -14,6 +14,8 @@ export default class extends Controller {
     openingTime: Number, endingTime: Number,
     // Named audio tracks (MKV ingest) for the audio menu.
     audioTracks: Array,
+    // The viewer's remembered per-title choice, resolved for THIS video.
+    preferredAudioId: String, preferredSubtitleId: String,
     // Subtitles (feature 012): per-video tracks + per-user prefs.
     subtitles: Array, subEnabled: Boolean, subTextColor: String,
     subBgColor: String, subFontSize: Number, subFontWeight: Number
@@ -54,6 +56,8 @@ export default class extends Controller {
         endingTime: this.endingTimeValue,
         subtitles: this.subtitlesValue,
         audioTracks: this.audioTracksValue,
+        preferredAudioId: this.preferredAudioIdValue,
+        preferredSubtitleId: this.preferredSubtitleIdValue,
         subEnabled: this.subEnabledValue,
         subTextColor: this.subTextColorValue,
         subBgColor: this.subBgColorValue,
