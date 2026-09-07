@@ -289,10 +289,13 @@ class VideoIngest
   end
 
   # Swap the attachment for the remuxed MP4 (same basename, .mp4 extension).
+  # Any existing HLS package was built from the old bytes — discard it so
+  # playback falls back to progressive until it is repackaged.
   def replace_file!(mp4)
     basename = File.basename(@video.file.filename.to_s, ".*")
     @video.file.attach(io: File.open(mp4, "rb"),
                        filename: "#{basename}.mp4", content_type: "video/mp4")
+    HlsPackager.discard(@video)
   end
 
   def run(command, timeout:)

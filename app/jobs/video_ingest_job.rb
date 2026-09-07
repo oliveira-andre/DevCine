@@ -7,8 +7,11 @@ class VideoIngestJob < ApplicationJob
 
   def perform(video)
     result = VideoIngest.call(video)
-    return if result.ok?
-
-    Rails.logger.warn("VideoIngestJob: #{video.id} — #{result.error}")
+    if result.ok?
+      # Tracks exist now — build the segmented HLS package next.
+      HlsPackageJob.perform_later(video)
+    else
+      Rails.logger.warn("VideoIngestJob: #{video.id} — #{result.error}")
+    end
   end
 end

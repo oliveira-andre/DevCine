@@ -20,7 +20,9 @@
                the proxy 416s a range larger than streaming_chunk_max_size and
                buffers it in memory — a <video> asks for bytes=0- (the whole
                file), so multi-GB movies only play through the redirect path. %>
-           data-player-source-src-value="<%= rails_storage_redirect_path(@video.file) %>"
+           <%# HLS master when packaged (hls.js/MSE — one media element, TV-safe
+               audio switching); progressive redirect-mode file otherwise. %>
+           data-player-source-src-value="<%= @video.hls_ready? ? hls_player_path(@video.slug, rest: "master.m3u8") : rails_storage_redirect_path(@video.file) %>"
            data-player-source-artwork-value="<%= @video.thumbnail.attached? ? url_for(@video.thumbnail) : "/logo.png" %>"
            data-player-source-title-value="<%= @video.display_title %>"
            data-player-source-album-value="<%= @album %>"

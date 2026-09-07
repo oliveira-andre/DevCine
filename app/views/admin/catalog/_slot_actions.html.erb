@@ -16,6 +16,10 @@
         data: { turbo_frame: "modal" }, "aria-label": "Add subtitles for #{video.title}" do %>
     <%= icon(:captions) %>
   <% end %>
+  <%= link_to admin_video_audio_tracks_path(video), class: "admin-live__action",
+        data: { turbo_frame: "modal" }, "aria-label": "Audio tracks of #{video.title}" do %>
+    <%= icon(:audio) %>
+  <% end %>
   <%= button_to upload_admin_catalog_item_path(type, item), method: :delete,
         params: { video_id: video.id },
         class: "admin-live__action admin-live__action--danger",

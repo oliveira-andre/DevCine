@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_09_06_204552) do
+ActiveRecord::Schema[8.0].define(version: 2026_09_07_150746) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -307,6 +307,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_06_204552) do
     t.integer "maturity_rating", default: 0, null: false
     t.integer "opening_time"
     t.integer "ending_time"
+    t.datetime "hls_ready_at"
     t.index ["kind", "visibility"], name: "index_videos_on_kind_and_visibility"
     t.index ["slug"], name: "index_videos_on_slug", unique: true
     t.index ["uploader_id"], name: "index_videos_on_uploader_id"

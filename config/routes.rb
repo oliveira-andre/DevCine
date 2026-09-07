@@ -48,6 +48,9 @@ Rails.application.routes.draw do
     resources :lives, param: :slug
     resources :videos, only: %i[index show edit update destroy], param: :slug do
       resources :subtitles, only: %i[new create edit update destroy]
+      # Read-only audio-track manager (MKV ingest): list + download the
+      # stripped tracks, mirroring the subtitle manager modal.
+      resources :audio_tracks, only: :index
     end
 
     resources :genres
@@ -96,6 +99,8 @@ Rails.application.routes.draw do
       get  :related
       get  "up-next", action: :up_next, as: :up_next
       get  "subtitles/:id", to: "player/subtitles#show", as: :subtitle, defaults: { format: "vtt" }
+      # HLS package (hls.js playback + TV-safe audio switching).
+      get  "hls/*rest", to: "player/hls#show", as: :hls, format: false
       post :views,    to: "video_views#create"
       post :progress, to: "watch_progresses#create"
       get  :comments, to: "comments#index"

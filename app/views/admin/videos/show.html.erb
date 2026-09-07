@@ -33,6 +33,12 @@
           <p class="admin-lives__empty" id="admin_subtitles_empty">No subtitle tracks yet — tap Add subtitle.</p>
         <% end %>
       </div>
+
+      <header class="admin-usersection__head">
+        <h2 class="admin__subtitle">Audio tracks</h2>
+        <%= link_to admin_video_audio_tracks_path(@video), class: "admin-usersection__seeall",
+              data: { turbo_frame: "modal" } do %>Manage audio<% end %>
+      </header>
     </section>
   </section>
 </main>

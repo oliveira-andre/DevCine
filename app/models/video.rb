@@ -277,6 +277,16 @@ class Video < ApplicationRecord
     Video.where(id: ids).with_attached_thumbnail.includes(:episodes).index_by(&:id).values_at(*ids).compact
   end
 
+  # Whether the segmented HLS package exists (hls.js playback + TV-safe audio
+  # switching). Packages are built by HlsPackageJob / the videos:hls task;
+  # without one the player falls back to progressive playback.
+  def hls_ready?
+    hls_ready_at.present?
+  end
+
+  # The package is derived data — remove it with the video.
+  after_destroy { FileUtils.rm_rf(HlsPackager.dir_for(self)) }
+
   # Invalidate cached reads on any change (Constitution VI).
   after_commit :bust_player_caches
 

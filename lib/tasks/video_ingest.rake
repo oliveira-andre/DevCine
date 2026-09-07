@@ -86,4 +86,40 @@ namespace :videos do
 
     puts "Done. transcoded=#{transcoded} already_safe=#{safe} skipped=#{skipped} failed=#{failed} of #{total}."
   end
+
+  desc "Build the segmented HLS package (hls.js playback + TV-safe audio " \
+       "switching) for every ingested video that doesn't have one. Disk-bound " \
+       "-c copy segmentation — safe to interrupt and re-run."
+  task hls: :environment do
+    unless VideoFrameExtractor.available?
+      abort "ffmpeg/ffprobe is not runnable here — install or repair it before running this task."
+    end
+
+    scope = Video.where.not(kind: :live)
+    total = scope.count
+    processed = packaged = skipped = failed = 0
+
+    puts "Packaging #{total} videos…"
+
+    scope.find_each do |video|
+      processed += 1
+      label = video.try(:slug).presence || video.id
+
+      if !video.file.attached? || video.hls_ready? || !video.audio_tracks.exists?
+        skipped += 1
+        next
+      end
+
+      result = HlsPackager.call(video)
+      if result.ok?
+        packaged += 1
+        puts "[#{processed}/#{total}] ✓ #{label} — #{result.renditions} audio rendition(s)"
+      else
+        failed += 1
+        warn "[#{processed}/#{total}] ✗ #{label} — #{result.error}"
+      end
+    end
+
+    puts "Done. packaged=#{packaged} skipped=#{skipped} failed=#{failed} of #{total}."
+  end
 end

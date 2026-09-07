@@ -1,0 +1,35 @@
+<%# Audio-track manager modal (MKV ingest): the video's named tracks with a
+    download per stripped file. The default track has no separate file — its
+    sound is embedded in the playable MP4 itself (download the video for it). %>
+<%= modal title: "Audio — #{@video.title}", size: :wide do %>
+  <% if @audio_tracks.any? %>
+    <div id="admin_audio_tracks" class="admin-lives">
+      <% @audio_tracks.each do |track| %>
+        <div id="admin_audio_track_<%= track.id %>" class="admin-live">
+          <span class="admin-live__title">
+            <%= track.name %>
+            <% if track.language.present? %><span class="admin-chip"><%= track.language %></span><% end %>
+            <% if track.default? %><span class="admin-badge">Default</span><% end %>
+          </span>
+          <div class="admin-live__actions admin-file">
+            <% if track.file.attached? %>
+              <span class="admin-file__name"><%= track.file.filename %></span>
+              <%= link_to rails_blob_path(track.file, disposition: "attachment"),
+                    class: "admin-live__action",
+                    "aria-label": "Download #{track.name} audio" do %>
+                <%= icon(:download) %>
+              <% end %>
+            <% else %>
+              <span class="admin-file__name admin-audio__embedded">embedded in the video file</span>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <p class="thumb-suggest__none">
+      No audio tracks recorded yet — the ingest job hasn't processed this video
+      (bin/rails videos:ingest backfills it).
+    </p>
+  <% end %>
+<% end %>

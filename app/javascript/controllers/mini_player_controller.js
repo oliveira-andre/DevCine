@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import Hls from "hls.js"
 
 // Persistent mini-player host (feature 010). Rendered ONCE in the layout,
 // outside #page-content, so the single <video> survives every in-app navigation
@@ -144,7 +145,7 @@ export default class extends Controller {
     this.audioTracks = Array.isArray(d.audioTracks) ? d.audioTracks : []
     this.teardownAltAudio()
     this.videoTarget.muted = false
-    this.videoTarget.src = d.src
+    this.attachSource(d.src)
     this.videoTarget.poster = d.artwork || ""
     this.syncNeighbors()
     this.loadSubtitles(d)
@@ -360,6 +361,7 @@ export default class extends Controller {
   close() {
     this.saveProgress()
     this.teardownAltAudio()
+    this.teardownHls()
     this.videoTarget.muted = false
     this.videoTarget.pause()
     this.videoTarget.removeAttribute("src")
@@ -639,14 +641,48 @@ export default class extends Controller {
     if (this.hasBufferingTarget) this.bufferingTarget.hidden = !on
   }
 
+  // --- source attachment (HLS via MSE, or progressive) -----------------------
+  // A packaged video plays through hls.js on the ONE <video> element — MSE
+  // feeds video + selected audio into a single pipeline, which is what smart
+  // TVs require (a second media element steals their only decoder and blacks
+  // out the video). Safari-without-MSE (iPhone) gets native HLS. Unpackaged
+  // videos keep the plain progressive src.
+
+  attachSource(src) {
+    this.teardownHls()
+    if (src.includes(".m3u8") && Hls.isSupported()) {
+      this.hls = new Hls({ maxBufferLength: 60, maxMaxBufferLength: 120 })
+      this.hls.loadSource(src)
+      this.hls.attachMedia(this.videoTarget)
+    } else {
+      // Native HLS (iOS Safari) or a progressive file — same code path.
+      this.videoTarget.src = src
+    }
+  }
+
+  teardownHls() {
+    if (!this.hls) return
+    this.hls.destroy()
+    this.hls = null
+  }
+
   // --- audio tracks (MKV ingest) ---------------------------------------------
-  // Progressive MP4 can't switch audio natively, so an alternate track plays
-  // its extracted .m4a in a hidden <audio> element, slaved to the video clock:
-  // the video is muted, play/pause mirror over, and drift beyond 0.35s snaps
-  // back. The default track simply unmutes the MP4's embedded sound.
+  // HLS playback switches renditions inside the single pipeline (hls.js).
+  // Progressive fallback: the alternate track's extracted .m4a plays in a
+  // hidden <audio> element slaved to the video clock — fine on desktop, NOT on
+  // single-pipeline TVs, which is exactly why packaged videos use HLS.
 
   selectAudioTrack(trackId) {
-    const track = (this.audioTracks || []).find((t) => t.id === trackId)
+    const index = (this.audioTracks || []).findIndex((t) => t.id === trackId)
+
+    if (this.hls) {
+      // Renditions were written to the master in AudioTrack position order,
+      // matching this.audioTracks — indexes line up by construction.
+      if (index >= 0 && this.hls.audioTracks[index]) this.hls.audioTrack = index
+      return
+    }
+
+    const track = index >= 0 ? this.audioTracks[index] : null
     if (!track || !track.url) {
       this.videoTarget.muted = false
       this.teardownAltAudio()

@@ -82,11 +82,10 @@ class PlayerController < ApplicationController
 
       {
         slug: video.slug,
-        # Redirect mode (disk controller = Rack::Files) — the proxy cannot serve
-        # a full-file byte range for multi-GB videos (see player/show.html.erb).
-        # rails_storage_redirect_path, not rails_blob_path: the latter resolves
-        # back to the proxy via resolve_model_to_route.
-        src: rails_storage_redirect_path(video.file),
+        # HLS master when packaged; else redirect mode (disk controller =
+        # Rack::Files) — the proxy cannot serve a full-file byte range for
+        # multi-GB videos, and rails_blob_path resolves back to the proxy.
+        src: video.hls_ready? ? hls_player_path(video.slug, rest: "master.m3u8") : rails_storage_redirect_path(video.file),
         artwork: video.thumbnail.attached? ? rails_storage_proxy_path(video.thumbnail) : "/logo.png",
         title: video.display_title,
         album: album_for(video, list),

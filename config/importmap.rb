@@ -10,3 +10,4 @@ pin "stimulus-color-picker"
 pin "@simonwep/pickr", to: "@simonwep--pickr.js"
 pin "stimulus-textarea-autogrow"
 pin "sortablejs" # @1.15.7
+pin "hls.js" # @1.7.2
