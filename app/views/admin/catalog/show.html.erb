@@ -32,10 +32,7 @@
       <h2 class="admin__subtitle">Movie file</h2>
       <%= render "admin/catalog/movie_slot", item: @item %>
     <% else %>
-      <% @seasons.each do |season| %>
-        <h2 class="admin__subtitle"><%= season.name %></h2>
-        <%= render "admin/catalog/season", season: season, item: @item %>
-      <% end %>
+      <%= render "admin/catalog/seasons", item: @item, seasons: @seasons %>
     <% end %>
   </section>
 </main>

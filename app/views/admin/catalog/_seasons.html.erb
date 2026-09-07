@@ -1,0 +1,9 @@
+<%# All of a serie's season sections, wrapped in a stable id so the edit
+    modal's seasons-count change can stream the whole area back (new/removed
+    seasons appear without a reload). Locals: item, seasons. %>
+<div id="admin_seasons">
+  <% seasons.each do |season| %>
+    <h2 class="admin__subtitle"><%= season.name %></h2>
+    <%= render "admin/catalog/season", season: season, item: item %>
+  <% end %>
+</div>

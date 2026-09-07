@@ -120,8 +120,9 @@ module Admin
         apply_movie_visibility
         apply_playback_markers
         apply_chosen_thumbnail
+        apply_seasons_count
         flash.now[:notice] = "“#{@item.title}” was saved successfully."
-        render turbo_stream: [
+        streams = [
           turbo_stream.update("modal", ""),
           # List row (admin/catalog) and item page header — whichever is on the
           # page gets refreshed; absent targets are ignored by Turbo.
@@ -130,6 +131,11 @@ module Admin
           turbo_stream.replace("admin_item_summary", partial: "admin/catalog/summary", locals: { item: @item }),
           turbo_stream.update("flash", partial: "shared/flash")
         ]
+        if @item.is_a?(Serie)
+          streams << turbo_stream.replace("admin_seasons", partial: "admin/catalog/seasons",
+                                          locals: { item: @item, seasons: @item.seasons.order(:position) })
+        end
+        render turbo_stream: streams
       else
         @genres = Genre.order(:name)
         render :edit, status: :unprocessable_entity
@@ -366,6 +372,31 @@ module Admin
       attrs = { visibility: params[:visibility] }
       attrs[:maturity_rating] = :A18 if params[:visibility] == "restricted"
       @item.video.update(attrs)
+    end
+
+    # Grow or shrink a serie to the requested season count (edit modal).
+    # Growing appends empty "Season N" rows, like vanilla creation. Shrinking
+    # removes the LAST seasons — episodes go with them, and each episode's
+    # video is destroyed too (destroying only the rows would strand hidden
+    # placeholder videos in Admin → Videos, the residue remove_upload
+    # eliminated). Destroying the video cascades its episode row.
+    def apply_seasons_count
+      return unless @item.is_a?(Serie) && params[:seasons_count].present?
+
+      target = params[:seasons_count].to_i.clamp(1, 50)
+      seasons = @item.seasons.order(:position).to_a
+      if target > seasons.size
+        next_position = seasons.last&.position.to_i
+        (target - seasons.size).times do
+          next_position += 1
+          @item.seasons.create!(name: "Season #{next_position}", position: next_position)
+        end
+      elsif target < seasons.size
+        seasons.drop(target).each do |season|
+          season.episodes.includes(:video).each { |episode| episode.video.destroy! }
+          season.destroy!
+        end
+      end
     end
 
     # A movie has no marker columns of its own — its opening/ending live on the

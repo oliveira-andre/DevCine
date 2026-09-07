@@ -166,6 +166,53 @@ RSpec.describe "Admin::Catalog", type: :request do
       expect(serie.reload.title).to eq("Renamed Show")
     end
 
+    describe "seasons count on the serie edit modal" do
+      let(:serie) { CatalogImport.vanilla!(kind: "serie", title: "Season Show", seasons_count: 2, uploader: admin) }
+
+      def patch_seasons(count)
+        patch admin_catalog_item_path("serie", serie),
+              params: { title: "Season Show", seasons_count: count },
+              headers: { "Accept" => "text/vnd.turbo-stream.html" }
+      end
+
+      it "offers the field with the current count" do
+        get edit_admin_catalog_item_path("serie", serie), headers: { "Turbo-Frame" => "modal" }
+        expect(response.body).to include('name="seasons_count"')
+        expect(response.body).to include('value="2"')
+      end
+
+      it "increasing appends empty seasons and streams the seasons area back" do
+        expect { patch_seasons(4) }.to change(serie.seasons, :count).from(2).to(4)
+        expect(serie.seasons.order(:position).last).to have_attributes(name: "Season 4", position: 4)
+        expect(response.body).to include("admin_seasons")
+      end
+
+      it "decreasing deletes trailing seasons WITH their episodes and videos" do
+        last_season = serie.seasons.order(:position).last
+        video = Video.create!(title: "Season Show S2E1", kind: :episode, status: :ready,
+                              visibility: :public, uploader: admin)
+        last_season.episodes.create!(video: video, title: "Episode 1", position: 1)
+
+        expect { patch_seasons(1) }.to change(serie.seasons, :count).from(2).to(1)
+        expect(Season.exists?(last_season.id)).to be(false)
+        expect(Video.exists?(video.id)).to be(false) # no orphaned hidden video
+        expect(serie.seasons.sole.position).to eq(1)  # first season untouched
+      end
+
+      it "decreasing an empty season just deletes it" do
+        expect { patch_seasons(1) }.to change(serie.seasons, :count).from(2).to(1)
+      end
+
+      it "leaves seasons alone when the count is unchanged or absent" do
+        expect {
+          patch admin_catalog_item_path("serie", serie),
+                params: { title: "Season Show" },
+                headers: { "Accept" => "text/vnd.turbo-stream.html" }
+        }.not_to change(serie.seasons, :count)
+        expect { patch_seasons(2) }.not_to change(serie.seasons, :count)
+      end
+    end
+
     it "saves the serie's default skip markers" do
       serie = create(:serie, title: "Marked Show")
       patch admin_catalog_item_path("serie", serie),

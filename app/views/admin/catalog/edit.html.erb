@@ -56,6 +56,15 @@
 
         <% if @item.is_a?(Serie) %>
           <div class="field">
+            <%= label_tag :seasons_count, "Seasons", class: "field-label" %>
+            <%= number_field_tag :seasons_count, @item.seasons.count, min: 1, max: 50,
+                  class: "field-input" %>
+            <p class="field-hint">
+              Increasing adds empty seasons; decreasing DELETES the last
+              seasons with their episodes and videos.
+            </p>
+          </div>
+          <div class="field">
             <%= label_tag :status, "Status", class: "field-label" %>
             <%= select_tag :status,
                   options_for_select(Serie.statuses.keys.map { |s| [ s.titleize, s ] }, @item.status),
