@@ -48,9 +48,9 @@ Rails.application.routes.draw do
     resources :lives, param: :slug
     resources :videos, only: %i[index show edit update destroy], param: :slug do
       resources :subtitles, only: %i[new create edit update destroy]
-      # Read-only audio-track manager (MKV ingest): list + download the
-      # stripped tracks, mirroring the subtitle manager modal.
-      resources :audio_tracks, only: :index
+      # Audio-track manager (MKV ingest): list/download the stripped tracks
+      # plus add/edit/remove, mirroring the subtitle manager modal.
+      resources :audio_tracks, only: %i[index create edit update destroy]
     end
 
     resources :genres

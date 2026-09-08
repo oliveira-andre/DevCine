@@ -1,0 +1,35 @@
+<%# One audio track row (MKV ingest): name/language/default badge, download of
+    the stripped file, edit, and — for alternates only — a confirmed remove.
+    The default track's sound is embedded in the MP4, so its row stays. %>
+<div id="admin_audio_track_<%= audio_track.id %>" class="admin-live">
+  <span class="admin-live__title">
+    <%= audio_track.name %>
+    <% if audio_track.language.present? %><span class="admin-chip"><%= audio_track.language %></span><% end %>
+    <% if audio_track.default? %><span class="admin-badge">Default</span><% end %>
+  </span>
+  <div class="admin-live__actions admin-file">
+    <% if audio_track.file.attached? %>
+      <span class="admin-file__name"><%= audio_track.file.filename %></span>
+      <%= link_to rails_blob_path(audio_track.file, disposition: "attachment"),
+            class: "admin-live__action",
+            "aria-label": "Download #{audio_track.name} audio" do %>
+        <%= icon(:download) %>
+      <% end %>
+    <% else %>
+      <span class="admin-file__name admin-audio__embedded">embedded in the video file</span>
+    <% end %>
+    <%= link_to edit_admin_video_audio_track_path(audio_track.video, audio_track),
+          class: "admin-live__action", data: { turbo_frame: "modal" },
+          "aria-label": "Edit #{audio_track.name} track" do %>
+      <%= icon(:pencil) %>
+    <% end %>
+    <% unless audio_track.default? %>
+      <%= button_to admin_video_audio_track_path(audio_track.video, audio_track), method: :delete,
+            class: "admin-live__action admin-live__action--danger",
+            form: { data: { turbo_confirm: "Remove the #{audio_track.name} track?" } },
+            "aria-label": "Remove #{audio_track.name} track" do %>
+        <%= icon(:trash) %>
+      <% end %>
+    <% end %>
+  </div>
+</div>
