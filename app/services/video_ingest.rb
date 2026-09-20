@@ -277,6 +277,15 @@ class VideoIngest
       )
       next unless status&.success? && File.size?(out)
 
+      # ASS → SRT conversion leaves the styling behind as HTML tags and
+      # "{\an8}" overrides — store plain text only (timing untouched).
+      clean = SubtitleSanitizer.call(File.read(out))
+      if clean.blank?
+        Rails.logger.info("VideoIngest: skipping subtitle track #{index} of #{@video.id} — no text left after sanitizing")
+        next
+      end
+      File.write(out, clean)
+
       name = stream.dig("tags", "title").presence || language
       subtitle = @video.subtitles.new(language: language, is_default: created.zero? && @video.subtitles.none?)
       subtitle.file.attach(io: File.open(out, "rb"),

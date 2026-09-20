@@ -31,7 +31,9 @@ RSpec.describe VideoIngest do
   # A genuine two-audio + one-subtitle MKV, built by the real ffmpeg.
   def build_mkv(dir, video_codec: [ "-c:v", "libx264", "-preset", "ultrafast" ])
     srt = File.join(dir, "probe.srt")
-    File.write(srt, "1\n00:00:00,100 --> 00:00:00,900\nOla mundo\n")
+    # Styled the way ffmpeg's ASS→SRT conversion leaves real MKV subs: HTML
+    # tags + an {\an8} positioning override — the ingest must store text only.
+    File.write(srt, "1\n00:00:00,100 --> 00:00:00,900\n<font face=\"RH Sans\" size=\"78\"><b>{\\an8}Ola mundo</b></font>\n")
     out = File.join(dir, "probe.mkv")
     system(
       "ffmpeg", "-y", "-v", "error",
@@ -77,11 +79,17 @@ RSpec.describe VideoIngest do
         expect(tracks.last.file).to be_attached
         expect(tracks.last.file.filename.to_s).to end_with(".m4a")
 
-        # The embedded subtitle landed in the existing Subtitle system.
+        # The embedded subtitle landed in the existing Subtitle system,
+        # sanitized to plain text with the timing untouched.
         subtitle = video.subtitles.sole
         expect(subtitle.language).to eq("portuguese")
         expect(subtitle.file.filename.to_s).to end_with(".srt")
-        expect(subtitle.file.download).to include("Ola mundo")
+        body = subtitle.file.download
+        expect(body).to include("Ola mundo")
+        expect(body).to include("00:00:00,100 --> 00:00:00,900")
+        expect(body).not_to include("<font")
+        expect(body).not_to include("{\\an8}")
+        expect(body).not_to include("<b>")
       end
     end
 

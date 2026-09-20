@@ -122,4 +122,47 @@ namespace :videos do
 
     puts "Done. packaged=#{packaged} skipped=#{skipped} failed=#{failed} of #{total}."
   end
+
+  desc "Strip ASS→SRT styling junk (HTML tags, {\\an8} overrides) out of " \
+       "already-stored subtitle files, keeping the timing untouched. Already " \
+       "clean files are left as they are — safe to re-run."
+  task clean_subtitles: :environment do
+    total = Subtitle.count
+    processed = cleaned = skipped = failed = 0
+
+    puts "Cleaning #{total} subtitle files…"
+
+    Subtitle.includes(video: []).find_each do |subtitle|
+      processed += 1
+      label = "#{subtitle.video.try(:slug) || subtitle.video_id} (#{subtitle.language})"
+
+      unless subtitle.file.attached?
+        skipped += 1
+        next
+      end
+
+      original = subtitle.file.download.dup.force_encoding(Encoding::UTF_8)
+      clean = SubtitleSanitizer.call(original)
+      if clean.blank?
+        failed += 1
+        warn "[#{processed}/#{total}] ✗ #{label} — nothing left after sanitizing, file kept"
+        next
+      end
+      if clean == original
+        skipped += 1
+        next
+      end
+
+      subtitle.file.attach(io: StringIO.new(clean),
+                           filename: subtitle.file.filename.to_s,
+                           content_type: "application/x-subrip")
+      cleaned += 1
+      puts "[#{processed}/#{total}] ✓ #{label}"
+    rescue StandardError => e
+      failed += 1
+      warn "[#{processed}/#{total}] ✗ #{label} — #{e.class}: #{e.message}"
+    end
+
+    puts "Done. cleaned=#{cleaned} already_clean=#{skipped} failed=#{failed} of #{total}."
+  end
 end

@@ -28,15 +28,18 @@ class Subtitle < ApplicationRecord
 
   # The track as WebVTT for the browser <track> element. SRT and VTT differ only
   # by a header and the decimal separator in timestamps; convert on the fly and
-  # cache by blob key (a new file ⇒ new key ⇒ fresh cache).
+  # cache by blob key (a new file ⇒ new key ⇒ fresh cache; "v2" = sanitizer
+  # added, so already-cached dirty output is left behind).
   def to_vtt
     return "" unless file.attached?
 
-    Subtitle.cache_read([ "subtitle-vtt", file.blob.key ]) do
+    Subtitle.cache_read([ "subtitle-vtt", "v2", file.blob.key ]) do
       # download returns ASCII-8BIT bytes; SRT files are UTF-8, so reinterpret
       # them as UTF-8 (else non-ASCII captions raise an encoding error on interp).
       body = file.download.dup.force_encoding(Encoding::UTF_8)
-      body.delete_prefix!("﻿") # strip a UTF-8 BOM if present
+      # Files ingested before the sanitizer (or uploaded by hand) may still
+      # carry ffmpeg's ASS→SRT styling junk — clean at render time too.
+      body = SubtitleSanitizer.call(body)
       body.gsub!(/(\d{2}:\d{2}:\d{2}),(\d{3})/, '\1.\2') # SRT comma → VTT dot
       "WEBVTT\n\n#{body}"
     end
