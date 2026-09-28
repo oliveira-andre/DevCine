@@ -8,6 +8,8 @@ class User < ApplicationRecord
   LIKED_PLAYLIST_TITLE = "Videos you liked".freeze
   # Consecutive wrong-PIN limit before the account is blocked (tunable; default 3).
   PIN_MAX_ATTEMPTS = 3
+  # Consecutive wrong-password limit before sign-in is locked until a reset.
+  LOGIN_MAX_ATTEMPTS = 15
 
   enum :role, {
     user: 0,
@@ -56,6 +58,10 @@ class User < ApplicationRecord
 
   # Every user gets a private "Videos you liked" playlist (FR-022).
   after_create :create_liked_playlist
+  # Setting a new password (the reset link from the lock email, or any other
+  # change) lifts a login lock. Deliberately separate from the `blocked` role:
+  # a reset must never undo an admin ban or demote an admin.
+  before_save :clear_login_lock, if: :will_save_change_to_password_digest?
 
   # The user's real, private "Videos you liked" playlist. Lazily created for
   # users that predate this feature.
@@ -92,6 +98,30 @@ class User < ApplicationRecord
     [ PIN_MAX_ATTEMPTS - pin_attempts, 0 ].max
   end
 
+  # --- Sign-in lockout ---
+
+  def login_locked?
+    locked_at.present?
+  end
+
+  def can_sign_in?
+    !blocked? && !login_locked?
+  end
+
+  # Count a wrong password. The LOGIN_MAX_ATTEMPTS-th locks sign-in and emails
+  # a reset link. Banned or already-locked accounts aren't counted, so a banned
+  # user never gets an "unlock" email.
+  def register_failed_login!
+    return if blocked? || login_locked?
+
+    increment!(:failed_login_attempts)
+    lock_login! if failed_login_attempts >= LOGIN_MAX_ATTEMPTS
+  end
+
+  def reset_failed_logins!
+    update_columns(failed_login_attempts: 0) if failed_login_attempts.positive?
+  end
+
   def avatar_and_cover_are_images
     { avatar: avatar, cover: cover }.each do |name, attachment|
       next unless attachment.attached?
@@ -120,5 +150,20 @@ class User < ApplicationRecord
 
   def create_liked_playlist
     playlists.create!(title: LIKED_PLAYLIST_TITLE, visibility: :private)
+  end
+
+  # Conditional on locked_at still being nil so concurrent failures lock (and
+  # email) exactly once.
+  def lock_login!
+    now = Time.current
+    return unless self.class.where(id: id, locked_at: nil).update_all(locked_at: now).positive?
+
+    self.locked_at = now
+    PasswordsMailer.unlock(self).deliver_later
+  end
+
+  def clear_login_lock
+    self.failed_login_attempts = 0
+    self.locked_at = nil
   end
 end

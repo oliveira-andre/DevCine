@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_09_07_231216) do
+ActiveRecord::Schema[8.0].define(version: 2026_09_28_140136) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pgcrypto"
@@ -274,6 +274,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_07_231216) do
     t.string "subtitle_background_color", default: "#000000"
     t.integer "subtitle_font_size", default: 100, null: false
     t.integer "subtitle_font_weight", default: 400, null: false
+    t.integer "failed_login_attempts", default: 0, null: false
+    t.datetime "locked_at"
     t.index ["email_address"], name: "index_users_on_email_address", unique: true
     t.index ["handle"], name: "index_users_on_handle", unique: true
   end

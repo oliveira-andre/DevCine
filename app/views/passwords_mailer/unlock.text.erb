@@ -1,0 +1,8 @@
+We locked sign-in to your account after <%= User::LOGIN_MAX_ATTEMPTS %> wrong password attempts in a row.
+
+To unlock it, choose a new password within the next 15 minutes on this password reset page:
+<%= edit_password_url(@user.password_reset_token) %>
+
+If the link has expired, use "Forgot your password?" on the sign-in page to get a new one.
+
+If these attempts weren't you, someone may be guessing your password — choosing a new one keeps your account safe.
