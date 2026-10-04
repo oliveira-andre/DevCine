@@ -20,6 +20,7 @@ export default class extends Controller {
   ]
   static values = { autoplay: Boolean }
   static PROGRESS_INTERVAL = 10
+  static PREV_RESTART_THRESHOLD = 5 // seconds in: "previous" restarts instead
 
   connect() {
     this.currentSlug = null
@@ -353,7 +354,17 @@ export default class extends Controller {
     this.activity()
   }
 
-  prev() { this.saveProgress(); this.visit(this.desc.prevUrl) }
+  // Music-player convention: past the first few seconds, "previous" rewinds to
+  // the start; a second press within that window goes to the previous video.
+  prev() {
+    if (this.videoTarget.currentTime > this.constructor.PREV_RESTART_THRESHOLD) {
+      this.videoTarget.currentTime = 0
+      this.activity()
+      return
+    }
+    this.saveProgress()
+    this.visit(this.desc.prevUrl)
+  }
   next() { this.saveProgress(); this.visit(this.desc.nextUrl) }
 
   visit(url) {

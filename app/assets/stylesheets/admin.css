@@ -226,8 +226,12 @@
 .admin-lives turbo-frame[src]:not([complete]) { display: block; }
 .admin-lives__empty { color: var(--text-tertiary); padding: var(--space-6) 0; }
 
+/* Rows wrap only when title + actions don't fit on one line: the actions drop
+   to a second line (right-aligned) instead of crushing the title to "S…" or
+   pushing the page wider than a phone. Rows that fit stay single-line. */
 .admin-live {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
@@ -236,7 +240,7 @@
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-card);
 }
-.admin-live__title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admin-live__title { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* "Offer thumbnail chooser" toggle on the catalog item page. */
 .admin-thumbpref {
@@ -252,11 +256,12 @@
 /* Bulk episode-slot creation row at the end of a season. */
 .admin-catalog__bulkform {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
   width: 100%;
 }
-.admin-catalog__bulkcount { max-width: 140px; }
+.admin-catalog__bulkcount { flex: 1 1 100px; max-width: 140px; }
 
 /* Drag handle for sortable episode rows. */
 .admin-live__grip {
@@ -269,7 +274,8 @@
 .admin-live__grip .icon { width: 14px; height: 14px; }
 /* SortableJS drop shadow while dragging. */
 .sortable-ghost { opacity: 0.4; }
-.admin-live__actions { display: flex; align-items: center; gap: var(--space-2); flex: 0 0 auto; }
+/* May shrink (a long filename inside ellipsizes) but never below its buttons. */
+.admin-live__actions { display: flex; align-items: center; gap: var(--space-2); flex: 0 1 auto; min-width: 0; margin-left: auto; }
 .admin-live__delete-form { margin: 0; }
 .admin-live__action {
   display: inline-flex; align-items: center; justify-content: center;
@@ -337,7 +343,10 @@
 
 /* --- Admin page header redesign (lives / catalog / subtitles) ---
    Row 1: title left + Add right. Row 2: full-width search (+ filters). */
-.admin__head { justify-content: space-between; flex-wrap: nowrap; margin-bottom: var(--space-4); }
+/* Wraps only when the title and its buttons can't share a line (detail pages
+   on a phone): the buttons move under the title instead of squeezing it. */
+.admin__head { justify-content: space-between; flex-wrap: wrap; row-gap: var(--space-3); margin-bottom: var(--space-4); }
+.admin__title { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
 
 /* Add: a round icon-only button on mobile; a labeled pill on desktop. */
 .admin__add {
@@ -752,3 +761,33 @@ turbo-frame#admin_catalog_list[busy] {
 }
 .admin-playlist-item__meta { display: inline-flex; gap: var(--space-2); margin-top: var(--space-1); }
 .admin-playlist-item__actions { flex: 0 0 auto; }
+
+/* --- Phones (< 600px) ---------------------------------------------------- */
+@media (max-width: 599px) {
+  .admin { padding: var(--space-5) var(--space-4); }
+
+  /* A title alone on its line wraps rather than ellipsizing. */
+  .admin-live__title,
+  .admin-item__name { white-space: normal; overflow-wrap: anywhere; }
+
+  /* Episode rows: title + rename/subtitle buttons on top; the dropzone (or the
+     uploaded file and its five actions) gets the full width underneath. */
+  .admin-episode__head { flex: 1 1 auto; min-width: 0; }
+  .admin-episode > .admin-live__actions { order: 1; }
+  .admin-episode > .dropzone-form,
+  .admin-episode > .admin-file { order: 2; flex: 1 1 100%; }
+  .admin-episode > .admin-file .admin-file__name { flex: 1 1 auto; max-width: none; }
+
+  /* Collapsed expandable rows keep their buttons inline (a long name wraps
+     instead); opened, the details take the full width above the buttons. */
+  .admin-item__details:not([open]) { flex-basis: 0; }
+  /* Chips drop under the name rather than squeezing it. */
+  .admin-item__summary { flex-wrap: wrap; row-gap: var(--space-1); }
+
+  .admin-catalog__upload > .field-input { flex: 1 1 100%; }
+
+  /* Dashboard: two compact stat tiles per row instead of one tall card each. */
+  .admin__stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); }
+  .admin-stat { padding: var(--space-4); }
+  .admin-stat__value { font-size: var(--text-h2); }
+}
