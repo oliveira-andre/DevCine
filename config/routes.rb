@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  get "health_check", to: "health_check#show", as: :health_check
   resource :session
   resource :registration, only: %i[new create]
   resources :passwords, param: :token
