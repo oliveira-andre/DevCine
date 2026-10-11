@@ -72,4 +72,7 @@ class Serie < ApplicationRecord
   # Bump the order version on any change to the serie itself (Constitution VI);
   # season/episode/video changes bump the same scope from their own callbacks.
   after_commit { Serie.bump_version(order_cache_scope) }
+
+  # Episode videos carry the serie's title in their search text (Video.search).
+  after_update_commit -> { Video.refresh_search_text(videos) }, if: :saved_change_to_title?
 end

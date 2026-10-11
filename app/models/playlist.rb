@@ -27,6 +27,14 @@ class Playlist < ApplicationRecord
   # link but never listed, so it must stay out of browse and search.
   scope :discoverable, -> { visibility_public }
 
+  # Title search: a plain substring match, or a fuzzy one that tolerates typos
+  # (pg_trgm word similarity ≥ 0.6, as in Video.search). Both use the trigram
+  # index on title.
+  scope :search, ->(q) {
+    q = q.to_s.strip
+    where("playlists.title ILIKE :term OR :q <% playlists.title", term: "%#{sanitize_sql_like(q)}%", q: q)
+  }
+
   # Video count shown on the profile Playlists rail.
   def videos_count
     playlist_items.size

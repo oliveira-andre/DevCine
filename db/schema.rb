@@ -10,9 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_09_28_140136) do
+ActiveRecord::Schema[8.0].define(version: 2026_10_10_235315) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+  enable_extension "pg_trgm"
   enable_extension "pgcrypto"
 
   create_table "active_storage_attachments", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -177,6 +178,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_28_140136) do
     t.datetime "updated_at", null: false
     t.uuid "cloned_from_id"
     t.index ["cloned_from_id"], name: "index_playlists_on_cloned_from_id"
+    t.index ["title"], name: "index_playlists_on_title", opclass: :gin_trgm_ops, using: :gin
     t.index ["user_id", "cloned_from_id"], name: "index_playlists_on_user_and_cloned_from", unique: true, where: "(cloned_from_id IS NOT NULL)"
     t.index ["user_id"], name: "index_playlists_on_user_id"
   end
@@ -321,7 +323,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_09_28_140136) do
     t.integer "opening_time"
     t.integer "ending_time"
     t.datetime "hls_ready_at"
+    t.text "search_text"
     t.index ["kind", "visibility"], name: "index_videos_on_kind_and_visibility"
+    t.index ["search_text"], name: "index_videos_on_search_text", opclass: :gin_trgm_ops, using: :gin
     t.index ["slug"], name: "index_videos_on_slug", unique: true
     t.index ["uploader_id"], name: "index_videos_on_uploader_id"
     t.index ["visibility", "created_at"], name: "index_videos_on_visibility_and_created_at"

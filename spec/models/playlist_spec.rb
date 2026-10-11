@@ -45,6 +45,24 @@ RSpec.describe Playlist, type: :model do
     end
   end
 
+  describe ".search" do
+    let!(:galaxy) { create(:playlist, title: "Galaxy Mix") }
+
+    before { create(:playlist, title: "Road Trip") }
+
+    it "matches a plain substring of the title, in any case" do
+      expect(Playlist.search("AXY M")).to eq([ galaxy ])
+    end
+
+    it "matches a misspelled title" do
+      expect(Playlist.search("galxy mix")).to eq([ galaxy ])
+    end
+
+    it "treats LIKE wildcards literally" do
+      expect(Playlist.search("%")).to be_empty
+    end
+  end
+
   describe "#save_copy_for" do
     let(:owner) { create(:user) }
     let(:saver) { create(:user) }

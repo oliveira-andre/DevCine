@@ -59,6 +59,9 @@
   border-color: var(--accent-blue);
   outline: none;
 }
+/* Hidden on /search, which has its own input (search_page_controller). The
+   display:flex above beats the UA's [hidden] rule, so restate it. */
+.search-box[hidden] { display: none; }
 .search-box__placeholder { font-size: var(--text-meta); }
 @media (min-width: 768px) {
   .search-box { flex: none; width: 240px; margin: 0; }

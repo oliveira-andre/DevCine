@@ -17,4 +17,8 @@ class Episode < ApplicationRecord
 
   # An episode add/remove/reorder changes its serie's ordered video list (007).
   after_commit { Serie.bump_version([ "collection-order", "serie", season.serie_id ]) if season }
+
+  # Its video carries the serie's title in its search text (Video.search).
+  after_commit -> { Video.refresh_search_text([ video_id, video_id_before_last_save ].compact) },
+               if: -> { destroyed? || saved_change_to_video_id? || saved_change_to_season_id? }
 end

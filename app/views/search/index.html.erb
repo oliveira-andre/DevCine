@@ -3,7 +3,7 @@
   <%= stylesheet_link_tag "search", "home", "listing", "catalog_controls", "data-turbo-track": "dynamic" %>
 <% end %>
 
-<main class="search-page">
+<main class="search-page" data-controller="search-page">
   <%= form_with url: search_path, method: :get, class: "search-page__form",
         data: { controller: "autofocus" } do |form| %>
     <%= form.search_field :q, value: @query, placeholder: "Search DevCine",

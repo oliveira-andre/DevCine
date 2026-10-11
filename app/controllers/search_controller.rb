@@ -5,8 +5,9 @@ class SearchController < ApplicationController
   CATALOG_LIMIT = 12
 
   # Search entry page: a focused input + browsable categories. With a query it
-  # also returns title matches across videos, movies, and series (2026-07 fix —
-  # previously the input collected `q` and did nothing with it).
+  # fuzzy-matches videos by their own title or the title of the serie or movie
+  # they belong to (Video.search), and lists what those matched videos belong to
+  # in the other sections. Playlists also match on their own title.
   def index
     @genres = Genre.order(:name)
     @kinds = Video.kinds.keys
@@ -14,19 +15,27 @@ class SearchController < ApplicationController
 
     return if @query.blank?
 
-    term = "%#{Video.sanitize_sql_like(@query)}%"
     # Policy-scoped (006): restricted titles are searchable by name only while
     # the session is PIN-unlocked (FR-008).
-    # Sorted per feature 011 (the ordering pill applies to all three sections).
-    @videos = ordered(policy_scope(Video).where("videos.title ILIKE ?", term))
-                .with_attached_thumbnail.with_attached_preview.limit(VIDEO_LIMIT)
-    @movies = ordered(policy_scope(Movie).where("movies.title ILIKE ?", term)).with_attached_poster
+    matches = policy_scope(Video).search(@query)
+    matched_ids = matches.unscope(:order).select(:id)
+
+    # The VIDEO_LIMIT best matches, shown in the ordering pill's order (feature
+    # 011 — the pill applies to every section).
+    @videos = ordered(Video.where(id: matches.limit(VIDEO_LIMIT).select(:id)))
+                .with_attached_thumbnail.with_attached_preview
+    @movies = ordered(policy_scope(Movie).where(video_id: matched_ids)).with_attached_poster
                 .includes(video: :preview_attachment).limit(CATALOG_LIMIT)
-    @series = ordered(policy_scope(Serie).where("series.title ILIKE ?", term))
+    @series = ordered(policy_scope(Serie).where(id: Season.joins(:episodes)
+                                                          .where(episodes: { video_id: matched_ids })
+                                                          .select(:serie_id)))
                 .with_attached_poster.limit(CATALOG_LIMIT)
     # Public playlists only (Playlist.discoverable): unlisted ones are reachable
-    # by link but must never surface in a search.
-    @playlists = ordered(Playlist.discoverable.where("playlists.title ILIKE ?", term))
+    # by link but must never surface in a search. Found by their own title, or
+    # by holding a matched video.
+    holding_matches = PlaylistItem.where(video_id: matched_ids).select(:playlist_id)
+    @playlists = ordered(Playlist.discoverable.search(@query)
+                           .or(Playlist.discoverable.where(id: holding_matches)))
                    .includes(:user, :playlist_items).limit(CATALOG_LIMIT)
   end
 end

@@ -32,6 +32,11 @@ class Movie < ApplicationRecord
   # The four newest movies power the hero banner (FR-004/FR-005).
   scope :hero, -> { recent.limit(4) }
 
+  # Its video carries the movie's title in its search text (Video.search). A
+  # movie re-pointed at another video takes the title along.
+  after_commit -> { Video.refresh_search_text([ video_id, video_id_before_last_save ].compact) },
+               if: -> { destroyed? || saved_change_to_title? || saved_change_to_video_id? }
+
   # Hero/background image source, in priority order:
   #   attached Active Storage backdrop -> external backdrop_key URL -> nil.
   def backdrop_image

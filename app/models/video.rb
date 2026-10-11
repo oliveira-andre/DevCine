@@ -134,6 +134,34 @@ class Video < ApplicationRecord
   # Most recently added first — feeds the "Recently added" rails.
   scope :recent, -> { order(created_at: :desc) }
 
+  # --- search (pg_trgm) -------------------------------------------------------
+
+  # Fuzzy title search, best match first. `search_text` holds the video's own
+  # title plus its serie's and its movie's; `<%` keeps rows whose closest run of
+  # words scores at least pg_trgm.word_similarity_threshold (0.6) against the
+  # query. Playlist titles stay out (see Playlist.search).
+  scope :search, ->(q) {
+    q = q.to_s.downcase.strip
+    where("? <% videos.search_text", q)
+      .order(Arel.sql(sanitize_sql_array([ "word_similarity(?, videos.search_text) DESC", q ])))
+  }
+
+  before_save :build_search_text
+
+  # Recompute search_text for these videos (ids or a relation) when a title they
+  # borrow changes elsewhere: a serie or movie rename, a movie re-pointed, or an
+  # episode coming or going.
+  def self.refresh_search_text(videos)
+    where(id: videos).find_each(&:refresh_search_text!)
+  end
+
+  # Writes only the column: a rename elsewhere must never fail on an unrelated
+  # validation of this video, nor bust its player caches.
+  def refresh_search_text!
+    build_search_text
+    update_column(:search_text, search_text) if search_text_changed?
+  end
+
   # The series this video belongs to as an episode, if any — used to auto-derive
   # the sequence for prev/next navigation when no explicit context is given (007).
   # --- thumbnail suggestions (ffmpeg frame grabs) ---------------------------
@@ -298,6 +326,19 @@ class Video < ApplicationRecord
   after_commit :bust_player_caches
 
   private
+
+  # Every title this video can be found by, lowercased for pg_trgm.
+  def build_search_text
+    self.search_text = [ title, *borrowed_titles ].compact_blank.uniq.join(" ").downcase
+  end
+
+  # Titles of the serie and movie this video belongs to — one each at most, so
+  # the string stays bounded (unlike playlists, which are searched on their own).
+  def borrowed_titles
+    return [] if new_record?
+
+    Serie.joins(seasons: :episodes).where(episodes: { video_id: id }).pluck(:title) + movies.pluck(:title)
+  end
 
   def bust_player_caches
     Rails.cache.delete([ "video", slug ])

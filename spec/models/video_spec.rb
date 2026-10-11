@@ -238,4 +238,83 @@ RSpec.describe Video, type: :model do
       expect(video.thumbnail).not_to be_attached
     end
   end
+
+  # --- Search (pg_trgm): search_text + Video.search ---
+
+  describe "search_text" do
+    let(:video) { create(:video, title: "Pilot Night") }
+
+    def search_text = video.reload.search_text
+
+    it "starts as the video's own title, lowercased" do
+      expect(search_text).to eq("pilot night")
+    end
+
+    it "borrows its serie's title while it is an episode, following renames" do
+      serie = Serie.create!(title: "Galaxy Rangers")
+      episode = create(:episode, season: create(:season, serie: serie), video: video)
+      expect(search_text).to eq("pilot night galaxy rangers")
+
+      serie.update!(title: "Star Rangers")
+      expect(search_text).to eq("pilot night star rangers")
+
+      episode.destroy!
+      expect(search_text).to eq("pilot night")
+    end
+
+    it "borrows its movie's title, and hands it over when the movie is re-pointed" do
+      movie = create(:movie, title: "Galaxy Quest", video: video)
+      expect(search_text).to eq("pilot night galaxy quest")
+
+      movie.update!(title: "Galaxy Quest II")
+      expect(search_text).to eq("pilot night galaxy quest ii")
+
+      other = create(:video, title: "Director's Cut")
+      movie.update!(video: other)
+      expect(search_text).to eq("pilot night")
+      expect(other.reload.search_text).to eq("director's cut galaxy quest ii")
+
+      movie.destroy!
+      expect(other.reload.search_text).to eq("director's cut")
+    end
+
+    # A video can sit in any number of playlists, so their titles would grow the
+    # string without bound; playlists are searched on their own (Playlist.search).
+    it "never borrows playlist titles" do
+      create(:playlist_item, playlist: create(:playlist, title: "Galaxy Mix", visibility: :public), video: video)
+      expect(search_text).to eq("pilot night")
+    end
+
+    it "is refreshed even for a video that would fail its own validations" do
+      video.update_columns(visibility: Video.visibilities[:restricted], maturity_rating: Video.maturity_ratings[:A14])
+      expect(video.reload).not_to be_valid
+
+      create(:movie, title: "Galaxy Quest", video: video)
+      expect(search_text).to eq("pilot night galaxy quest")
+    end
+  end
+
+  describe ".search" do
+    it "matches any borrowed title and tolerates typos" do
+      episode = create(:video, title: "Rangers S1E1")
+      create(:episode, season: create(:season, serie: Serie.create!(title: "Galaxy Rangers")), video: episode)
+      own = create(:video, title: "Galaxy Warriors")
+      create(:video, title: "Unrelated Clip")
+
+      expect(Video.search("galaxy")).to contain_exactly(own, episode)
+      expect(Video.search("GALXY warriors")).to eq([ own ])
+    end
+
+    it "puts the best match first" do
+      close = create(:video, title: "Galaxy Warrior")
+      exact = create(:video, title: "Galaxy Warriors")
+
+      expect(Video.search("galaxy warriors")).to eq([ exact, close ])
+    end
+
+    it "matches nothing for a query with no letters or digits" do
+      create(:video, title: "Percent Test")
+      expect(Video.search("%")).to be_empty
+    end
+  end
 end

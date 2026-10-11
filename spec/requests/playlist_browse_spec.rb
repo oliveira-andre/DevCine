@@ -49,7 +49,7 @@ RSpec.describe "Playlist browse and search", type: :request do
   end
 
   describe "GET /search" do
-    it "returns public playlists whose title matches" do
+    it "returns public playlists whose title matches, typos included" do
       create(:playlist, title: "Galaxy Mix", visibility: :public)
       create(:video, title: "Galaxy Warriors", visibility: :public)
 
@@ -58,16 +58,34 @@ RSpec.describe "Playlist browse and search", type: :request do
       expect(response.body).to include("Playlists")
       expect(response.body).to include("Galaxy Mix")
       expect(response.body).to include("Galaxy Warriors")
+
+      get search_path(q: "galxy mix")
+      expect(response.body).to include("Galaxy Mix")
     end
 
-    it "does not surface unlisted or private playlists" do
-      create(:playlist, title: "Galaxy Unlisted", visibility: :unlisted)
-      create(:playlist, user: member, title: "Galaxy Private", visibility: :private)
+    it "lists a public playlist that holds a matched video, but never finds videos by a playlist's title" do
+      road_trip = create(:playlist, title: "Road Trip", visibility: :public)
+      create(:playlist_item, playlist: road_trip, video: create(:video, title: "Galaxy Warriors", visibility: :public))
+      galaxy_mix = create(:playlist, title: "Galaxy Mix", visibility: :public)
+      create(:playlist_item, playlist: galaxy_mix, video: create(:video, title: "Opening Track", visibility: :public))
 
       get search_path(q: "galaxy")
 
+      expect(response.body).to include("Road Trip")     # holds Galaxy Warriors
+      expect(response.body).to include("Galaxy Mix")    # its own title
+      expect(response.body).not_to include("Opening Track")
+    end
+
+    it "does not surface unlisted or private playlists, by title or by their videos" do
+      create(:playlist, title: "Galaxy Unlisted", visibility: :unlisted)
+      private_list = create(:playlist, user: member, title: "Secret Stash", visibility: :private)
+      create(:playlist_item, playlist: private_list, video: create(:video, title: "Galaxy Warriors", visibility: :public))
+
+      get search_path(q: "galaxy")
+
+      expect(response.body).to include("Galaxy Warriors")
       expect(response.body).not_to include("Galaxy Unlisted")
-      expect(response.body).not_to include("Galaxy Private")
+      expect(response.body).not_to include("Secret Stash")
     end
 
     it "still reports no results when only a hidden playlist matches" do

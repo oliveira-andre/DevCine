@@ -19,17 +19,50 @@ RSpec.describe "Search", type: :request do
   end
 
   describe "GET /search?q=" do
-    it "returns title matches across videos, movies, and series" do
+    def card_titles = response.parsed_body.css(".poster-card__title").map(&:text)
+
+    it "finds videos by their own, serie or movie title, and lists what they belong to" do
       create(:video, title: "Galaxy Warriors", visibility: :public)
-      create(:movie, title: "Galaxy Quest")
-      Serie.create!(title: "Galaxy Rangers")
+      episode_video = create(:video, title: "Rangers S1E1", visibility: :public)
+      serie = Serie.create!(title: "Galaxy Rangers")
+      create(:episode, season: create(:season, serie: serie), video: episode_video)
+      create(:movie, title: "Galaxy Quest", video: create(:video, title: "Feature Cut", visibility: :public))
       create(:video, title: "Unrelated Clip", visibility: :public)
 
       get search_path(q: "galaxy")
-      expect(response.body).to include("Galaxy Warriors")
-      expect(response.body).to include("Galaxy Quest")
-      expect(response.body).to include("Galaxy Rangers")
-      expect(response.body).not_to include("Unrelated Clip")
+
+      expect(card_titles).to contain_exactly(
+        "Galaxy Warriors", "Rangers S1E1", "Feature Cut", # Videos
+        "Galaxy Quest",                                   # Movies (via Feature Cut)
+        "Galaxy Rangers"                                  # Series (via Rangers S1E1)
+      )
+    end
+
+    it "does not list a serie with no matching videos" do
+      Serie.create!(title: "Galaxy Rangers")
+
+      get search_path(q: "galaxy")
+      expect(response.body).to include("No results for")
+    end
+
+    it "tolerates typos" do
+      create(:video, title: "Galaxy Warriors", visibility: :public)
+
+      get search_path(q: "galxy warriors")
+      expect(card_titles).to eq([ "Galaxy Warriors" ])
+    end
+
+    it "keeps the best matches and shows them in the ordering pill's order" do
+      stub_const("SearchController::VIDEO_LIMIT", 2)
+      create(:video, title: "Galaxy Warriors", visibility: :public, created_at: 3.days.ago)
+      create(:video, title: "Galaxy Warrior A", visibility: :public, created_at: 2.days.ago)
+      create(:video, title: "Galaxy Warrior B", visibility: :public, created_at: 1.day.ago)
+
+      get search_path(q: "galaxy warriors")
+
+      # The exact match is the oldest, so "most recent" alone would drop it.
+      expect(card_titles.size).to eq(2)
+      expect(card_titles.last).to eq("Galaxy Warriors")
     end
 
     it "excludes private videos from results" do
