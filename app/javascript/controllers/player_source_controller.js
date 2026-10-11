@@ -9,7 +9,7 @@ export default class extends Controller {
   static values = {
     slug: String, src: String, artwork: String, title: String, album: String,
     prevUrl: String, nextUrl: String, resume: Number, list: String,
-    viewsUrl: String, progressUrl: String, upNextUrl: String,
+    viewsUrl: String, progressUrl: String, upNextUrl: String, prevDescriptorUrl: String,
     // Skip-intro / next-episode markers (seconds; 0 = none).
     openingTime: Number, endingTime: Number,
     // Named audio tracks (MKV ingest) for the audio menu.
@@ -52,6 +52,7 @@ export default class extends Controller {
         viewsUrl: this.viewsUrlValue,
         progressUrl: this.progressUrlValue,
         upNextUrl: this.upNextUrlValue,
+        prevDescriptorUrl: this.prevDescriptorUrlValue,
         openingTime: this.openingTimeValue,
         endingTime: this.endingTimeValue,
         subtitles: this.subtitlesValue,

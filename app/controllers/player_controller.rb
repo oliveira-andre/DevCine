@@ -50,6 +50,20 @@ class PlayerController < ApplicationController
     render json: next_descriptor(nxt, keep_list)
   end
 
+  # GET /playing/:slug/previous — the descriptor for the sequence's previous
+  # video, so the prev control can swap it in place while fullscreen (a page
+  # visit would drop fullscreen). Sequence only — no recommendation fallback;
+  # 204 when there is no playable previous.
+  def previous
+    @video = find_playable_video!
+    ids = sequence_ids
+    idx = ids&.index(@video.id)
+    prv = playable_load(ids[idx - 1]) if idx&.positive?
+    return head :no_content unless prv
+
+    render json: next_descriptor(prv, sequence_collection.is_a?(Playlist))
+  end
+
   private
 
     # [next_video, keep_playlist_context?] or [nil, false].
@@ -99,6 +113,7 @@ class PlayerController < ApplicationController
         viewsUrl: views_player_path(video.slug),
         progressUrl: progress_player_path(video.slug),
         upNextUrl: up_next_player_path(video.slug, params_for),
+        prevDescriptorUrl: previous_player_path(video.slug, params_for),
         openingTime: video.effective_opening_time.to_i,
         endingTime: video.effective_ending_time.to_i,
         # Subtitle tracks + the viewer's caption prefs ride along so an

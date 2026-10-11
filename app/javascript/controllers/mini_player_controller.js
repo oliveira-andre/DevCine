@@ -114,7 +114,8 @@ export default class extends Controller {
   // --- descriptor hand-off ---------------------------------------------------
 
   // detail: { slug, src, artwork, title, album, prevUrl, nextUrl, resume, list,
-  //           viewsUrl, progressUrl, upNextUrl, expanded, viaAutoplay }
+  //           viewsUrl, progressUrl, upNextUrl, prevDescriptorUrl, expanded,
+  //           viaAutoplay }
   onLoad(event) {
     const d = event.detail || {}
     if (!d.src) return
@@ -362,10 +363,20 @@ export default class extends Controller {
       this.activity()
       return
     }
+    if (!this.desc.prevUrl) return
     this.saveProgress()
-    this.visit(this.desc.prevUrl)
+    // Fullscreen: swap in place (a visit would drop fullscreen); URL syncs on exit.
+    if (this.inFullscreen()) this.prevInPlace()
+    else this.visit(this.desc.prevUrl)
   }
-  next() { this.saveProgress(); this.visit(this.desc.nextUrl) }
+  next() {
+    if (!this.desc.nextUrl) return
+    this.saveProgress()
+    // Fullscreen: same in-place advance as the ending "Next" — a visit would
+    // reparent this element and drop fullscreen; the URL syncs on exit.
+    if (this.inFullscreen()) this.advanceViaUpNext(false, { keepExpanded: true })
+    else this.visit(this.desc.nextUrl)
+  }
 
   visit(url) {
     if (!url) return
@@ -563,29 +574,49 @@ export default class extends Controller {
     if (!this.desc.upNextUrl) return
     const url = new URL(this.desc.upNextUrl, window.location.origin)
     url.searchParams.set("played", this.chain().join(","))
-    let data
-    try {
-      const res = await fetch(url, {
-        headers: { Accept: "application/json", "X-Pin-Unlock": this.pinToken() },
-        credentials: "same-origin"
-      })
-      if (res.status === 204 || !res.ok) return // nothing eligible → stop
-      data = await res.json()
-    } catch (_) { return }
-    if (!data || !data.src) return
+    const data = await this.fetchDescriptor(url)
+    if (!data) return // nothing eligible → stop
 
     if (navigate) {
       sessionStorage.setItem(ADVANCE_KEY, "1")
       this.visit(`/playing/${data.slug}`)
     } else {
-      this.pushChain(this.currentSlug)
-      document.dispatchEvent(new CustomEvent("mini-player:load", {
-        detail: { ...data, expanded: keepExpanded, viaAutoplay: true }
-      }))
-      // The page behind a fullscreen in-place advance still shows the previous
-      // episode; remember to bring it up to date once fullscreen ends.
-      if (keepExpanded) this.pageStale = true
+      this.loadInPlace(data, keepExpanded)
     }
+  }
+
+  // Fullscreen "previous": swap the sequence's previous video into this same
+  // element, like the forward advance. If it can't play in place (none, live
+  // embed, request failed), fall back to the page visit — losing fullscreen
+  // beats a silent no-op on an explicit press.
+  async prevInPlace() {
+    const url = this.desc.prevDescriptorUrl
+    const data = url ? await this.fetchDescriptor(new URL(url, window.location.origin)) : null
+    if (data) this.loadInPlace(data, true)
+    else this.visit(this.desc.prevUrl)
+  }
+
+  // A video descriptor (same shape as player-source's), or null on 204/error.
+  async fetchDescriptor(url) {
+    try {
+      const res = await fetch(url, {
+        headers: { Accept: "application/json", "X-Pin-Unlock": this.pinToken() },
+        credentials: "same-origin"
+      })
+      if (res.status === 204 || !res.ok) return null
+      const data = await res.json()
+      return data && data.src ? data : null
+    } catch (_) { return null }
+  }
+
+  loadInPlace(data, keepExpanded) {
+    this.pushChain(this.currentSlug)
+    document.dispatchEvent(new CustomEvent("mini-player:load", {
+      detail: { ...data, expanded: keepExpanded, viaAutoplay: true }
+    }))
+    // The page behind a fullscreen in-place advance still shows the previous
+    // episode; remember to bring it up to date once fullscreen ends.
+    if (keepExpanded) this.pageStale = true
   }
 
   inFullscreen() {

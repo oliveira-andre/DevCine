@@ -99,6 +99,7 @@ Rails.application.routes.draw do
     member do
       get  :related
       get  "up-next", action: :up_next, as: :up_next
+      get  :previous
       get  "subtitles/:id", to: "player/subtitles#show", as: :subtitle, defaults: { format: "vtt" }
       # HLS package (hls.js playback + TV-safe audio switching).
       get  "hls/*rest", to: "player/hls#show", as: :hls, format: false

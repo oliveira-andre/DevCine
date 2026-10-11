@@ -35,6 +35,7 @@
            data-player-source-views-url-value="<%= views_player_path(@video.slug) %>"
            data-player-source-progress-url-value="<%= progress_player_path(@video.slug) %>"
            data-player-source-up-next-url-value="<%= up_next_player_path(@video.slug, sequence_params) %>"
+           data-player-source-prev-descriptor-url-value="<%= previous_player_path(@video.slug, sequence_params) %>"
            data-player-source-subtitles-value="<%= subtitle_tracks_json(@video, @subtitle_tracks) %>"
            data-player-source-audio-tracks-value="<%= audio_tracks_data(@audio_tracks).to_json %>"
            data-player-source-preferred-audio-id-value="<%= @preferred_audio_id %>"

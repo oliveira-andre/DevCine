@@ -96,4 +96,43 @@ RSpec.describe "Persistent mini-player", type: :system do
       expect(user.reload.autoplay).to be(false)
     end
   end
+
+  # The natural end of a video (autoplay on). `ended` is dispatched by hand —
+  # headless Selenium can't play the media through (see header).
+  describe "autoplay advance (US5)" do
+    def end_video
+      page.execute_script(%{document.querySelector("#mini-player video").dispatchEvent(new Event("ended"))})
+    end
+
+    it "swaps the next episode into the DOCKED player without leaving the page" do
+      v1 = create(:video, :with_thumbnail, :with_file, title: "Ep One", visibility: :public)
+      v2 = create(:video, :with_thumbnail, :with_file, title: "Ep Two", visibility: :public)
+      season = create(:season, serie: create(:serie), position: 1)
+      create(:episode, season: season, video: v1, position: 1)
+      create(:episode, season: season, video: v2, position: 2)
+
+      visit player_path(v1.slug)
+      expect(page).to have_css("#mini-player[data-slug='#{v1.slug}']", visible: :all)
+      find(".site-header__brand").click
+      expect(page).to have_css("#mini-player.mini-player--docked")
+
+      end_video
+
+      expect(page).to have_css("#mini-player.mini-player--docked[data-slug='#{v2.slug}']")
+      expect(page).to have_current_path(root_path)
+    end
+
+    it "navigates the EXPANDED player to a recommendation when there is no sequence next" do
+      current = create(:video, :with_thumbnail, :with_file, title: "Solo", visibility: :public, kind: :standalone)
+      create(:video, :with_thumbnail, :with_file, title: "Another", visibility: :public, kind: :standalone)
+
+      visit player_path(current.slug)
+      expect(page).to have_css("#mini-player.mini-player--expanded[data-slug='#{current.slug}']", visible: :all)
+
+      end_video
+
+      expect(page).to have_no_current_path(player_path(current.slug), ignore_query: true)
+      expect(page).to have_current_path(%r{/playing/}, ignore_query: true)
+    end
+  end
 end
