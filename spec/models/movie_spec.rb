@@ -32,6 +32,35 @@ RSpec.describe Movie, type: :model do
         expect(Movie.hero.size).to eq(4)
       end
     end
+
+    describe ".last_watched_by" do
+      let(:user) { create(:user) }
+
+      it "orders the user's watched movies by their latest progress" do
+        older = create(:movie)
+        newer = create(:movie)
+        create(:watch_progress, user: user, video: older.video, updated_at: 2.days.ago)
+        create(:watch_progress, user: user, video: newer.video, updated_at: 1.hour.ago)
+
+        expect(Movie.last_watched_by(user).to_a).to eq([ newer, older ])
+      end
+
+      it "returns each movie once even when another movie shares its video" do
+        movie = create(:movie)
+        twin = create(:movie, video: movie.video)
+        create(:watch_progress, user: user, video: movie.video)
+
+        expect(Movie.last_watched_by(user).to_a).to contain_exactly(movie, twin)
+      end
+
+      it "ignores other users' history and unwatched movies" do
+        create(:movie)
+        someone_elses = create(:movie)
+        create(:watch_progress, user: create(:user), video: someone_elses.video)
+
+        expect(Movie.last_watched_by(user)).to be_empty
+      end
+    end
   end
 
   describe "#backdrop_image" do

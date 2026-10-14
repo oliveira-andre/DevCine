@@ -37,6 +37,28 @@ RSpec.describe "Home screen", type: :system do
     expect(page.all(".rail__title").map(&:text).first).to eq("Last watched")
   end
 
+  it "shows Last watched videos, movies and series (one card per serie) before Recently added" do
+    user = create(:user, password: "password123")
+    create(:watch_progress, user: user, video: create(:video, kind: :standalone))
+    create(:watch_progress, user: user, video: create(:movie).video)
+    season = create(:season, serie: create(:serie, title: "Serie Lambda"))
+    2.times do
+      episode = create(:episode, season: season, video: create(:video, kind: :episode))
+      create(:watch_progress, user: user, video: episode.video)
+    end
+
+    sign_in_as(user)
+
+    expect(page.all(".rail__title").map(&:text).first(5)).to eq([
+      "Last watched", "Last watched videos", "Last watched movies",
+      "Last watched series", "Recently added videos"
+    ])
+    within(".rail", text: "Last watched series") do
+      expect(page).to have_css(".poster-card", count: 1)
+      expect(page).to have_link(href: series_path(season.serie))
+    end
+  end
+
   it "renders poster cards inside a horizontally scrollable track" do
     user = create(:user, password: "password123")
     create_list(:video, 4, kind: :standalone)

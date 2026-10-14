@@ -56,6 +56,94 @@ RSpec.describe "Home", type: :request do
     end
   end
 
+  describe "Last watched videos / movies / series rails" do
+    let(:member) { create(:user, password: "password123") }
+    let(:serie) { create(:serie, title: "Serie Kappa") }
+    let(:season) { create(:season, serie: serie) }
+
+    def watch(video, at: Time.current)
+      create(:watch_progress, user: member, video: video, updated_at: at)
+    end
+
+    def watch_episode(title, at: Time.current)
+      video = create(:video, kind: :episode, title: title)
+      create(:episode, season: season, video: video)
+      watch(video, at: at)
+    end
+
+    # Card titles inside the rail headed `title` ([] when the rail is absent).
+    def rail_cards(title)
+      rail = Nokogiri::HTML(response.body).css("section.rail")
+                     .find { |section| section.at_css(".rail__title").text == title }
+      rail ? rail.css(".poster-card__title").map(&:text) : []
+    end
+
+    def rail_titles
+      Nokogiri::HTML(response.body).css(".rail__title").map(&:text)
+    end
+
+    before { sign_in(member) }
+
+    it "places the three rails after Last watched and before Recently added videos" do
+      watch(create(:video, kind: :standalone))
+      watch(create(:movie).video)
+      watch_episode("Pilot")
+
+      get root_path
+      expect(rail_titles.first(5)).to eq([
+        "Last watched", "Last watched videos", "Last watched movies",
+        "Last watched series", "Recently added videos"
+      ])
+    end
+
+    it "shows the serie once, not its episodes, in Last watched series" do
+      watch_episode("Pilot Episode Kappa", at: 2.hours.ago)
+      watch_episode("Second Episode Kappa", at: 1.hour.ago)
+
+      get root_path
+      expect(rail_cards("Last watched series")).to eq([ "Serie Kappa" ])
+    end
+
+    it "keeps movies and episodes out of Last watched videos" do
+      watch(create(:video, kind: :standalone, title: "Clip Kappa"))
+      movie = create(:movie, title: "Movie Kappa", video: create(:video, kind: :feature, title: "Feature Kappa"))
+      watch(movie.video)
+      watch_episode("Episode Kappa")
+
+      get root_path
+      expect(rail_cards("Last watched videos")).to eq([ "Clip Kappa" ])
+      expect(rail_cards("Last watched movies")).to eq([ "Movie Kappa" ])
+    end
+
+    it "orders each rail by the most recent watch" do
+      watch(create(:movie, title: "Old Movie Kappa").video, at: 2.days.ago)
+      watch(create(:movie, title: "New Movie Kappa").video, at: 1.hour.ago)
+
+      get root_path
+      expect(rail_cards("Last watched movies")).to eq([ "New Movie Kappa", "Old Movie Kappa" ])
+    end
+
+    it "hides the three rails when the member has no matching history" do
+      create(:movie)
+      create(:video, kind: :standalone)
+
+      get root_path
+      expect(rail_titles).not_to include("Last watched videos", "Last watched movies", "Last watched series")
+    end
+
+    it "does not surface a serie through a restricted episode while locked" do
+      # A mixed serie stays listed (SeriePolicy), so only the watched-episode
+      # filter can keep it out of the rail.
+      create(:episode, season: season, video: create(:video, kind: :episode))
+      video = create(:video, kind: :episode, visibility: :restricted, maturity_rating: :A18)
+      create(:episode, season: season, video: video)
+      watch(video)
+
+      get root_path
+      expect(rail_cards("Last watched series")).to be_empty
+    end
+  end
+
   describe "public-only content (US4)" do
     it "excludes private and unlisted videos from the home rails" do
       create(:video, kind: :standalone, visibility: :public, title: "Public Clip Zeta")

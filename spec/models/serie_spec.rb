@@ -30,4 +30,39 @@ RSpec.describe Serie, type: :model do
       expect(Serie.recent.to_a).to eq([newer, older])
     end
   end
+
+  describe ".last_watched_by" do
+    let(:user) { create(:user) }
+
+    def episode_video_of(serie)
+      season = serie.seasons.first || create(:season, serie: serie)
+      create(:episode, season: season, video: create(:video, kind: :episode)).video
+    end
+
+    it "returns a serie once however many of its episodes were watched" do
+      serie = create(:serie)
+      2.times { create(:watch_progress, user: user, video: episode_video_of(serie)) }
+
+      expect(Serie.last_watched_by(user).to_a).to eq([ serie ])
+    end
+
+    it "orders series by their most recently watched episode" do
+      older = create(:serie)
+      newer = create(:serie)
+      create(:watch_progress, user: user, video: episode_video_of(newer), updated_at: 3.days.ago)
+      create(:watch_progress, user: user, video: episode_video_of(older), updated_at: 2.days.ago)
+      # Rewatching any episode of `newer` lifts the whole serie back to the front.
+      create(:watch_progress, user: user, video: episode_video_of(newer), updated_at: 1.hour.ago)
+
+      expect(Serie.last_watched_by(user).to_a).to eq([ newer, older ])
+    end
+
+    it "ignores other users' history and unwatched series" do
+      create(:serie)
+      someone_elses = create(:serie)
+      create(:watch_progress, user: create(:user), video: episode_video_of(someone_elses))
+
+      expect(Serie.last_watched_by(user)).to be_empty
+    end
+  end
 end

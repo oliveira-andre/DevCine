@@ -42,6 +42,15 @@ class Serie < ApplicationRecord
 
   # Recency for the "Recently added series" rail.
   scope :recent, -> { order(created_at: :desc) }
+  # The "Last watched series" rail: series with an episode this user has
+  # progress on, ordered by the latest of those episodes — one row per serie,
+  # however many of its episodes were watched.
+  scope :last_watched_by, ->(user) {
+    joins(seasons: { episodes: { video: :watch_progresses } })
+      .where(watch_progresses: { user_id: user.id })
+      .group(:id)
+      .order(Arel.sql("MAX(watch_progresses.updated_at) DESC"))
+  }
 
   # Seasons in display order (carousel + default-season pick).
   def ordered_seasons

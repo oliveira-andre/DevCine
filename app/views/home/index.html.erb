@@ -8,6 +8,9 @@
 
   <div class="home__rails page">
     <%= render "home/rail", title: "Last watched", items: @last_watched %>
+    <%= render "home/rail", title: "Last watched videos", items: @last_watched_videos %>
+    <%= render "home/rail", title: "Last watched movies", items: @last_watched_movies %>
+    <%= render "home/rail", title: "Last watched series", items: @last_watched_series %>
 
     <%= render "home/rail", title: "Recently added videos", key: "videos",
           items: @recent_videos, pagy: @videos_pagy,

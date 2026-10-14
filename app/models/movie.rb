@@ -31,6 +31,14 @@ class Movie < ApplicationRecord
   scope :recent, -> { order(created_at: :desc) }
   # The four newest movies power the hero banner (FR-004/FR-005).
   scope :hero, -> { recent.limit(4) }
+  # The "Last watched movies" rail: movies whose video this user has progress
+  # on, most recently watched first — one row per movie.
+  scope :last_watched_by, ->(user) {
+    joins(video: :watch_progresses)
+      .where(watch_progresses: { user_id: user.id })
+      .group(:id)
+      .order(Arel.sql("MAX(watch_progresses.updated_at) DESC"))
+  }
 
   # Its video carries the movie's title in its search text (Video.search). A
   # movie re-pointed at another video takes the title along.
