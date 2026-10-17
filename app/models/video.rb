@@ -93,8 +93,10 @@ class Video < ApplicationRecord
   # A live is played by embedding a stream URL, not a file (feature 009).
   validate :live_requires_embed_url
 
+  # A YouTube live share link (/live/ID) won't play in an iframe; its /embed/ID
+  # twin does. Every other provider's URL is stored exactly as entered.
   def live_embed_url=(url)
-    super(url.to_s.gsub("live", "embed"))
+    super(url.to_s.strip.sub(%r{\A(https://(?:www\.|m\.)?youtube\.com)/live/}, '\1/embed/'))
   end
 
   def uploaded_file_present

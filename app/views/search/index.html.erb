@@ -15,13 +15,7 @@
     <section class="search-page__results">
       <% if @videos.any? || @movies.any? || @series.any? || @playlists.any? %>
         <%= render "shared/catalog_controls" %>
-        <% if @videos.any? %>
-          <h2 class="search-page__heading">Videos</h2>
-          <div class="listing__grid">
-            <%= render partial: "home/poster_card", collection: @videos, as: :item %>
-          </div>
-        <% end %>
-
+        <%# Titles first: a matched movie or serie outranks its individual videos. %>
         <% if @movies.any? %>
           <h2 class="search-page__heading">Movies</h2>
           <div class="listing__grid">
@@ -33,6 +27,13 @@
           <h2 class="search-page__heading">Series</h2>
           <div class="listing__grid">
             <%= render partial: "home/poster_card", collection: @series, as: :item %>
+          </div>
+        <% end %>
+
+        <% if @videos.any? %>
+          <h2 class="search-page__heading">Videos</h2>
+          <div class="listing__grid">
+            <%= render partial: "home/poster_card", collection: @videos, as: :item %>
           </div>
         <% end %>
 

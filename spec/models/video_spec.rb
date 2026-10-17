@@ -37,6 +37,22 @@ RSpec.describe Video, type: :model do
       expect(build(:video, kind: :live, live_embed_url: "https://www.youtube.com/embed/abc")).to be_valid
     end
 
+    it "rewrites a YouTube /live/ share link to its /embed/ URL" do
+      expect(build(:video, live_embed_url: "https://www.youtube.com/live/abc123?si=x").live_embed_url)
+        .to eq("https://www.youtube.com/embed/abc123?si=x")
+      expect(build(:video, live_embed_url: "https://youtube.com/live/abc123").live_embed_url)
+        .to eq("https://youtube.com/embed/abc123")
+    end
+
+    it "keeps every other embed URL exactly as entered, even when it contains \"live\"" do
+      twitch = "https://player.twitch.tv/?channel=coloniacontraatacalive&parent=cine.codeline.online"
+      expect(build(:video, live_embed_url: twitch).live_embed_url).to eq(twitch)
+      expect(build(:video, live_embed_url: "https://www.youtube.com/embed/liveabc").live_embed_url)
+        .to eq("https://www.youtube.com/embed/liveabc")
+      expect(build(:video, live_embed_url: "https://live.example.com/live/abc").live_embed_url)
+        .to eq("https://live.example.com/live/abc")
+    end
+
     it "does not require an embed URL for non-live videos" do
       expect(build(:video, kind: :standalone, live_embed_url: nil)).to be_valid
     end

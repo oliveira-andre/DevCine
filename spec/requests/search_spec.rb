@@ -38,6 +38,24 @@ RSpec.describe "Search", type: :request do
       )
     end
 
+    it "lists matched movies, then series, then videos" do
+      episode_video = create(:video, title: "Rangers S1E1", visibility: :public)
+      create(:episode, season: create(:season, serie: Serie.create!(title: "Galaxy Rangers")), video: episode_video)
+      create(:movie, title: "Galaxy Quest", video: create(:video, title: "Feature Cut", visibility: :public))
+
+      get search_path(q: "galaxy")
+
+      expect(response.parsed_body.css(".search-page__heading").map(&:text)).to eq(%w[Movies Series Videos])
+    end
+
+    it "shows only the sections that have matches" do
+      create(:video, title: "Galaxy Warriors", visibility: :public)
+
+      get search_path(q: "galaxy")
+
+      expect(response.parsed_body.css(".search-page__heading").map(&:text)).to eq(%w[Videos])
+    end
+
     it "does not list a serie with no matching videos" do
       Serie.create!(title: "Galaxy Rangers")
 
